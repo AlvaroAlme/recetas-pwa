@@ -1,0 +1,12 @@
+# Dependencias: se reinstalan con "npm install" a partir de package-lock.json
+node_modules/
+
+# Secretos: NUNCA al repositorio (SEC-10)
+.env
+.env.*
+!.env.ejemplo
+
+# Registros de npm y archivos que crea el sistema operativo
+npm-debug.log*
+.DS_Store
+Thumbs.db
