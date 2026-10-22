@@ -79,7 +79,7 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 | R-14 | **Supabase gratis:** el proyecto se pausa tras 1 semana sin actividad | [Supabase: Pricing](https://supabase.com/pricing) | Descartado (D-06) |
 | R-15 | **PostgreSQL:** los `CHECK` no admiten subconsultas ni miran otras filas. `ON DELETE SET NULL (columna)` pone a NULL solo las columnas indicadas de una clave foránea compuesta | [PostgreSQL: CREATE TABLE](https://www.postgresql.org/docs/current/sql-createtable.html) (que sea **desde PostgreSQL 15** es **[sin verificar]**: se comprueba en las notas de versión y en la versión de Neon en la fase 1) | Las reglas entre tablas (que la receta sea del mismo hogar) se resuelven con una **FK compuesta** (§4.1). Ninguna regla de negocio va en un CHECK que no pueda funcionar |
 | R-16 | Web Push exige un **contexto seguro**: HTTPS, o `http://localhost` en desarrollo | **[sin verificar]** en MDN (Secure contexts): se comprueba en la fase 3 | En el PC se desarrolla en `http://localhost`. El iPhone se prueba **contra el despliegue HTTPS de Render**, así que no hace falta abrir el firewall (SEC-01) |
-| R-17 | **API de Claude:** la misma petición que en Expo (`output_config.format` con `json_schema`, beta `server-side-fallback-2026-07-01`, `stop_reason`) | Código de `lib/claude.ts`. **[sin verificar de nuevo]** en la documentación actual: se comprueba en la fase 5 | Se porta tal cual a `servidor/servicios/claude.js` |
+| R-17 | **API de Claude:** la misma petición que en Expo (`output_config.format` con `json_schema`, beta `server-side-fallback-2026-07-01`, `stop_reason`) | Código de `lib/claude.ts`. **[sin verificar de nuevo]** en la documentación actual: se comprueba en la fase 5 | Se porta tal cual a `server/servicios/claude.js` |
 
 ---
 
@@ -378,8 +378,8 @@ Nada sensible va a `localStorage`.
 
 ### 4.3 Estrategia de migraciones
 
-- **Archivos versionados:** `servidor/migraciones/NNN_descripcion.sql` (001, 002…). **Una migración aplicada no se edita nunca**: cualquier cambio es un archivo nuevo. Es el equivalente a los bloques `if (currentVersion === N)` de `lib/database.ts`.
-- **Script `servidor/bd/migrar.js`:**
+- **Archivos versionados:** `server/migraciones/NNN_descripcion.sql` (001, 002…). **Una migración aplicada no se edita nunca**: cualquier cambio es un archivo nuevo. Es el equivalente a los bloques `if (currentVersion === N)` de `lib/database.ts`.
+- **Script `server/bd/migrar.js`:**
   1. Abre una conexión y toma un **bloqueo consultivo**, `SELECT pg_advisory_lock(<número fijo>)`, para que dos arranques a la vez no migren en paralelo.
   2. Lee `schema_migrations`.
   3. Por cada archivo pendiente, en orden: `BEGIN` → ejecutar el SQL → `INSERT INTO schema_migrations` → `COMMIT`. En PostgreSQL **los cambios de esquema también son transaccionales**: si falla a medias, `ROLLBACK` y el esquema queda como estaba.
@@ -584,7 +584,7 @@ recetas-nevera-pwa/
 │   ├── formato.js             formatearCantidad                           ← lib/inventario.ts
 │   └── planificador.js        ETIQUETAS_DIA, nombrePlato, textoAviso      ← lib/planificador.ts
 │
-├── servidor/
+├── server/
 │   ├── index.js               Arranque: config → migraciones → agenda → listen
 │   ├── app.js                 Express: helmet + CSP, trust proxy, JSON, estáticos, rutas, errores
 │   ├── config.js              Lee y COMPRUEBA las variables de entorno; si falta alguna, no arranca
@@ -758,7 +758,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 | SEC-06 | Enlaces profundos y dependencia vulnerable | El router valida cada parámetro (`Number.isInteger`, listas cerradas de días y comidas, ubicaciones) y muestra "Esta pantalla no existe" si no encaja. Las URLs de los avisos las construye el servidor y el SW solo abre las del propio origen. Pocas dependencias (9.9) |
 | SEC-07 | Acción de la notificación sin autenticación | No hay acciones (R-03). Tocar el aviso solo **abre** una pantalla, y cualquier cambio exige sesión |
 | SEC-08 | Vulnerabilidades en dependencias | 4 dependencias directas (`express`, `pg`, `web-push`, `helmet`). `npm audit` al cerrar cada fase, `package-lock.json` en el repo y Dependabot en GitHub |
-| SEC-09 | Logs sin control | `servidor/log.js`: en producción solo el mensaje del error y un id de petición; **nunca** cuerpos, cabeceras, cookies, archivos ni la key. El frontend no registra nada en producción |
+| SEC-09 | Logs sin control | `server/log.js`: en producción solo el mensaje del error y un id de petición; **nunca** cuerpos, cabeceras, cookies, archivos ni la key. El frontend no registra nada en producción |
 | SEC-10 | Sin bloqueo y `.env` sin ignorar | `.env` y `.env.*` en `.gitignore` **en el primer commit**, con `.env.ejemplo` sin valores. Las sesiones caducan (P-02) y se puede cerrar sesión. Face ID no existe en la web |
 
 ### 9.2 Autenticación
@@ -980,6 +980,7 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 | D-30 | 2026-10-19 | Iconos (fase B) | **SVG propios en línea** con `currentColor`, siempre con texto y `aria-hidden` | Toman el color del tema y no hay dependencias. |
 | D-31 | 2026-10-19 | Recetas sugeridas sin guardar (fase B, era P-12) | **En el servidor**: tabla `sugerencias` (JSONB) por hogar; cada generación sustituye a la anterior; caducan a los 7 días | Cada generación gasta cuota de IA: no se pierden al recargar, se ven en todos los dispositivos y las comparte el hogar. |
 | D-32 | 2026-10-19 | Fecha de caducidad (fase B, era P-12) | **`<input type="date">` nativo** + botón "Quitar fecha"; validación igual en el servidor | Rueda nativa en iOS, sin errores de formato ni librerías; el motivo de Expo (no añadir dependencias de calendario) desaparece en la web. |
+| D-33 | 2026-10-22 | Nombre de la carpeta del backend (fase 0) | **`server/`** en lugar de `servidor/`; las subcarpetas y los archivos siguen en español | Preferencia del autor. Se actualizan los scripts de `package.json` y las rutas de esta documentación. |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

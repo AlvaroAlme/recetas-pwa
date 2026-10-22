@@ -1,0 +1,17 @@
+{
+  "name": "recetas-nevera-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Recetas con lo que tengas en la nevera: PWA con API REST en Node y PostgreSQL.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.11"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --env-file=.env --watch server/index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
