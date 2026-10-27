@@ -29,6 +29,8 @@ Proyecto de portfolio de un estudiante de DAW.
 - Despliegue: Render (API + frontend en el mismo origen) + cron-job.org
 
 ## Comandos
+- En PowerShell uso `npm.cmd` en vez de `npm` (la política de ejecución de
+  scripts bloquea `npm.ps1`): `npm.cmd run dev`, `npm.cmd install`…
 - `npm run dev`: servidor con recarga en http://localhost:3000
 - `npm start`: servidor sin recarga
 - Primera vez en un equipo: `npm install` y copiar `.env.ejemplo` a `.env`
@@ -43,12 +45,13 @@ Proyecto de portfolio de un estudiante de DAW.
 - Nunca subir `.env` ni secretos al repo.
 
 ## Estado actual
-- Fase 0 (proyecto y servidor mínimo) en curso.
-- Hecho: git init, .gitignore, .env.ejemplo, package.json, express instalado,
+- Fase 0 (proyecto y servidor mínimo) aprobada el 2026-10-27.
+- Fase 1 (base de datos y CRUD del inventario) en curso.
+- Hecho: git init, .gitignore, .env.ejemplo, package.json, express 5.2.1,
   `server/config.js`, `server/app.js` (Express mínimo y `GET /api/salud`;
-  sin helmet ni trust proxy de momento).
-- Siguiente: `server/index.js` y `web/index.html`, y probar los criterios de
-  "Hecho cuando" de la fase 0 (ARQUITECTURA §10).
+  sin helmet ni trust proxy de momento), `server/index.js` y
+  `web/index.html`.
+- Siguiente: fase 1 (Neon, `pg`, migraciones y CRUD del inventario).
 - Pendiente en `app.js`: añadir el bloque `@file` (las comillas ya son
   simples, D-35).
 - Pendiente para más adelante: middleware de errores propio (ahora un JSON
