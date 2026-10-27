@@ -390,7 +390,7 @@ Nada sensible va a `localStorage`.
 
 | Migración | Fase | Contenido |
 |---|---|---|
-| `001_hogares_productos.sql` | 1 | `hogares` (id, nombre, created_at), `productos` y un hogar de desarrollo (ver fase 1) |
+| `001_hogares_productos.sql` | 1 | `hogares` (id, nombre, created_at) y `productos`. **Sin datos**: el hogar de desarrollo lo crea `npm run semilla` (D-39) |
 | `002_cuentas.sql` | 2 | `usuarios`, `miembros`, `invitaciones`, `sesiones` |
 | `003_tuppers_push.sql` | 4 | `tuppers`, `suscripciones_push`, `ALTER TABLE hogares ADD COLUMN zona_horaria …` |
 | `004_ia.sql` | 5 | `uso_ia`, `operaciones`, `ALTER TABLE usuarios ADD COLUMN aviso_ia_aceptado_en …` |
@@ -857,7 +857,7 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - `compartido/` con constantes, texto, fechas, ubicaciones y formato.
 - Rutas y validación de `/api/productos` y `/api/productos/lote`.
 - Frontend mínimo: tokens CSS, pantalla Inventario con el selector de ubicación, alta y edición con "¿Dónde lo guardas?", mover, borrar, y los 4 estados.
-- **Hogar de desarrollo:** como aún no hay cuentas, un middleware pone `req.hogarId = 1` **solo si `NODE_ENV=development`** y falla en producción. La fase 2 lo sustituye. No se despliega nada hasta la fase 3.
+- **Hogar de desarrollo:** como aún no hay cuentas, `npm run semilla` (que se niega a ejecutarse en producción, D-39) crea un hogar de prueba y un middleware usa ese hogar **solo si `NODE_ENV=development`**; en producción falla. La fase 2 lo sustituye. No se despliega nada hasta la fase 3.
 
 **Hecho cuando:**
 - `npm run migrar` crea las tablas, y ejecutarlo otra vez no hace nada;
@@ -987,6 +987,7 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 | D-36 | 2026-10-27 | Región de Neon (fase 1) | **Frankfurt** (`aws-eu-central-1`) | Dentro de la UE (RGPD) y la más cercana a España que ofrece Neon. No se puede cambiar después sin migrar. |
 | D-37 | 2026-10-27 | Versión de PostgreSQL (fase 1) | **PostgreSQL 18** | La más reciente que admite Neon, con más años de soporte. Cumple el mínimo de PostgreSQL 15 que exige `ON DELETE SET NULL (receta_id)`. |
 | D-38 | 2026-10-27 | Conexión a Neon: *pooled* o directa (fase 1) | **Directa para todo**: una sola `DATABASE_URL`, sin `-pooler` | La conexión *pooled* de Neon usa PgBouncer en modo transacción, donde no funcionan los bloqueos consultivos de sesión (`migrar.js`) ni `SET` ([Neon: connection pooling](https://neon.com/docs/connect/connection-pooling)). Un solo servidor con su `pg.Pool` usa muy pocas de las 97 conexiones directas disponibles a 0,25 CU. |
+| D-39 | 2026-10-27 | Hogar de desarrollo de la fase 1 | **Script de semilla aparte** (`npm run semilla`) que crea el hogar de prueba si no existe y se niega a ejecutarse con `NODE_ENV=production`; la migración 001 solo crea tablas | Separa el esquema (que va a todas las bases de datos) de los datos de prueba (solo en desarrollo): una migración aplicada no se puede editar, y un hogar falso se quedaría para siempre en producción. |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 
