@@ -986,6 +986,7 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 | D-35 | 2026-10-27 | Estilo de comillas en JavaScript | **Comillas simples** (`'texto'`) en todo el proyecto; *template literals* (`` `…${x}…` ``) solo cuando hay variables dentro. JSON sigue con dobles porque su formato lo exige | Un solo estilo en todo el código; es el que ya usaban la app Expo y `server/config.js`. |
 | D-36 | 2026-10-27 | Región de Neon (fase 1) | **Frankfurt** (`aws-eu-central-1`) | Dentro de la UE (RGPD) y la más cercana a España que ofrece Neon. No se puede cambiar después sin migrar. |
 | D-37 | 2026-10-27 | Versión de PostgreSQL (fase 1) | **PostgreSQL 18** | La más reciente que admite Neon, con más años de soporte. Cumple el mínimo de PostgreSQL 15 que exige `ON DELETE SET NULL (receta_id)`. |
+| D-38 | 2026-10-27 | Conexión a Neon: *pooled* o directa (fase 1) | **Directa para todo**: una sola `DATABASE_URL`, sin `-pooler` | La conexión *pooled* de Neon usa PgBouncer en modo transacción, donde no funcionan los bloqueos consultivos de sesión (`migrar.js`) ni `SET` ([Neon: connection pooling](https://neon.com/docs/connect/connection-pooling)). Un solo servidor con su `pg.Pool` usa muy pocas de las 97 conexiones directas disponibles a 0,25 CU. |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 
