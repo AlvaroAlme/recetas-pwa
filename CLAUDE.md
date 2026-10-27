@@ -34,7 +34,10 @@ Proyecto de portfolio de un estudiante de DAW.
 - Primera vez en un equipo: `npm install` y copiar `.env.ejemplo` a `.env`
 
 ## Reglas del código
-- Nombres de código, carpetas y mensajes en español.
+- Nombres de código, carpetas y mensajes en español (excepción: la carpeta
+  `server/`, D-33).
+- Comillas simples en JavaScript; template literals solo con variables (D-35).
+- Comentarios JSDoc en primera persona, con mi forma de expresarme.
 - Capas del servidor: rutas → servicios → bd. Las rutas no escriben SQL.
 - `compartido/` no importa nada de fuera de `compartido/`.
 - Nunca subir `.env` ni secretos al repo.
@@ -46,8 +49,12 @@ Proyecto de portfolio de un estudiante de DAW.
   sin helmet ni trust proxy de momento).
 - Siguiente: `server/index.js` y `web/index.html`, y probar los criterios de
   "Hecho cuando" de la fase 0 (ARQUITECTURA §10).
-- Pendiente de decidir: comillas simples o dobles en todo el proyecto, y
-  añadir el bloque `@file` a `app.js`.
+- Pendiente en `app.js`: añadir el bloque `@file` (las comillas ya son
+  simples, D-35).
+- Pendiente para más adelante: middleware de errores propio (ahora un JSON
+  mal formado devuelve la página HTML de error de Express, en inglés).
+- Secretos de desarrollo: copia en Bitwarden, nota `recetas-pwa · .env
+  desarrollo` (D-34).
 
 ## Trabajo en dos equipos
 Trabajo desde el sobremesa (Windows) y el portátil. Al empezar la sesión
