@@ -72,6 +72,17 @@ try {
 }
 
 /**
+ * Cadena de conexión a PostgreSQL (Neon). Es un SECRETO: lleva el usuario y
+ * la contraseña, así que nunca la imprimo ni la pongo en un mensaje de error.
+ * Solo compruebo que tiene pinta de ser una conexión de PostgreSQL.
+ * @type {string}
+ */
+const baseDatos = obligatoria('DATABASE_URL');
+if (!baseDatos.startsWith('postgresql://') && !baseDatos.startsWith('postgres://')) {
+  throw new Error('DATABASE_URL debe empezar por postgresql:// (cópiala de Neon › Connect).');
+}
+
+/**
  * Configuración ya comprobada y congelada: nadie la puede cambiar sin querer
  * desde otro archivo.
  *
@@ -80,7 +91,8 @@ try {
  *   esProduccion: boolean,
  *   puerto: number,
  *   host: string,
- *   appOrigen: string
+ *   appOrigen: string,
+ *   baseDatos: string
  * }>}
  */
 export const config = Object.freeze({
@@ -92,4 +104,5 @@ export const config = Object.freeze({
   // interfaces (0.0.0.0) para que su proxy llegue hasta el servidor.
   host: entorno === 'production' ? '0.0.0.0' : '127.0.0.1',
   appOrigen,
+  baseDatos,
 });
