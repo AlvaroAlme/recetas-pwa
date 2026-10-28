@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --env-file=.env --watch server/index.js",
-    "migrar": "node --env-file=.env server/bd/cli-migrar.js"
+    "migrar": "node --env-file=.env server/bd/cli-migrar.js",
+    "semilla": "node --env-file=.env server/bd/semilla.js"
   },
   "dependencies": {
     "express": "^5.2.1",
