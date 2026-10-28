@@ -56,11 +56,18 @@ Proyecto de portfolio de un estudiante de DAW.
   `server/bd/pool.js`, `transaccion.js` (probado el rollback), `migrar.js`,
   `cli-migrar.js`, `npm run migrar` y la migración 001 APLICADA en Neon
   (tablas hogares y productos, vacías).
-- Siguiente: paso 5 de la fase 1, la semilla de desarrollo (D-39):
-  `server/desarrollo.js`, `server/bd/semilla.js` y el script
-  `npm run semilla`. El código y la explicación están en la conversación;
-  no he escrito nada todavía. Después: `compartido/`, rutas y validación de
-  `/api/productos`, y el frontend del inventario.
+- Hecho fase 1 (pasos 5–6c): semilla (`server/desarrollo.js`,
+  `server/bd/semilla.js`, `npm run semilla`; hogar id 1 creado en Neon y
+  contador de ids colocado), `compartido/constantes.js`, `texto.js`,
+  `ubicaciones.js` (Map; los 54 alimentos coinciden con Expo) y las primeras
+  pruebas (`server/pruebas/compartido.test.js`, `npm test`: 9 de 9).
+- Siguiente: paso 6d, `compartido/fechas.js` (hoyIso, esFechaIso,
+  isoATexto, sumarDias, diasHasta; sin textoAIso por D-32) y
+  `server/pruebas/fechas.test.js`. El código y la explicación están en la
+  conversación; no he escrito nada todavía. Después: `compartido/formato.js`
+  (formatearCantidad), la API de `/api/productos` (validación, servicio,
+  rutas, middleware del hogar de desarrollo, errores) y el frontend del
+  inventario.
 - Pendiente en el `.env`: cambiar `sslmode=require` por
   `sslmode=verify-full` (quita el aviso de seguridad de pg) y actualizar
   Bitwarden.
