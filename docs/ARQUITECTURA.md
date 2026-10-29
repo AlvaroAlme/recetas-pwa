@@ -576,13 +576,15 @@ recetas-nevera-pwa/
 │   │                          NUMERO_RECETAS = 3, PERSONAS = 2, HORA_AVISO_TUPPER = 10,
 │   │                          HORA_AVISO_PLAN_POR_DEFECTO = '21:00'
 │   ├── texto.js               normalizar()                                ← lib/texto.ts
-│   ├── fechas.js              textoAIso, isoATexto, sumarDias, diasHasta ← lib/fechas.ts
+│   ├── fechas.js              hoyIso, esFechaIso, isoATexto, sumarDias,
+│   │                          diasHasta (sin textoAIso, D-32)             ← lib/fechas.ts
 │   ├── horas.js               validarHora, formatearHora                  ← lib/ajustes.ts
 │   ├── ubicaciones.js         ETIQUETAS_UBICACION, ubicacionesPosibles    ← lib/ubicaciones.ts
 │   ├── cocina.js              convertir, redondear, buscarProductos, buscarTupper,
 │   │                          estadoIngrediente, cantidadPropuesta        ← lib/cocina.ts
 │   ├── formato.js             formatearCantidad                           ← lib/inventario.ts
-│   └── planificador.js        ETIQUETAS_DIA, nombrePlato, textoAviso      ← lib/planificador.ts
+│   ├── planificador.js        ETIQUETAS_DIA, nombrePlato, textoAviso      ← lib/planificador.ts
+│   └── validacion.js          validarProducto… (API y formulario, D-40)   ← FormularioProducto
 │
 ├── server/
 │   ├── index.js               Arranque: config → migraciones → agenda → listen
@@ -600,7 +602,7 @@ recetas-nevera-pwa/
 │   │   ├── origen.js          En POST, PUT, PATCH y DELETE exige Origin == APP_ORIGEN (CSRF)
 │   │   ├── limite.js          Límite de peticiones en memoria por IP o por clave
 │   │   └── errores.js         Convierte los errores al formato §5.1; nunca envía trazas
-│   ├── validacion/            Validadores por endpoint (devuelven errores por campo)
+│   ├── validacion/            Validación de lo que NO comparte el formulario (parámetros de URL, ids…). Los datos de productos, tuppers, etc. se validan con compartido/validacion.js (D-40)
 │   ├── rutas/                 Solo HTTP: leen req, validan, llaman al servicio y responden
 │   │   └── auth.js hogar.js productos.js tuppers.js recetas.js sugerencias.js
 │   │       cocinar.js plan.js ia.js push.js tareas.js
@@ -988,6 +990,7 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 | D-37 | 2026-10-27 | Versión de PostgreSQL (fase 1) | **PostgreSQL 18** | La más reciente que admite Neon, con más años de soporte. Cumple el mínimo de PostgreSQL 15 que exige `ON DELETE SET NULL (receta_id)`. |
 | D-38 | 2026-10-27 | Conexión a Neon: *pooled* o directa (fase 1) | **Directa para todo**: una sola `DATABASE_URL`, sin `-pooler` | La conexión *pooled* de Neon usa PgBouncer en modo transacción, donde no funcionan los bloqueos consultivos de sesión (`migrar.js`) ni `SET` ([Neon: connection pooling](https://neon.com/docs/connect/connection-pooling)). Un solo servidor con su `pg.Pool` usa muy pocas de las 97 conexiones directas disponibles a 0,25 CU. |
 | D-39 | 2026-10-27 | Hogar de desarrollo de la fase 1 | **Script de semilla aparte** (`npm run semilla`) que crea el hogar de prueba si no existe y se niega a ejecutarse con `NODE_ENV=production`; la migración 001 solo crea tablas | Separa el esquema (que va a todas las bases de datos) de los datos de prueba (solo en desarrollo): una migración aplicada no se puede editar, y un hogar falso se quedaría para siempre en producción. |
+| D-40 | 2026-10-29 | Dónde se validan los datos de entrada (fase 1) | **`compartido/validacion.js`**: las mismas funciones (`validarProducto`…) para la API y el formulario; el servidor valida SIEMPRE aunque el navegador ya lo haya hecho | Mismas reglas y mismos mensajes en los dos lados, imposibles de desincronizar (idea de D-19). `server/validacion/` queda solo para lo que no usa el formulario (ids, parámetros de URL). |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

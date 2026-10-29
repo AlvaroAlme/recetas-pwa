@@ -8,6 +8,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizar } from '../../compartido/texto.js';
 import { ubicacionesPosibles } from '../../compartido/ubicaciones.js';
+import { formatearCantidad } from '../../compartido/formato.js';
 
 describe('normalizar', () => {
   it('pasa a minúsculas y quita los espacios de los extremos', () => {
@@ -50,5 +51,21 @@ describe('ubicacionesPosibles', () => {
   it('no se confunde con nombres internos de JavaScript', () => {
     assert.deepEqual(ubicacionesPosibles('constructor'), []);
     assert.deepEqual(ubicacionesPosibles('toString'), []);
+  });
+});
+
+describe('formatearCantidad', () => {
+  it('usa coma decimal y la unidad', () => {
+    assert.equal(formatearCantidad(1.5, 'kg'), '1,5 kg');
+    assert.equal(formatearCantidad(500, 'g'), '500 g');
+  });
+
+  it('las unidades se muestran como "ud."', () => {
+    assert.equal(formatearCantidad(2, 'unidades'), '2 ud.');
+  });
+
+  it('redondea a 2 decimales y no pone ceros de más', () => {
+    assert.equal(formatearCantidad(0.333, 'l'), '0,33 l');
+    assert.equal(formatearCantidad(0.1 + 0.2, 'kg'), '0,3 kg');
   });
 });
