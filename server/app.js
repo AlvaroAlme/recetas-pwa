@@ -9,6 +9,8 @@
 import path from 'node:path';
 import express from 'express';
 import { manejarErrores, rutaNoEncontrada } from './middlewares/errores.js';
+import { usarHogarDesarrollo } from './desarrollo.js';
+import { rutasProductos } from './rutas/productos.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -18,6 +20,9 @@ app.use(express.json({ limit: '100kb' }));
 app.get('/api/salud', (req, res) => {
   res.json({ ok: true });
 });
+
+// Inventario. De momento con el hogar de prueba; en la fase 2 aquí irá la sesión.
+app.use('/api/productos', usarHogarDesarrollo, rutasProductos);
 
 // Cualquier otra /api/... que no exista: 404 en JSON. Va DESPUÉS de todas
 // las rutas de la API y ANTES de los archivos estáticos.

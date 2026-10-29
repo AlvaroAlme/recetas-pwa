@@ -27,3 +27,6 @@ export const MAX_LONGITUD_NOMBRE = 80;
 
 /** Cantidad máxima de un producto o ingrediente. SEC-05. */
 export const MAX_CANTIDAD = 100_000;
+
+/** Productos que se pueden guardar de una vez desde un ticket. SEC-05. */
+export const MAX_PRODUCTOS_TICKET = 100;
