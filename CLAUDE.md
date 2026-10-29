@@ -61,22 +61,34 @@ Proyecto de portfolio de un estudiante de DAW.
   contador de ids colocado), `compartido/constantes.js`, `texto.js`,
   `ubicaciones.js` (Map; los 54 alimentos coinciden con Expo) y las primeras
   pruebas (`server/pruebas/compartido.test.js`, `npm test`: 9 de 9).
-- Siguiente: paso 6d, `compartido/fechas.js` (hoyIso, esFechaIso,
-  isoATexto, sumarDias, diasHasta; sin textoAIso por D-32) y
-  `server/pruebas/fechas.test.js`. El código y la explicación están en la
-  conversación; no he escrito nada todavía. Después: `compartido/formato.js`
-  (formatearCantidad), la API de `/api/productos` (validación, servicio,
-  rutas, middleware del hogar de desarrollo, errores) y el frontend del
-  inventario.
-- Pendiente en el `.env`: cambiar `sslmode=require` por
-  `sslmode=verify-full` (quita el aviso de seguridad de pg) y actualizar
-  Bitwarden.
-- En PowerShell, dentro de comandos con comillas dobles, el `$` se escribe
-  `` `$ `` (si no, PowerShell lo toma por una variable suya).
-- Pendiente en `app.js`: añadir el bloque `@file` (las comillas ya son
-  simples, D-35).
-- Pendiente para más adelante: middleware de errores propio (ahora un JSON
-  mal formado devuelve la página HTML de error de Express, en inglés).
+- Hecho fase 1 (pasos 6d–7e, PARTE DEL SERVIDOR TERMINADA):
+  `compartido/fechas.js`, `formato.js` (formatearCantidad),
+  `validacion.js` (validarProducto, D-40), `MAX_PRODUCTOS_TICKET`;
+  `server/errores.js` (ErrorApi) y `middlewares/errores.js` (404 de la API
+  y JSON de §5.1); `servicios/inventario.js` (listar, obtener, crear,
+  actualizar, mover, borrar y crearProductos en transacción);
+  `validacion/productos.js` (leerId, leerUbicacion, leerProducto,
+  leerLote); `usarHogarDesarrollo` en `desarrollo.js`;
+  `rutas/productos.js` montado en `app.js`. Probado con
+  Invoke-RestMethod: crear, editar, mover, lote, borrar, 400 y 404; y el
+  ROLLBACK de un lote roto. `npm test`: 30 de 30. Último commit: 15f100a.
+- En Neon (hogar 1) quedan productos de prueba: leche y tomate (nevera),
+  lentejas y pasta (despensa), queso (congelador). Sirven para el frontend.
+- Siguiente: frontend del inventario, en pasos:
+  8a `app.js` sirve `/compartido/` y devuelve `index.html` en las rutas que
+  no son de la API (DISENO_UI §5.2); 8b `web/css/tokens.css` y `base.css`;
+  8c `el()` y `web/js/api.js`; 8d pantalla Inventario (P-04) con selector
+  de ubicación y los 4 estados + router mínimo; 8e Nuevo/editar producto
+  (P-05) con "¿Dónde lo guardas?"; 8f mover y borrar con `<dialog>`.
+  Después, criterios de "hecho" de la fase 1 y el "ok".
+- Pendiente pequeño: añadir formatearCantidad() al `@file` de
+  `server/pruebas/compartido.test.js`. Comprobar que la nota de Bitwarden
+  tiene ya `sslmode=verify-full` (el `.env` ya lo tiene).
+- Lote: la `clave` de idempotencia (P-06) llega en la fase 5 (tabla
+  `operaciones`, migración 004), dentro de la misma transacción.
+- PowerShell: dentro de comandos con comillas dobles, el `$` se escribe
+  `` `$ ``. Para mandar JSON a la API, `Invoke-RestMethod` (curl.exe pierde
+  las comillas dobles del cuerpo en PowerShell 5.1).
 - Secretos de desarrollo: copia en Bitwarden, nota `recetas-pwa · .env
   desarrollo` (D-34).
 
