@@ -71,19 +71,47 @@ Proyecto de portfolio de un estudiante de DAW.
   leerLote); `usarHogarDesarrollo` en `desarrollo.js`;
   `rutas/productos.js` montado en `app.js`. Probado con
   Invoke-RestMethod: crear, editar, mover, lote, borrar, 400 y 404; y el
-  ROLLBACK de un lote roto. `npm test`: 30 de 30. Último commit: 15f100a.
-- En Neon (hogar 1) quedan productos de prueba: leche y tomate (nevera),
-  lentejas y pasta (despensa), queso (congelador). Sirven para el frontend.
-- Siguiente: frontend del inventario, en pasos:
-  8a `app.js` sirve `/compartido/` y devuelve `index.html` en las rutas que
-  no son de la API (DISENO_UI §5.2); 8b `web/css/tokens.css` y `base.css`;
-  8c `el()` y `web/js/api.js`; 8d pantalla Inventario (P-04) con selector
-  de ubicación y los 4 estados + router mínimo; 8e Nuevo/editar producto
-  (P-05) con "¿Dónde lo guardas?"; 8f mover y borrar con `<dialog>`.
-  Después, criterios de "hecho" de la fase 1 y el "ok".
+  ROLLBACK de un lote roto. `npm test`: 30 de 30.
+- Hecho fase 1 (frontend, pasos 8a–8e-2b, 2026-10-30):
+  - 8a: `app.js` sirve `/compartido/` y devuelve `index.html` en las rutas
+    de la app (`/{*ruta}` sin extensión).
+  - Identidad visual propia D-41 (base crema, botones salvia `#488063`,
+    escalas y radios de Fibonacci, botones de 21 px): `web/css/tokens.css`,
+    `base.css` y `componentes.css`.
+  - 8c: `web/js/dom.js` (`el()` sin innerHTML) y `api.js` (ErrorApi,
+    15 s, SIN_CONEXION / TIEMPO_AGOTADO).
+  - 8d: esqueleto en `index.html` (barra de pestañas abajo / lateral desde
+    48em), `router.js` (pushState, popstate, delegación de clics, turno,
+    `navegar`, `volver`, `tomarMensaje`, "‹ Atrás" con `{ dentro }`),
+    `app.js` con las rutas, pantallas `inventario.js` (selector en la URL,
+    lista por caducidad, cargando/vacío/error) y `noExiste.js`.
+  - Primitivas en `web/js/componentes/ui/index.js` (selector, fila, carga,
+    vacío, aviso, campo con etiqueta flotante, ponerErrorCampo,
+    ponerCargando). `avisoCaducidad()` en `compartido/formato.js`.
+  - 8e-2: `componentes/formularioProducto.js` ("¿Dónde lo guardas?",
+    validarProducto compartido) y `pantallas/producto.js` (alta con POST y
+    mensaje de éxito). Probado guardando en Neon. Placeholders "Ej. …"
+    (decisión mía; DISENO §3.2 actualizado).
+  - 8e-2b: `GET /api/productos/nombres?q=` (D-42: historial del hogar,
+    DISTINCT ON, comodines escapados).
+  - Último commit: 98d2d42.
+- En Neon (hogar 1) hay productos de prueba: leche semidesnatada, leche
+  entera y tomate (nevera), lentejas y pasta (despensa), queso y pechuga de
+  pollo caducada (congelador).
+- Siguiente (autocompletado, D-42): 8e-2c `compartido/sugerencias.js`
+  (lista fija de alimentos comunes con tildes); 8e-2d `crearAutocompletar()`
+  (combobox ARIA, 250 ms, historial + lista, al elegir propone unidad y
+  ubicación). Después: 8e-3 editar producto (GET + PUT, "Guardar
+  cambios"); 8f mover y borrar con `<dialog>` (falta el token
+  `--color-sobre-peligro`, medido). Luego criterios de "hecho" de la
+  fase 1 y el "ok".
 - Pendiente pequeño: añadir formatearCantidad() al `@file` de
-  `server/pruebas/compartido.test.js`. Comprobar que la nota de Bitwarden
-  tiene ya `sslmode=verify-full` (el `.env` ya lo tiene).
+  `server/pruebas/compartido.test.js`; quitar los 4 espacios delante del
+  `import` de `compartido/formato.js`; poner `<body>` con 2 espacios en
+  `index.html`; ordenar `leerBusqueda` en el import de `rutas/productos.js`.
+  Comprobar que la nota de Bitwarden tiene ya `sslmode=verify-full` (el
+  `.env` ya lo tiene).
+- Commits: si me lo pide, los hace Claude (con mi permiso en cada paso).
 - Lote: la `clave` de idempotencia (P-06) llega en la fase 5 (tabla
   `operaciones`, migración 004), dentro de la misma transacción.
 - PowerShell: dentro de comandos con comillas dobles, el `$` se escribe
