@@ -12,7 +12,7 @@
 import { Router } from 'express';
 import { ErrorApi } from '../errores.js';
 import * as inventario from '../servicios/inventario.js';
-import { leerId, leerLote, leerProducto, leerUbicacion } from '../validacion/productos.js';
+import { leerBusqueda, leerId, leerLote, leerProducto, leerUbicacion } from '../validacion/productos.js';
 
 export const rutasProductos = Router();
 
@@ -35,6 +35,14 @@ rutasProductos.get('/', async (req, res) => {
   const ubicacion = leerUbicacion(req.query.ubicacion);
   const productos = await inventario.listarProductos(req.hogarId, ubicacion);
   res.json({ productos });
+});
+
+// GET /api/productos/nombres?q=lec: sugerencias al escribir el nombre (D-42).
+// Tiene que ir ANTES que GET /:id: si no, "nombres" se tomaría por un id y daría 404.
+rutasProductos.get('/nombres', async (req, res) => {
+  const texto = leerBusqueda(req.query.q);
+  const nombres = await inventario.sugerirNombres(req.hogarId, texto);
+  res.json({ nombres });
 });
 
 // POST /api/productos/lote: guardar el ticket. Va antes que las rutas con

@@ -173,3 +173,29 @@ export async function crearProductos(hogarId, lista) {
     return lista.length;
   });
 }
+
+/**
+ * Nombres que el hogar ya ha usado y que contienen el texto, para sugerirlos
+ * mientras se escribe (D-42). De cada nombre devuelvo la unidad y la
+ * ubicación de la ÚLTIMA vez. Incluyo los agotados: la leche se acaba, pero
+ * la vuelves a comprar.
+ * @param {number} hogarId
+ * @param {string} texto Ya validado (de 2 a 80 caracteres).
+ * @returns {Promise<{ nombre: string, unidad: string, ubicacion: string }[]>} Como mucho 8.
+ */
+export async function sugerirNombres(hogarId, texto) {
+  // En LIKE, % y _ son comodines. Si el usuario los escribe, los escapo con \
+  // para que cuenten como letras normales.
+  const patron = `%${texto.replace(/[\\%_]/g, '\\$&')}%`;
+  const { rows } = await pool.query(
+    `SELECT nombre, unidad, ubicacion
+       FROM (SELECT DISTINCT ON (lower(nombre)) nombre, unidad, ubicacion, fecha_alta
+               FROM productos
+              WHERE hogar_id = $1 AND nombre ILIKE $2
+              ORDER BY lower(nombre), fecha_alta DESC) AS ultimos
+      ORDER BY fecha_alta DESC
+      LIMIT 8`,
+    [hogarId, patron]
+  );
+  return rows;
+}

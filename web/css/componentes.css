@@ -270,8 +270,7 @@
 .selector__leyenda {
   margin-bottom: var(--espacio-s);
   padding: 0;
-  color: var(--color-texto-secundario);
-  font-size: var(--texto-secundario);
+  font-weight: var(--peso-fuerte);
 }
 .selector__opciones {
   display: flex;
@@ -406,4 +405,98 @@ input:focus-visible + .chip {
 .aviso--exito {
   background: var(--color-fondo-exito);
   color: var(--color-exito);
+}
+
+/* ============ Formularios ============ */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+}
+/* La caja es la referencia para colocar la etiqueta ENCIMA del input. */
+.campo__caja {
+  position: relative;
+}
+.campo__entrada {
+  width: 100%;
+  /* Arriba dejo sitio para la etiqueta cuando sube. */
+  padding: calc(var(--texto-pequeno) * var(--linea-pequeno) + var(--espacio-s)) var(--espacio-m) var(--espacio-s);
+  border: 1px solid var(--color-borde-control);
+  border-radius: var(--radio-s);
+  background: var(--color-fondo);
+}
+/* Etiqueta flotante: sin escribir, en el centro, como si fuera el texto de relleno. */
+.campo__etiqueta {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--espacio-m) + 1px);
+  transform: translateY(-50%);
+  color: var(--color-texto-tenue);
+  pointer-events: none;
+  transition: top 0.15s ease, transform 0.15s ease, font-size 0.15s ease;
+}
+/* Sube arriba, en pequeño, si el campo tiene el foco o ya tiene algo escrito.
+   Las fechas siempre (el navegador dibuja su formato dentro). */
+.campo:focus-within .campo__etiqueta,
+.campo:has(.campo__entrada:not(:placeholder-shown)) .campo__etiqueta,
+.campo:has(.campo__entrada[type='date']) .campo__etiqueta {
+  top: calc(var(--espacio-xs) + 1px);
+  transform: none;
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-pequeno);
+  line-height: var(--linea-pequeno);
+  font-weight: var(--peso-fuerte);
+}
+.campo:focus-within .campo__etiqueta {
+  color: var(--color-primario-texto);
+}
+/* El placeholder (qué hay que poner) solo se ve con el campo enfocado:
+   si no, se pisaría con la etiqueta. */
+.campo__entrada::placeholder {
+  color: var(--color-placeholder);
+}
+.campo__entrada:not(:focus)::placeholder {
+  color: transparent;
+}
+/* Con error: borde rojo MÁS GRUESO y, debajo, el texto con "✗". */
+.campo__entrada[aria-invalid='true'] {
+  border: 2px solid var(--color-peligro);
+}
+.campo__ayuda {
+  color: var(--color-texto-tenue);
+  font-size: var(--texto-secundario);
+}
+.campo__error {
+  color: var(--color-peligro);
+  font-size: var(--texto-secundario);
+  font-weight: var(--peso-fuerte);
+}
+.selector .campo__error {
+  margin-top: var(--espacio-s);
+}
+.chip--recomendado {
+  border: 2px solid var(--color-primario);
+}
+.pregunta {
+  margin-bottom: var(--espacio-m);
+  padding: var(--espacio-m);
+  border: 1.5px solid var(--color-primario);
+  border-radius: var(--radio-m);
+}
+/* Cuando no hay pregunta, el recuadro sigue en la página (para el lector) pero no se ve. */
+.pregunta:empty {
+  display: none;
+}
+.formulario__fecha {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-s);
+}
+.formulario__fecha .campo {
+  flex: 1;
 }

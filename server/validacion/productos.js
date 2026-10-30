@@ -7,7 +7,7 @@
  * middleware de errores lo convierte en la respuesta. Así cada ruta lo
  * resuelve en una línea: const id = leerId(req.params.id);
  */
-import { MAX_PRODUCTOS_TICKET, UBICACIONES } from '../../compartido/constantes.js';
+import { MAX_LONGITUD_NOMBRE, MAX_PRODUCTOS_TICKET, UBICACIONES } from '../../compartido/constantes.js';
 import { validarProducto } from '../../compartido/validacion.js';
 import { ErrorApi } from '../errores.js';
 
@@ -99,4 +99,21 @@ export function leerLote(cuerpo) {
     throw new ErrorApi(400, 'VALIDACION', REVISA_CAMPOS, { campos });
   }
   return lista;
+}
+
+/**
+ * El texto para sugerir nombres (?q=). Con menos de 2 letras saldría casi
+ * todo, así que no merece la pena preguntar.
+ * @param {unknown} valor
+ * @returns {string}
+ * @throws {ErrorApi} 400 VALIDACION
+ */
+export function leerBusqueda(valor) {
+  const texto = typeof valor === 'string' ? valor.trim() : '';
+  if (texto.length < 2 || texto.length > MAX_LONGITUD_NOMBRE) {
+    throw new ErrorApi(400, 'VALIDACION', REVISA_CAMPOS, {
+      campos: { q: `Escribe entre 2 y ${MAX_LONGITUD_NOMBRE} letras.` },
+    });
+  }
+  return texto;
 }

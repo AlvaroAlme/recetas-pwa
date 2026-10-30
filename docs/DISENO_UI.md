@@ -296,13 +296,16 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
 #### CampoTexto
 ```html
 <div class="campo">
-  <label class="campo__etiqueta" for="cantidad">Cantidad</label>
-  <input class="campo__entrada" id="cantidad" name="cantidad" inputmode="decimal"
-         autocomplete="off" aria-describedby="cantidad-ayuda" />
-  <p class="campo__ayuda" id="cantidad-ayuda">Ej. 500</p>
+  <div class="campo__caja">
+    <label class="campo__etiqueta" for="cantidad">Cantidad</label>
+    <input class="campo__entrada" id="cantidad" name="cantidad" inputmode="decimal"
+           autocomplete="off" placeholder="Ej. 500" />
+  </div>
   <p class="campo__error" id="cantidad-error" hidden></p>
 </div>
 ```
+- **Etiqueta flotante (2026-10-30):** la etiqueta está **dentro** del campo, en el centro, como si fuera el texto de relleno. Al enfocar el campo (o en cuanto tiene algo escrito) **sube** a la parte de arriba, en pequeño, y deja ver el *placeholder*. Sigue siendo un `<label for>` de verdad, así que el lector de pantallas la lee igual. Los campos de fecha y hora la llevan siempre arriba (el navegador ya dibuja su formato dentro).
+- **El *placeholder* es un ejemplo** ("Ej. Pechuga de pollo", "Ej. 500"), porque la etiqueta ya dice qué hay que poner. Solo se ve con el campo enfocado, cuando la etiqueta ha subido.
 - **Variantes por tipo:**
   - texto: nombre, con `autocapitalize="sentences"` y `maxlength="80"`;
   - número decimal: `inputmode="decimal"`, que en iOS saca el teclado numérico con coma;
@@ -311,7 +314,7 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
   - contraseña: `type="password"`, con `autocomplete="current-password"` o `"new-password"` para que funcione el llavero de iCloud;
   - fecha: `type="date"` + "Quitar fecha" (D-32);
   - hora: `type="time"`, en Ajustes.
-- **Medidas:** `min-height: var(--tactil)`, borde de 1 px `borde`, radio `--radio-s`. **Tamaño de letra ≥ 16 px** dentro del campo (`--texto-cuerpo`): si es menor, Safari hace zoom al enfocarlo **[sin verificar]** (fase 1).
+- **Medidas:** unos 58 px de alto (espacio para la etiqueta subida y el texto), borde de 1 px `borde-control`, radio `--radio-s`. **Tamaño de letra ≥ 16 px** dentro del campo (`--texto-cuerpo`): si es menor, Safari hace zoom al enfocarlo **[sin verificar]** (fase 1).
 - **Error:** se rellena y muestra `.campo__error` ("✗ Debe ser un número mayor que 0."), se pone `aria-invalid="true"`, y `aria-describedby` apunta al error (en lugar de a la ayuda, que se oculta como en Expo). El borde pasa a `peligro` **y además** aparece el texto con "✗": la información no depende solo del color.
 - **Al pulsar Guardar con errores:** el foco va al **primer campo con error** (el lector de pantallas lo lee con su error). No se anuncian los errores mientras se escribe, para no interrumpir.
 - **Deshabilitado:** `disabled` (con el campo tenue).
@@ -334,6 +337,14 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
   - foco: el anillo se dibuja en el chip (`input:focus-visible + .chip`);
   - ninguno elegido: es el estado de "preguntar" (`seleccionado: null` en Expo).
 - **Medidas:** `min-height: 40px` (como `TAMANO_TACTIL - 4`) dentro de una fila con `gap: 8px`, más el área del `<label>`. **[sin verificar]** que con 40 px + separación se cumple el objetivo de 44 px; si no, se sube a 44 (fase 1). `flex-wrap: wrap`, así que con letra grande bajan de línea.
+
+#### Autocompletar (D-42)
+Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patrón *combobox* de ARIA:
+- el input lleva `role="combobox"`, `aria-autocomplete="list"`, `aria-expanded` y `aria-controls` hacia la lista; la lista es `role="listbox"` y cada sugerencia `role="option"` (≥ 44 px de alto);
+- **flechas** arriba y abajo recorren las opciones (`aria-activedescendant` marca la activa, el foco se queda en el input), **Intro** elige y **Escape** cierra;
+- las del historial del hogar van primero y muestran su unidad y ubicación en `texto-tenue` ("l · Nevera"); después, las de la lista fija;
+- se pide al servidor cuando hay 2 letras o más, esperando 250 ms desde la última tecla; sin red, solo la lista fija;
+- elegir una del historial propone también su **unidad y ubicación** (se pueden cambiar).
 
 #### Casilla
 `<label class="casilla"><input type="checkbox" class="casilla__entrada"> <span>Marcar el tupper «Lentejas» como consumido</span></label>`. Toda la fila mide ≥ 44 px y se puede pulsar entera. Se usa `accent-color: var(--color-primario)` sobre la casilla nativa (sin dibujar una propia).
