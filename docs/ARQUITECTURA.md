@@ -624,7 +624,7 @@ recetas-nevera-pwa/
     ├── manifest.webmanifest   name, short_name, start_url, display: standalone, iconos, colores
     ├── sw.js                  EN LA RAÍZ, para que su alcance sea toda la app
     ├── iconos/                PNG 192 y 512, apple-touch-icon 180
-    ├── css/                   tokens.css (← constants/tema.ts), base.css, componentes.css
+    ├── css/                   tokens.css (paleta propia, D-41), base.css, componentes.css
     └── js/
         ├── app.js             Arranque: registra el SW, comprueba la sesión, arranca el router
         ├── router.js          Rutas → pantallas; valida los parámetros (SEC-06)
@@ -991,6 +991,7 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 | D-38 | 2026-10-27 | Conexión a Neon: *pooled* o directa (fase 1) | **Directa para todo**: una sola `DATABASE_URL`, sin `-pooler` | La conexión *pooled* de Neon usa PgBouncer en modo transacción, donde no funcionan los bloqueos consultivos de sesión (`migrar.js`) ni `SET` ([Neon: connection pooling](https://neon.com/docs/connect/connection-pooling)). Un solo servidor con su `pg.Pool` usa muy pocas de las 97 conexiones directas disponibles a 0,25 CU. |
 | D-39 | 2026-10-27 | Hogar de desarrollo de la fase 1 | **Script de semilla aparte** (`npm run semilla`) que crea el hogar de prueba si no existe y se niega a ejecutarse con `NODE_ENV=production`; la migración 001 solo crea tablas | Separa el esquema (que va a todas las bases de datos) de los datos de prueba (solo en desarrollo): una migración aplicada no se puede editar, y un hogar falso se quedaría para siempre en producción. |
 | D-40 | 2026-10-29 | Dónde se validan los datos de entrada (fase 1) | **`compartido/validacion.js`**: las mismas funciones (`validarProducto`…) para la API y el formulario; el servidor valida SIEMPRE aunque el navegador ya lo haya hecho | Mismas reglas y mismos mensajes en los dos lados, imposibles de desincronizar (idea de D-19). `server/validacion/` queda solo para lo que no usa el formulario (ids, parámetros de URL). |
+| D-41 | 2026-10-30 | Identidad visual propia (sustituye `DISENO_UI.md` §2.1 y los radios de §2.2) | **Base crema + botones salvia**: fondo `#faf6ee` / `#18130e`, primario salvia `#488063` (claro, paso 55) / `#71b591` (oscuro, paso 34); escalas de color en pasos de **Fibonacci** (1–89) calculadas en OKLCH; radios de Fibonacci (8, 13, **21 px en los botones**, píldora). Dos tokens nuevos: `--color-primario-texto` (el salvia de 55 no llega a 4,5:1 como texto sobre crema) y `--color-borde-control` (bordes de campos ≥ 3:1, WCAG 1.4.11). Éxito usa la familia salvia. Peligro y aviso, sin cambios | Proyecto de portfolio: identidad propia en vez de copiar Expo. Todos los pares de texto medidos ≥ 4,5:1 en los dos modos (tabla en `DISENO_UI.md` §2.1). La letra del sistema (D-29) no cambia. |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

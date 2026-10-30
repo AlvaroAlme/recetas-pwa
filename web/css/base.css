@@ -1,0 +1,80 @@
+/*
+ * Base: lo que vale para toda la página. Solo uso variables de tokens.css.
+ */
+
+/* El ancho incluye el borde y el relleno: si digo 100%, es 100% de verdad. */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 106.25%;                 /* 1rem = 17 px con el tamaño por defecto */
+  -webkit-text-size-adjust: 100%;     /* iOS no agranda el texto por su cuenta al girar */
+}
+
+/* Pantallas táctiles de Apple: tamaño de letra del sistema (Dynamic Type).
+   "hover: none" evita aplicarlo en el Safari del Mac, donde sale más pequeño. */
+@supports (font: -apple-system-body) {
+  @media (hover: none) {
+    html {
+      font: -apple-system-body;
+      font-family: system-ui, -apple-system, sans-serif; /* va DESPUÉS del atajo `font` */
+    }
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-size: var(--texto-cuerpo);
+  line-height: var(--linea-cuerpo);
+}
+
+/* Quito los márgenes que el navegador pone por su cuenta: los espacios los decido yo. */
+h1, h2, h3, p, ul, ol, fieldset {
+  margin: 0;
+}
+
+/* Los botones y los campos heredan la letra. Si no, el navegador les pone
+   una más pequeña y el iPhone hace zoom al tocar un campo de menos de 16 px. */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Que `hidden` oculte SIEMPRE, aunque otra regla le ponga un display. */
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: var(--foco);
+  outline-offset: var(--foco-separacion);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Oculto a la vista, pero el lector de pantallas lo lee (textos solo para él). */
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

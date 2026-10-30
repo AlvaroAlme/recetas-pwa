@@ -1,0 +1,95 @@
+/*
+ * Tokens: los colores, espacios y tamaños de toda la app. Identidad propia
+ * (D-41): base crema y botones salvia, con escalas de Fibonacci. Ningún
+ * otro CSS escribe un color o un tamaño a mano: usa estas variables.
+ */
+ 
+ /* ============ Colores (DISENO_UI §2.1, D-41) ============ */
+:root {
+  /* Avisa al navegador de que hay modo claro y oscuro: así los controles
+     nativos (selector de fecha, casillas, barras de scroll) también cambian. */
+  color-scheme: light dark;
+
+  /* ---- Modo claro ---- */
+  --color-fondo: #faf6ee;             /* crema */
+  --color-superficie: #f2ece0;        /* tarjetas y zonas elevadas (crema 5) */
+  --color-texto: #2a241d;
+  --color-texto-secundario: #4f463c;
+  --color-texto-tenue: #655c52;
+  --color-borde: #cdc3ae;             /* separadores (crema 21): decorativo */
+  --color-borde-control: #7a715f;     /* borde de campos y casillas (crema 55): ≥ 3:1 */
+  --color-placeholder: #746a60;
+  --color-primario: #488063;          /* salvia 55: fondo de botones */
+  --color-primario-texto: #256d4c;    /* salvia como TEXTO (enlaces, botón secundario) */
+  --color-sobre-primario: #ffffff;    /* texto encima de primario */
+  --color-peligro: #b3261e;
+  --color-fondo-peligro: #fbe6e3;
+  --color-aviso: #8a5300;
+  --color-fondo-aviso: #fbedd3;
+  --color-exito: #256d4c;             /* familia salvia */
+  --color-fondo-exito: #d4f7e3;       /* salvia 5 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ---- Modo oscuro ---- */
+    --color-fondo: #18130e;
+    --color-superficie: #241e19;
+    --color-texto: #f3ede4;
+    --color-texto-secundario: #d3cdc6;
+    --color-texto-tenue: #b4aca4;
+    --color-borde: #3d3732;
+    --color-borde-control: #77706b;
+    --color-placeholder: #8b857f;
+    --color-primario: #71b591;          /* salvia 34 */
+    --color-primario-texto: #71b591;
+    --color-sobre-primario: #02331f;    /* salvia 89 */
+    --color-peligro: #f28b82;
+    --color-fondo-peligro: #3d1b17;
+    --color-aviso: #f0c04a;
+    --color-fondo-aviso: #3a2c0f;
+    --color-exito: #71b591;
+    --color-fondo-exito: #162f22;
+  }
+}
+
+/* ============ Espacio, radios y tamaños (§2.2) ============ */
+:root {
+  /* ESPACIO: múltiplos de 4, en px (no crecen con la letra: crecen los textos) */
+  --espacio-xs: 4px;
+  --espacio-s: 8px;
+  --espacio-m: 12px;
+  --espacio-l: 16px;
+  --espacio-xl: 24px;
+  --espacio-xxl: 32px;
+
+  /* RADIO: pasos de Fibonacci (D-41) */
+  --radio-s: 8px;          /* campos de texto */
+  --radio-m: 13px;         /* tarjetas, filas y <dialog> */
+  --radio-l: 21px;         /* botones */
+  --radio-pildora: 999px;  /* chips y etiquetas */
+
+  --tactil: 44px;          /* mínimo de cualquier zona pulsable */
+  --ancho-maximo: 640px;   /* el contenido no se estira */
+  --ancho-barra-lateral: 88px;
+  --alto-navegacion: 64px;  /* barra inferior del móvil, sin la zona segura */
+}
+
+/* ============ Letra (§2.3): px / 17 en rem ============ */
+:root {
+  --texto-titulo: calc(24rem / 17);      --linea-titulo: 1.25;
+  --texto-subtitulo: calc(18rem / 17);   --linea-subtitulo: 1.333;
+  --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.375;
+  --texto-secundario: calc(14rem / 17);  --linea-secundario: 1.429;
+  --texto-pequeno: calc(13rem / 17);     --linea-pequeno: 1.385;
+  --texto-seccion: calc(13rem / 17);     /* 600, mayúsculas, letter-spacing 0.5 px */
+  --peso-normal: 400;
+  --peso-fuerte: 600;
+  --peso-titulo: 700;
+}
+
+/* ============ Foco (§2.4) ============ */
+:root {
+  --foco: 3px solid var(--color-primario);
+  --foco-separacion: 2px;
+}

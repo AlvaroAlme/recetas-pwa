@@ -1,0 +1,233 @@
+/*
+ * Componentes: la estructura de la app y las piezas que se repiten.
+ * Nombres tipo BEM (.bloque, .bloque__parte, .bloque--variante) y solo
+ * variables de tokens.css. Primero el móvil; desde 48em, la barra lateral.
+ */
+
+/* ============ Saltar al contenido ============ */
+/* Escondido arriba; aparece al llegar con el tabulador (accesibilidad). */
+.saltar {
+  position: absolute;
+  top: -100px;
+  left: var(--espacio-s);
+  z-index: 10;
+  padding: var(--espacio-s) var(--espacio-l);
+  border-radius: var(--radio-l);
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+.saltar:focus {
+  top: var(--espacio-s);
+}
+
+/* ============ Estructura ============ */
+.app {
+  /* Lo que ocupa abajo la barra de pestañas en el móvil (con la zona segura del iPhone). */
+  --hueco-navegacion: calc(var(--alto-navegacion) + env(safe-area-inset-bottom, 0px));
+  min-height: 100dvh;
+}
+
+.pagina {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-bottom: var(--hueco-navegacion);
+}
+
+.cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-inline: max(var(--espacio-l), env(safe-area-inset-left)) max(var(--espacio-l), env(safe-area-inset-right));
+  background: var(--color-fondo);
+  border-bottom: 1px solid var(--color-borde);
+}
+.cabecera__interior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-s);
+  max-width: var(--ancho-maximo);
+  min-height: 56px;
+  margin-inline: auto;
+}
+.cabecera__titulo {
+  font-size: var(--texto-titulo);
+  line-height: var(--linea-titulo);
+  font-weight: var(--peso-titulo);
+}
+
+.pantalla {
+  flex: 1;
+  padding-block: var(--espacio-l);
+  padding-inline: max(var(--espacio-l), env(safe-area-inset-left)) max(var(--espacio-l), env(safe-area-inset-right));
+}
+/* <main> recibe el foco al cambiar de pantalla (para el lector), pero no es
+   un control: no le dibujo el anillo. */
+.pantalla:focus {
+  outline: none;
+}
+.pantalla__contenido {
+  max-width: var(--ancho-maximo);
+  margin-inline: auto;
+}
+
+/* ============ Pie: la acción principal, al alcance del pulgar ============ */
+.pie {
+  position: sticky;
+  bottom: var(--hueco-navegacion);
+  z-index: 2;
+  padding-block: var(--espacio-m);
+  padding-inline: max(var(--espacio-l), env(safe-area-inset-left)) max(var(--espacio-l), env(safe-area-inset-right));
+  background: var(--color-fondo);
+  border-top: 1px solid var(--color-borde);
+}
+.pie__interior {
+  display: flex;
+  gap: var(--espacio-s);
+  max-width: var(--ancho-maximo);
+  margin-inline: auto;
+}
+.pie__interior > * {
+  flex: 1;
+}
+/* En horizontal (poca altura), un pie fijo taparía media pantalla. */
+@media (max-height: 30em) {
+  .pie {
+    position: static;
+  }
+}
+
+/* ============ Navegación: abajo en el móvil ============ */
+.navegacion {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 3;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+  background: var(--color-fondo);
+  border-top: 1px solid var(--color-borde);
+}
+.navegacion ul {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 0;
+  list-style: none;
+}
+.navegacion a {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--alto-navegacion);
+  color: var(--color-texto-tenue);
+  font-size: var(--texto-pequeno);
+  line-height: var(--linea-pequeno);
+  text-decoration: none;
+}
+/* Pestaña activa: color, negrita y una barrita. Nunca solo el color. */
+.navegacion a[aria-current='page'] {
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-fuerte);
+}
+.navegacion a[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 25%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--color-primario);
+}
+
+/* ============ Páginas secundarias (formularios…) ============ */
+/* En el móvil no llevan barra de pestañas: más sitio para el formulario. */
+.app--secundaria {
+  --hueco-navegacion: 0px;
+}
+.app--secundaria .navegacion {
+  display: none;
+}
+.app--secundaria .pie {
+  padding-bottom: max(var(--espacio-m), env(safe-area-inset-bottom));
+}
+
+/* ============ Desde 48em: barra lateral ============ */
+@media (min-width: 48em) {
+  .app {
+    --hueco-navegacion: 0px;
+    display: grid;
+    grid-template-columns: var(--ancho-barra-lateral) 1fr;
+  }
+  .navegacion {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    padding-block: var(--espacio-l);
+    border-top: 0;
+    border-right: 1px solid var(--color-borde);
+  }
+  .navegacion ul {
+    grid-template-columns: 1fr;
+    gap: var(--espacio-s);
+  }
+  .navegacion a[aria-current='page']::before {
+    top: 25%;
+    bottom: 25%;
+    left: 0;
+    right: auto;
+    width: 3px;
+    height: auto;
+    border-radius: 0 3px 3px 0;
+  }
+    /* En escritorio, la barra lateral se ve siempre. */
+  .app--secundaria .navegacion {
+    display: block;
+  }
+}
+
+/* ============ Botón ============ */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-s);
+  width: 100%;
+  min-height: calc(var(--tactil) + 4px);
+  padding: var(--espacio-s) var(--espacio-l);
+  border: 1.5px solid transparent;
+  border-radius: var(--radio-l);
+  font-weight: var(--peso-fuerte);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.boton:active {
+  opacity: 0.7;
+}
+.boton--primario {
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+.boton--secundario {
+  background: transparent;
+  border-color: var(--color-primario);
+  color: var(--color-primario-texto);
+}
+.boton--fantasma {
+  min-height: var(--tactil);
+  background: transparent;
+  color: var(--color-primario-texto);
+}
+.boton--ajustado {
+  width: auto;
+}
+.boton[disabled],
+.boton[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

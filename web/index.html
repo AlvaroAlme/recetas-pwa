@@ -5,13 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="Recetas con lo que tengas en la nevera.">
+    <meta name="theme-color" content="#faf6ee" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#18130e" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="/css/tokens.css">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/componentes.css">
     <title>Recetas Nevera</title>
   </head>
-  <body>
-    <main>
-      <h1>Recetas Nevera</h1>
-      <p>Recetas con lo que tengas en la nevera.</p>
-      <p>El servidor funciona. La app llega en la fase 1.</p>
-    </main>
+      <body>
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+    <div class="app">
+      <nav class="navegacion" aria-label="Principal">
+        <ul>
+          <li>
+            <a href="/">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M5 9.5h14M8.5 5.5v1.5M8.5 12.5v3"/></svg>
+              <span>Inventario</span>
+            </a>
+          </li>
+          <li>
+            <a href="/recetas">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M2 10h20M9 7c0-1 1-1.5 1-2.5M13 7c0-1 1-1.5 1-2.5"/></svg>
+              <span>Recetas</span>
+            </a>
+          </li>
+          <li>
+            <a href="/semana">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+              <span>Semana</span>
+            </a>
+          </li>
+          <li>
+            <a href="/ajustes">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+              <span>Ajustes</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="pagina">
+        <header class="cabecera">
+          <div class="cabecera__interior">
+            <h1 class="cabecera__titulo" id="titulo">Inventario</h1>
+            <div id="accion-cabecera"></div>
+          </div>
+        </header>
+
+        <main id="contenido" class="pantalla" tabindex="-1">
+          <div class="pantalla__contenido" id="pantalla">
+          </div>
+        </main>
+
+        <div class="pie" id="pie" hidden>
+          <div class="pie__interior" id="pie-interior">
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/js/app.js"></script>
   </body>
 </html>

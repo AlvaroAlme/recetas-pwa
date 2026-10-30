@@ -5,7 +5,7 @@
 | **Estado** | Fase B **aprobada** el 19 de octubre de 2026 |
 | **Fecha** | 19 de octubre de 2026 |
 | **Basado en** | `docs/COMPONENTES.md`, `constants/tema.ts` y `app/**/*.tsx` de la app Expo; `docs/ARQUITECTURA.md` (decisiones D-01 a D-32) |
-| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa (registro en `ARQUITECTURA.md` §11) |
+| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad visual propia (crema y salvia, 30-10-2026) (registro en `ARQUITECTURA.md` §11) |
 
 **[sin verificar]** marca lo que se comprueba en el iPhone en la fase indicada antes de darlo por bueno.
 
@@ -32,7 +32,17 @@
 
 Archivo: `web/css/tokens.css`. Es la **única** fuente de colores, espacios, radios y tamaños. Ningún otro CSS escribe un color a mano (como en `tema.ts`).
 
-### 2.1 Colores (portados de `constants/tema.ts` sin cambiar ni uno)
+### 2.1 Colores: base crema y salvia (D-41)
+
+Identidad propia del proyecto (ya no son los colores de `tema.ts`). Se eligió así:
+- **Base:** un blanco **crema** suave (tono cálido, muy poca saturación). En oscuro, un marrón casi negro, tostado, en lugar del `#000`.
+- **Botones:** **salvia**, un verde grisáceo de cocina, con radio de 21 px.
+- **Escalas de Fibonacci:** cada color tiene 10 pasos, **1, 2, 3, 5, 8, 13, 21, 34, 55 y 89**. El número dice lo oscuro que es: claridad OKLCH = 0,985 − (paso / 89) × 0,70. Los claros quedan muy juntos y los oscuros muy separados, y cada zona tiene su uso: 1–8 fondos y tintes, 13–21 bordes, **34 el botón en oscuro**, **55 el botón en claro** y 89 texto sobre tintes.
+
+| Paso | 1 | 2 | 3 | 5 | 8 | 13 | 21 | 34 | 55 | 89 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **Crema** (tono 85) | `#fcf7ec` | `#f9f4ea` | `#f7f2e7` | `#f2ece0` | `#ece4d5` | `#e1d7c5` | `#cdc3ae` | `#aea38c` | `#7a715f` | `#30291c` |
+| **Salvia** (tono 160) | `#effbf4` | `#eafaf0` | `#e0faeb` | `#d4f7e3` | `#c5f2d8` | `#b1e7c9` | `#96d5b2` | `#71b591` | `#488063` | `#02331f` |
 
 ```css
 :root {
@@ -40,49 +50,73 @@ Archivo: `web/css/tokens.css`. Es la **única** fuente de colores, espacios, rad
      nativos (selector de fecha, casillas, barras de scroll) también cambian. */
   color-scheme: light dark;
 
-  /* ---- Modo claro (PALETAS.light) ---- */
-  --color-fondo: #ffffff;
-  --color-superficie: #f4f5f7;        /* tarjetas y zonas elevadas */
-  --color-texto: #111827;
-  --color-texto-secundario: #374151;
-  --color-texto-tenue: #5d6470;
-  --color-borde: #d1d5db;
-  --color-placeholder: #9ca3af;
-  --color-primario: #1d6fb8;
+  /* ---- Modo claro ---- */
+  --color-fondo: #faf6ee;             /* crema */
+  --color-superficie: #f2ece0;        /* tarjetas y zonas elevadas (crema 5) */
+  --color-texto: #2a241d;
+  --color-texto-secundario: #4f463c;
+  --color-texto-tenue: #655c52;
+  --color-borde: #cdc3ae;             /* separadores (crema 21): decorativo */
+  --color-borde-control: #7a715f;     /* borde de campos y casillas (crema 55): ≥ 3:1 */
+  --color-placeholder: #746a60;
+  --color-primario: #488063;          /* salvia 55: fondo de botones */
+  --color-primario-texto: #256d4c;    /* salvia como TEXTO (enlaces, botón secundario) */
   --color-sobre-primario: #ffffff;    /* texto encima de primario */
-  --color-peligro: #c62828;
-  --color-fondo-peligro: #fdecea;
-  --color-aviso: #a85d00;
-  --color-fondo-aviso: #fff4e0;
-  --color-exito: #13733a;
-  --color-fondo-exito: #e7f6ec;
+  --color-peligro: #b3261e;
+  --color-fondo-peligro: #fbe6e3;
+  --color-aviso: #8a5300;
+  --color-fondo-aviso: #fbedd3;
+  --color-exito: #256d4c;             /* familia salvia */
+  --color-fondo-exito: #d4f7e3;       /* salvia 5 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* ---- Modo oscuro (PALETAS.dark) ---- */
-    --color-fondo: #000000;
-    --color-superficie: #1c1c1e;
-    --color-texto: #f9fafb;
-    --color-texto-secundario: #d1d5db;
-    --color-texto-tenue: #9ca3af;
-    --color-borde: #3a3a3c;
-    --color-placeholder: #6b7280;
-    --color-primario: #5eb0ef;
-    --color-sobre-primario: #0b1220;
-    --color-peligro: #f87171;
-    --color-fondo-peligro: #3b1414;
-    --color-aviso: #fbbf24;
-    --color-fondo-aviso: #3a2a07;
-    --color-exito: #4ade80;
-    --color-fondo-exito: #0f2e1a;
+    /* ---- Modo oscuro ---- */
+    --color-fondo: #18130e;
+    --color-superficie: #241e19;
+    --color-texto: #f3ede4;
+    --color-texto-secundario: #d3cdc6;
+    --color-texto-tenue: #b4aca4;
+    --color-borde: #3d3732;
+    --color-borde-control: #77706b;
+    --color-placeholder: #8b857f;
+    --color-primario: #71b591;          /* salvia 34 */
+    --color-primario-texto: #71b591;
+    --color-sobre-primario: #02331f;    /* salvia 89 */
+    --color-peligro: #f28b82;
+    --color-fondo-peligro: #3d1b17;
+    --color-aviso: #f0c04a;
+    --color-fondo-aviso: #3a2c0f;
+    --color-exito: #71b591;
+    --color-fondo-exito: #162f22;
   }
 }
 ```
 
-Los pares de texto y fondo son los mismos que se midieron para la app Expo (≥ 4,5:1 en los dos modos; el más ajustado, aviso sobre `fondo-aviso` en claro, con 4,55:1). **Regla:** solo se combinan los pares que ya existían. Si hace falta uno nuevo, se mide antes de usarlo.
+**Contraste medido** (WCAG; texto ≥ 4,5:1, bordes de controles y botón sobre el fondo ≥ 3:1):
 
-En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `media="(prefers-color-scheme: …)"`) con `#ffffff` y `#000000`, para el color de la barra del navegador **[sin verificar]** en la PWA de iOS (fase 3).
+| Par | Claro | Oscuro |
+|---|---|---|
+| texto / fondo · superficie | 14,24 · 13,04 | 15,85 · 14,16 |
+| texto-secundario / superficie | 7,85 | 10,45 |
+| texto-tenue / fondo · superficie | 6,08 · 5,57 | 8,24 · 7,36 |
+| placeholder / fondo | 4,90 | 5,06 |
+| primario-texto / fondo · superficie | 5,78 · 5,30 | 7,66 · 6,84 |
+| sobre-primario / primario (texto del botón) | **4,62** | 5,83 |
+| primario / fondo (el botón se distingue del fondo; anillo de foco) | 4,29 | 7,66 |
+| borde-control / fondo | 4,47 | 3,79 |
+| peligro / fondo-peligro · superficie | 5,46 · 5,56 | 6,43 · 6,90 |
+| aviso / fondo-aviso · superficie | 5,47 · 5,38 | 7,98 · 9,68 |
+| éxito / fondo-éxito · superficie | 5,40 · 5,30 | 5,96 · 6,84 |
+
+**Reglas:**
+- `--color-primario` es para **rellenos** (el fondo del botón y la pestaña activa). Para **texto** de color salvia se usa `--color-primario-texto`: el salvia 55 da 4,29:1 sobre crema, que no llega a 4,5.
+- `--color-borde` es solo decorativo (separadores). El borde que **delimita** un campo o una casilla es `--color-borde-control`.
+- Éxito es de la familia salvia: un aviso de éxito lleva siempre "✓" y texto, así que no se confunde con un botón.
+- Solo se combinan los pares de la tabla. Si hace falta uno nuevo, se mide antes de usarlo.
+
+En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `media="(prefers-color-scheme: …)"`) con `#faf6ee` y `#18130e`, para el color de la barra del navegador **[sin verificar]** en la PWA de iOS (fase 3).
 
 ### 2.2 Espacio, radios, tamaños
 
@@ -96,14 +130,16 @@ En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `
   --espacio-xl: 24px;
   --espacio-xxl: 32px;
 
-  /* RADIO */
-  --radio-s: 8px;
-  --radio-m: 12px;
-  --radio-pildora: 999px;
+  /* RADIO: pasos de Fibonacci (D-41) */
+  --radio-s: 8px;          /* campos de texto */
+  --radio-m: 13px;         /* tarjetas, filas y <dialog> */
+  --radio-l: 21px;         /* botones */
+  --radio-pildora: 999px;  /* chips y etiquetas */
 
   --tactil: 44px;          /* TAMANO_TACTIL: mínimo de cualquier zona pulsable */
   --ancho-maximo: 640px;   /* ANCHO_MAXIMO: el contenido no se estira */
   --ancho-barra-lateral: 88px;
+  --alto-navegacion: 64px;  /* barra inferior del móvil, sin la zona segura */
 }
 ```
 
@@ -251,7 +287,7 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
 </button>
 ```
 - **Variantes:** `--primario` (fondo `primario`, texto `sobre-primario`), `--secundario` (borde de 1,5 px `primario`), `--peligro` (fondo `peligro`), `--fantasma` (solo texto `primario`). Más `--ajustado`, que no ocupa todo el ancho (`anchoCompleto: false`).
-- **Medidas:** `min-height: calc(var(--tactil) + 4px)` (48 px, como Expo); la fantasma, 44 px. `border-radius: var(--radio-m)`. Texto `--texto-cuerpo` con peso 600; puede ocupar dos líneas.
+- **Medidas:** `min-height: calc(var(--tactil) + 4px)` (48 px, como Expo); la fantasma, 44 px. `border-radius: var(--radio-l)` (21 px, D-41). Texto `--texto-cuerpo` con peso 600; puede ocupar dos líneas.
 - **Cargando:** `aria-busy="true"` y `disabled`; el texto pasa a `tituloCargando` ("Guardando…") y aparece el indicador. **Evita las dobles pulsaciones** (doble guardado o doble llamada a la IA).
 - **Deshabilitado por un motivo** (sin conexión, falta confirmar líneas): en lugar de `disabled`, `aria-disabled="true"` + `aria-describedby` hacia el motivo visible ("Necesitas conexión para guardar"). Así el botón sigue enfocable y el lector de pantallas **explica por qué** no se puede pulsar. El JS ignora el clic.
 - **Navegar o actuar:** si el botón lleva a otra pantalla ("+ Producto", "Ir a Ajustes") se usa `<a class="boton" href="/producto/nuevo">`, que se abre con un toque largo y el lector anuncia "enlace". Si hace algo ("Guardar"), `<button>`.
@@ -989,7 +1025,7 @@ Comunes a todas:
 
 | Requisito | Cómo se cumple | Cómo se comprueba |
 |---|---|---|
-| **Contraste AA** | Solo se usan los pares medidos de `tema.ts` (≥ 4,5:1 en los dos modos). Anillo de foco `primario` sobre `fondo`. Los bordes de los controles (`borde` sobre `fondo`) no transmiten información por sí solos: siempre van con su etiqueta | Herramienta de contraste del navegador en las dos combinaciones, en la fase 1 |
+| **Contraste AA** | Solo se usan los pares medidos de §2.1 (texto ≥ 4,5:1 en los dos modos, D-41). El texto salvia usa `primario-texto`, nunca `primario`. Anillo de foco `primario` sobre `fondo` (≥ 3:1). Los campos y casillas se delimitan con `borde-control` (≥ 3:1); `borde` es solo decorativo | Herramienta de contraste del navegador en las dos combinaciones, en la fase 1 |
 | **Zonas táctiles de 44 px** | `--tactil` como `min-height`/`min-width` en botones, filas, pestañas, casillas y enlaces de acción. Chips de 40 px + separación (**[sin verificar]**, §3.2) | Inspector: medir cada elemento pulsable |
 | **Foco visible** | `:focus-visible` con 3 px y separación de 2 px en todo; **nunca `outline: none`** sin sustituto. Orden de foco = orden visual. Foco a `<main>` al cambiar de pantalla y de vuelta al botón al cerrar un `<dialog>` | Recorrer cada pantalla solo con el tabulador |
 | **Lectores de pantalla** | HTML semántico (`<nav>`, `<main>`, `<header>`, `<h1>`/`<h2>`, `<button>`, `<a>`, `<fieldset>`/`<legend>`, `<ol>` para los pasos); un `<h1>` por pantalla; `aria-current` en la pestaña; `aria-invalid` + `aria-describedby` en los errores; `role="alert"` solo en errores y `role="status"` para cargas y avisos; `aria-busy` al cargar; iconos con `aria-hidden`; filas leídas como un solo elemento ("Leche, Caduca mañana, 1 l") | VoiceOver en el iPhone (rotor por encabezados y controles) en cada fase con pantallas nuevas |
