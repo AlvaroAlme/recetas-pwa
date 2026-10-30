@@ -8,8 +8,8 @@ export function pantallaNoExiste() {
     contenido: el(
       'section',
       { class: 'vacio' },
-      el('h2', {}, 'Esta pantalla no existe'),
-      el('p', {}, 'Puede que el enlace esté mal escrito o que lo que buscas ya no exista.'),
+      el('h2', { class: 'vacio__titulo' }, 'Esta pantalla no existe'),
+      el('p', { class: 'tono--tenue' }, 'Puede que el enlace esté mal escrito o que lo que buscas ya no exista.'),
       el('a', { class: 'boton boton--secundario boton--ajustado', href: '/' }, 'Ir al inventario')
     ),
   };
