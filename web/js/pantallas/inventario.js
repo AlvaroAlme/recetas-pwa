@@ -11,12 +11,15 @@ import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
 import { api } from '../api.js';
 import { crearAviso, crearCarga, crearFila, crearSelector, crearVacio } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
+import { tomarMensaje } from '../router.js';
 
 /**
  * @param {{ consulta: URLSearchParams }} entrada
  * @returns {import('../router.js').Vista}
  */
 export function pantallaInventario({ consulta }) {
+  // "Producto añadido.", "Cambios guardados."… si vengo de guardar algo.
+  const mensaje = tomarMensaje();
   // Si la URL trae una ubicación que no existe, uso la nevera (DISENO_UI §5.2).
   const pedida = consulta.get('ubicacion');
   let ubicacion = UBICACIONES.includes(pedida) ? pedida : 'nevera';
@@ -78,7 +81,7 @@ export function pantallaInventario({ consulta }) {
   // añadir historial y recargo solo la lista. Así el foco se queda en el chip.
   function cambiarUbicacion(valor) {
     ubicacion = valor;
-    history.replaceState(null, '', `/?ubicacion=${valor}`);
+    history.replaceState(history.state, '', `/?ubicacion=${valor}`);
     cargar();
   }
 
@@ -89,6 +92,7 @@ export function pantallaInventario({ consulta }) {
     contenido: el(
       'div',
       { class: 'inventario' },
+      mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` }),
       crearSelector({
         leyenda: 'Ubicación',
         nombre: 'ubicacion',

@@ -56,8 +56,23 @@
   font-size: var(--texto-titulo);
   line-height: var(--linea-titulo);
   font-weight: var(--peso-titulo);
+  flex: 1;
+  min-width: 0;
 }
-
+/* Si un lado de la cabecera está vacío (no hay Atrás o no hay acción), no ocupa sitio. */
+.cabecera__lado:empty {
+  display: none;
+}
+.cabecera__atras {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tactil);
+  padding-inline: var(--espacio-xs);
+  margin-inline-start: calc(var(--espacio-xs) * -1);
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-fuerte);
+  text-decoration: none;
+}
 .pantalla {
   flex: 1;
   padding-block: var(--espacio-l);

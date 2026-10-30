@@ -9,6 +9,6 @@ export function pantallaProducto({ parametros }) {
   return {
     titulo: parametros.id ? 'Editar producto' : 'Nuevo producto',
     contenido: el('p', {}, 'Aquí irá el formulario (paso 8e).'),
-    accion: el('a', { class: 'boton boton--fantasma boton--ajustado', href: '/' }, '‹ Inventario'),
+    atras: '/',
   };
 }

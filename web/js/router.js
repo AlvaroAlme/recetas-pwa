@@ -17,6 +17,8 @@ import { el } from './dom.js';
  * @property {Node} contenido Lo que va dentro de <main>.
  * @property {Node[]} [pie] Botones del pie. Si no hay, el pie se oculta.
  * @property {Node} [accion] Botón de la cabecera, a la derecha del título.
+ * @property {string} [atras] Pantalla a la que lleva "‹ Atrás" si no hay
+ *  una anterior de la app ('/'). Sin ella, no hay botón Atrás (pestañas).
  */
 
 /**
@@ -84,6 +86,27 @@ function buscar(camino) {
 }
 
 /**
+ * El enlace "‹ Atrás" de la cabecera. Es un <a> con su href de verdad (se
+ * puede abrir en otra pestaña), pero al pulsarlo uso volver().
+ * @param {string} porDefecto
+ * @returns {HTMLAnchorElement}
+ */
+function crearAtras(porDefecto) {
+  return el(
+    'a',
+    {
+      class: 'cabecera__atras',
+      href: porDefecto,
+      onclick: (evento) => {
+        evento.preventDefault();
+        volver(porDefecto);
+      },
+    },
+    '‹ Atrás'
+  );
+}
+
+/**
  * Pinta la pantalla de la URL actual en el esqueleto de index.html.
  * @param {{ esPrimera?: boolean, volviendo?: boolean }} [opciones]
  */
@@ -109,6 +132,7 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
   document.title = `${vista.titulo} · Recetas Nevera`;
   $('pantalla').replaceChildren(vista.contenido);
   $('accion-cabecera').replaceChildren(...(vista.accion ? [vista.accion] : []));
+  $('atras-cabecera').replaceChildren(...(vista.atras ? [crearAtras(vista.atras)] : []));
   $('pie-interior').replaceChildren(...(vista.pie ?? []));
   $('pie').hidden = !vista.pie;
 
@@ -134,13 +158,52 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
  *   pantalla actual en el historial (tras guardar un formulario, para que
  *   "Atrás" no vuelva a él).
  */
-export function navegar(url, { reemplazar = false } = {}) {
+/**
+ * Va a otra pantalla de la app sin recargar.
+ * @param {string} url '/producto/7', '/?ubicacion=despensa'…
+ * @param {{ reemplazar?: boolean, mensaje?: string }} [opciones]
+ *   reemplazar: no deja la pantalla actual en el historial (tras guardar un
+ *   formulario, para que "Atrás" no vuelva a él).
+ *   mensaje: aviso de éxito que enseña la pantalla de destino.
+ */
+export function navegar(url, { reemplazar = false, mensaje } = {}) {
+  // "dentro" marca las entradas del historial que creo yo: así "‹ Atrás"
+  // sabe si puede usar history.back() sin salir de la app.
+  const estado = { dentro: true, mensaje };
   if (reemplazar) {
-    history.replaceState(null, '', url);
+    history.replaceState(estado, '', url);
   } else {
-    history.pushState(null, '', url);
+    history.pushState(estado, '', url);
   }
   pintar();
+}
+
+/**
+ * "‹ Atrás" (DISENO_UI §5.3). Si la pantalla anterior es de la app, vuelvo
+ * como el botón del navegador. Si he llegado aquí directamente (un enlace,
+ * un aviso, la URL escrita), no hay anterior: voy a la pantalla por defecto.
+ * Así "Atrás" nunca saca de la app.
+ * @param {string} porDefecto
+ */
+export function volver(porDefecto) {
+  if (history.state?.dentro) {
+    history.back();
+  } else {
+    navegar(porDefecto, { reemplazar: true });
+  }
+}
+
+/**
+ * El mensaje de éxito que me ha dejado la pantalla anterior. Solo lo doy una
+ * vez: lo borro del historial para que no salga otra vez al recargar.
+ * @returns {string | undefined}
+ */
+export function tomarMensaje() {
+  const mensaje = history.state?.mensaje;
+  if (mensaje) {
+    history.replaceState({ ...history.state, mensaje: undefined }, '');
+  }
+  return mensaje;
 }
 
 /**
