@@ -93,3 +93,15 @@ export const api = {
   patch: (ruta, cuerpo) => peticion('PATCH', ruta, cuerpo),
   borrar: (ruta) => peticion('DELETE', ruta),
 };
+
+/**
+ * El mensaje que enseño cuando falla una acción. Si el error ya trae uno que
+ * le sirve al usuario (sin red, tarda demasiado, ya no existe), ese; si no,
+ * el general que me pasan ("No se ha podido borrar.").
+ * @param {ErrorApi} error
+ * @param {string} general
+ * @returns {string}
+ */
+export function mensajeDeError(error, general) {
+  return ['SIN_CONEXION', 'TIEMPO_AGOTADO', 'NO_EXISTE'].includes(error.codigo) ? error.message : general;
+}

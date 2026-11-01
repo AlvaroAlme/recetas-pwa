@@ -176,7 +176,7 @@ export function crearAviso({ tipo = 'error', mensaje, accion }) {
 
 /**
  * Campo de texto con su etiqueta, su ayuda y su hueco para el error (§3.2 CampoTexto).
- * @param {{ etiqueta: string, nombre: string, valor?: string, ayuda?: string, atributos?: Record<string, any> }} opciones
+ * @param {{ etiqueta: string | Array<string | Node>, nombre: string, valor?: string, ayuda?: string, atributos?: Record<string, any> }} opciones
  *   atributos: los del <input> (type, placeholder, inputmode, oninput…).
  * @returns {HTMLDivElement}
  */
@@ -250,4 +250,177 @@ export function ponerCargando(boton, cargando, textoCargando = 'Guardando…') {
   }
   boton.disabled = cargando;
   boton.setAttribute('aria-busy', String(cargando));
+}
+
+/**
+ * Una sugerencia del autocompletado.
+ * @typedef {Object} Sugerencia
+ * @property {string} texto Lo que se escribe en el campo al elegirla.
+ * @property {string} [detalle] Texto pequeño a la derecha ("l · Nevera").
+ * @property {any} [datos] Lo que necesite quien la elige (no se enseña).
+ */
+
+/**
+ * Convierte un campo de texto en un combobox con sugerencias debajo
+ * (D-42, DISENO_UI §3.2 Autocompletar). El foco se queda SIEMPRE en el
+ * input: las flechas mueven la opción activa con aria-activedescendant.
+ * @param {HTMLDivElement} campo El que devuelve crearCampo().
+ * @param {{
+ *   buscar: (texto: string) => Promise<Sugerencia[]>,
+ *   alElegir: (sugerencia: Sugerencia) => void,
+ *   espera?: number
+ * }} opciones buscar no debe lanzar errores: si algo falla, que devuelva [].
+ *   espera: milisegundos desde la última tecla antes de buscar.
+ */
+export function crearAutocompletar(campo, { buscar, alElegir, espera = 250 }) {
+  const entrada = campo.querySelector('.campo__entrada');
+  const idLista = `${entrada.id}-sugerencias`;
+  const lista = el('ul', { class: 'sugerencias', id: idLista, role: 'listbox', 'aria-label': 'Sugerencias', hidden: true });
+  campo.querySelector('.campo__caja').append(lista);
+
+  entrada.setAttribute('role', 'combobox');
+  entrada.setAttribute('aria-autocomplete', 'list');
+  entrada.setAttribute('aria-expanded', 'false');
+  entrada.setAttribute('aria-controls', idLista);
+
+  /** @type {Sugerencia[]} */
+  let opciones = [];
+  let activa = -1; // la opción marcada con las flechas (-1 = ninguna)
+  let temporizador;
+  let turno = 0;
+
+  function cerrar() {
+    lista.hidden = true;
+    entrada.setAttribute('aria-expanded', 'false');
+    entrada.removeAttribute('aria-activedescendant');
+    activa = -1;
+  }
+
+  /** @param {Sugerencia[]} sugerencias */
+  function pintar(sugerencias) {
+    opciones = sugerencias;
+    activa = -1;
+    lista.replaceChildren(
+      ...sugerencias.map((sugerencia, indice) =>
+        el(
+          'li',
+          {
+            class: 'sugerencias__opcion',
+            id: `${idLista}-${indice}`,
+            role: 'option',
+            'aria-selected': 'false',
+            // Sin esto, al pulsar la opción el input perdería el foco (blur),
+            // la lista se cerraría y el clic no llegaría a la opción.
+            onmousedown: (evento) => evento.preventDefault(),
+            onclick: () => elegir(indice),
+          },
+          el('span', {}, sugerencia.texto),
+          sugerencia.detalle && el('span', { class: 'sugerencias__detalle' }, sugerencia.detalle)
+        )
+      )
+    );
+    if (sugerencias.length === 0) {
+      cerrar();
+      return;
+    }
+    lista.hidden = false;
+    entrada.setAttribute('aria-expanded', 'true');
+  }
+
+  /** @param {number} indice */
+  function marcar(indice) {
+    activa = indice;
+    for (const [i, opcion] of [...lista.children].entries()) {
+      opcion.setAttribute('aria-selected', String(i === indice));
+    }
+    const opcion = lista.children[indice];
+    entrada.setAttribute('aria-activedescendant', opcion.id);
+    opcion.scrollIntoView({ block: 'nearest' });
+  }
+
+  /** @param {number} indice */
+  function elegir(indice) {
+    const sugerencia = opciones[indice];
+    cerrar();
+    entrada.value = sugerencia.texto;
+    alElegir(sugerencia);
+  }
+
+  // Busco cuando el usuario deja de escribir 250 ms, no con cada tecla.
+  entrada.addEventListener('input', () => {
+    clearTimeout(temporizador);
+    const texto = entrada.value;
+    temporizador = setTimeout(async () => {
+      const miTurno = ++turno;
+      const sugerencias = await buscar(texto);
+      // Si mientras buscaba ha escrito más, o se ha ido del campo, no pinto.
+      if (miTurno === turno && document.activeElement === entrada) pintar(sugerencias);
+    }, espera);
+  });
+
+  entrada.addEventListener('keydown', (evento) => {
+    if (lista.hidden) return;
+    if (evento.key === 'ArrowDown') {
+      evento.preventDefault();
+      marcar((activa + 1) % opciones.length);
+    } else if (evento.key === 'ArrowUp') {
+      evento.preventDefault();
+      marcar(activa <= 0 ? opciones.length - 1 : activa - 1);
+    } else if (evento.key === 'Enter' && activa >= 0) {
+      evento.preventDefault(); // que Intro elija, no que envíe el formulario
+      elegir(activa);
+    } else if (evento.key === 'Escape') {
+      evento.preventDefault();
+      cerrar();
+    }
+  });
+
+  entrada.addEventListener('blur', cerrar);
+}
+
+/**
+ * Pregunta de confirmación en un <dialog> (D-28), como Alert.alert de Expo.
+ * showModal() pone el foco dentro, bloquea el resto de la página y cierra
+ * con Esc. El foco empieza en "Cancelar" (lo seguro) y, al cerrar, vuelve
+ * al botón que lo abrió.
+ * @param {{ titulo: string, texto: string, textoConfirmar: string, peligroso?: boolean }} opciones
+ * @returns {Promise<boolean>} true si pulsa el botón de confirmar.
+ */
+export function confirmar({ titulo, texto, textoConfirmar, peligroso = false }) {
+  const idTitulo = nuevoId('dialogo-titulo');
+  const idTexto = nuevoId('dialogo-texto');
+  const dialogo = el(
+    'dialog',
+    { class: 'dialogo', 'aria-labelledby': idTitulo, 'aria-describedby': idTexto },
+    // method="dialog": al pulsar un botón, el formulario cierra el diálogo
+    // y deja su value en dialogo.returnValue.
+    el(
+      'form',
+      { method: 'dialog' },
+      el('h2', { class: 'dialogo__titulo', id: idTitulo }, titulo),
+      el('p', { id: idTexto }, texto),
+      el(
+        'div',
+        { class: 'dialogo__acciones' },
+        el('button', { class: 'boton boton--secundario', value: 'cancelar', autofocus: true }, 'Cancelar'),
+        el('button', { class: `boton ${peligroso ? 'boton--peligro' : 'boton--primario'}`, value: 'confirmar' }, textoConfirmar)
+      )
+    )
+  );
+
+  const anterior = document.activeElement;
+  document.body.append(dialogo);
+  dialogo.showModal();
+
+  return new Promise((resolver) => {
+    dialogo.addEventListener(
+      'close',
+      () => {
+        dialogo.remove();
+        anterior?.focus();
+        resolver(dialogo.returnValue === 'confirmar');
+      },
+      { once: true }
+    );
+  });
 }

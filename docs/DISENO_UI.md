@@ -64,6 +64,7 @@ Identidad propia del proyecto (ya no son los colores de `tema.ts`). Se eligió a
   --color-sobre-primario: #ffffff;    /* texto encima de primario */
   --color-peligro: #b3261e;
   --color-fondo-peligro: #fbe6e3;
+  --color-sobre-peligro: #ffffff;     /* texto encima de peligro (botón Borrar) */
   --color-aviso: #8a5300;
   --color-fondo-aviso: #fbedd3;
   --color-exito: #256d4c;             /* familia salvia */
@@ -86,6 +87,7 @@ Identidad propia del proyecto (ya no son los colores de `tema.ts`). Se eligió a
     --color-sobre-primario: #02331f;    /* salvia 89 */
     --color-peligro: #f28b82;
     --color-fondo-peligro: #3d1b17;
+    --color-sobre-peligro: #3d1b17;   /* en oscuro el rojo es claro: texto oscuro */
     --color-aviso: #f0c04a;
     --color-fondo-aviso: #3a2c0f;
     --color-exito: #71b591;
@@ -107,6 +109,7 @@ Identidad propia del proyecto (ya no son los colores de `tema.ts`). Se eligió a
 | primario / fondo (el botón se distingue del fondo; anillo de foco) | 4,29 | 7,66 |
 | borde-control / fondo | 4,47 | 3,79 |
 | peligro / fondo-peligro · superficie | 5,46 · 5,56 | 6,43 · 6,90 |
+| sobre-peligro / peligro (texto del botón Borrar) | 6,54 | 6,43 |
 | aviso / fondo-aviso · superficie | 5,47 · 5,38 | 7,98 · 9,68 |
 | éxito / fondo-éxito · superficie | 5,40 · 5,30 | 5,96 · 6,84 |
 
@@ -140,6 +143,18 @@ En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `
   --ancho-maximo: 640px;   /* ANCHO_MAXIMO: el contenido no se estira */
   --ancho-barra-lateral: 88px;
   --alto-navegacion: 64px;  /* barra inferior del móvil, sin la zona segura */
+
+  /* SOMBRA: solo para lo que flota encima del contenido (desplegables). */
+  --sombra-flotante: 0 8px 24px rgb(42 36 29 / 0.14);
+  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
+  --color-velo: rgb(24 19 14 / 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* En oscuro, una sombra clara apenas se ve: la hago más intensa. */
+    --sombra-flotante: 0 8px 24px rgb(0 0 0 / 0.5);
+  }
 }
 ```
 

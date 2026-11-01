@@ -113,6 +113,10 @@
     position: static;
   }
 }
+/* Si el botón del pie aún no existe (cargando, o el producto no existe), el pie no se ve. */
+.pie:has(.pie__ranura:empty) {
+  display: none;
+}
 
 /* ============ Navegación: abajo en el móvil ============ */
 .navegacion {
@@ -499,4 +503,112 @@ input:focus-visible + .chip {
 }
 .formulario__fecha .campo {
   flex: 1;
+}
+/* "(opcional)" en un tono más suave que la etiqueta (marcar los opcionales, no los obligatorios). */
+.campo__opcional {
+  color: var(--color-texto-tenue);
+  font-weight: var(--peso-normal);
+}
+/* ============ Autocompletar ============ */
+.sugerencias {
+  position: absolute;
+  top: calc(100% + var(--espacio-xs));
+  left: 0;
+  right: 0;
+  z-index: 4;
+  max-height: calc(var(--tactil) * 5.5);
+  margin: 0;
+  padding: var(--espacio-xs) 0;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde-control);
+  border-radius: var(--radio-m);
+  box-shadow: var(--sombra-flotante);
+}
+.sugerencias__opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-m);
+  min-height: var(--tactil);
+  padding: var(--espacio-s) var(--espacio-m);
+  cursor: pointer;
+}
+/* La opción activa: fondo y una barrita salvia a la izquierda (no solo color). */
+.sugerencias__opcion[aria-selected='true'] {
+  background: var(--color-superficie);
+  box-shadow: inset 3px 0 0 var(--color-primario);
+}
+@media (hover: hover) {
+  .sugerencias__opcion:hover {
+    background: var(--color-superficie);
+  }
+}
+.sugerencias__detalle {
+  color: var(--color-texto-tenue);
+  font-size: var(--texto-secundario);
+  white-space: nowrap;
+}
+/* ============ Botón de peligro (Borrar) ============ */
+.boton--peligro {
+  background: var(--color-peligro);
+  color: var(--color-sobre-peligro);
+}
+
+/* ============ Secciones dentro de una pantalla ============ */
+.titulo-seccion {
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-seccion);
+  font-weight: var(--peso-fuerte);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+  margin-block: var(--espacio-xl);
+}
+.seccion__acciones {
+  display: flex;
+  gap: var(--espacio-s);
+}
+.seccion__acciones > * {
+  flex: 1;
+}
+
+/* ============ Diálogo (confirmar) ============ */
+.dialogo {
+  width: min(440px, calc(100% - 2 * var(--espacio-l)));
+  max-width: none;
+  padding: var(--espacio-xl);
+  border: 0;
+  border-radius: var(--radio-m);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  box-shadow: var(--sombra-flotante);
+}
+.dialogo::backdrop {
+  background: var(--color-velo);
+}
+.dialogo__titulo {
+  margin-bottom: var(--espacio-s);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+  font-weight: var(--peso-fuerte);
+}
+.dialogo__acciones {
+  display: flex;
+  gap: var(--espacio-s);
+  margin-top: var(--espacio-xl);
+}
+.dialogo__acciones > * {
+  flex: 1;
+}
+/* En el móvil, abajo, como una hoja de iOS (DISENO_UI §6.2). */
+@media (max-width: 47.99em) {
+  .dialogo {
+    margin-block: auto max(var(--espacio-l), env(safe-area-inset-bottom));
+  }
 }

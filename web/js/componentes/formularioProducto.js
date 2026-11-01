@@ -9,9 +9,12 @@
 import { UBICACIONES, UNIDADES } from '/compartido/constantes.js';
 import { ETIQUETAS_UBICACION, ubicacionesPosibles } from '/compartido/ubicaciones.js';
 import { validarProducto } from '/compartido/validacion.js';
+import { buscarAlimentos } from '/compartido/sugerencias.js';
+import { normalizar } from '/compartido/texto.js';
 import { el } from '../dom.js';
 import {
   crearAviso,
+  crearAutocompletar,
   crearCampo,
   crearSelector,
   elegirEnSelector,
@@ -36,17 +39,20 @@ function listarUbicaciones(ubicaciones) {
  *   inicial?: import('/compartido/validacion.js').DatosProducto,
  *   ubicacionSugerida?: string,
  *   textoBoton: string,
- *   alGuardar: (datos: import('/compartido/validacion.js').DatosProducto) => Promise<void>
+ *   alGuardar: (datos: import('/compartido/validacion.js').DatosProducto) => Promise<void>,
+ *   buscarHistorial?: (texto: string) => Promise<{ nombre: string, unidad: string, ubicacion: string }[]>
  * }} opciones inicial: los datos al editar (sin él, es un alta).
  *   ubicacionSugerida: la pestaña desde la que se pulsó "+ Producto".
  * @returns {{ formulario: HTMLFormElement, boton: HTMLButtonElement }} El
  *   botón va aparte porque la pantalla lo pone en el pie.
  */
-export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton, alGuardar }) {
+export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton, alGuardar, buscarHistorial }) {
   const esNuevo = !inicial;
   const idFormulario = 'formulario-producto';
   // La ubicación que el usuario ha pulsado a mano (null = aún no ha elegido).
   let elegidaAMano = inicial?.ubicacion ?? null;
+  // true si la ubicación la ha puesto una sugerencia del historial, no el usuario.
+  let ubicacionDeSugerencia = false;
   let guardando = false;
 
   const avisoGeneral = el('div');
@@ -59,9 +65,11 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
       maxlength: 80,
       autocapitalize: 'sentences',
       autocomplete: 'off',
-      oninput: actualizarUbicacion,
+      oninput: alEscribirNombre,
     },
   });
+    crearAutocompletar(nombre, { buscar: buscarSugerencias, alElegir: alElegirSugerencia });
+
   const cantidad = crearCampo({
     etiqueta: 'Cantidad',
     nombre: 'cantidad',
@@ -81,13 +89,14 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
     opciones: UBICACIONES.map((valor) => ({ valor, etiqueta: ETIQUETAS_UBICACION[valor] })),
     seleccionado: inicial?.ubicacion ?? null,
     alCambiar: (valor) => {
+    ubicacionDeSugerencia = false;
       elegidaAMano = valor;
       ponerErrorCampo(ubicacion, null);
       actualizarUbicacion();
     },
   });
   const caducidad = crearCampo({
-    etiqueta: 'Caducidad (opcional)',
+    etiqueta: ['Caducidad ', el('span', { class: 'campo__opcional' }, '(opcional)')],
     nombre: 'caducidad',
     valor: inicial?.fechaCaducidad ?? undefined,
     atributos: { type: 'date' },
@@ -138,6 +147,61 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
     }
   }
 
+    /**
+   * Si cambio el nombre después de elegir algo del historial, la ubicación
+   * de esa sugerencia ya no vale: la olvido y vuelve a mandar la regla.
+   */
+  function alEscribirNombre() {
+    if (ubicacionDeSugerencia) {
+      elegidaAMano = null;
+      ubicacionDeSugerencia = false;
+    }
+    actualizarUbicacion();
+  }
+
+    /**
+   * Primero lo que ya ha tenido la casa (servidor), luego la lista fija, sin
+   * repetir nombres. Si el servidor falla (sin red…), solo la lista fija.
+   * @param {string} texto
+   * @returns {Promise<import('./ui/index.js').Sugerencia[]>}
+   */
+  async function buscarSugerencias(texto) {
+    if (normalizar(texto).length < 2) return [];
+    let historial = [];
+    try {
+      historial = (await buscarHistorial?.(texto)) ?? [];
+    } catch {
+      // Sin historial: sigo con la lista fija.
+    }
+    const vistos = new Set(historial.map((producto) => normalizar(producto.nombre)));
+    const deLaCasa = historial.map((producto) => ({
+      texto: producto.nombre,
+      detalle: `${producto.unidad} · ${ETIQUETAS_UBICACION[producto.ubicacion]}`,
+      datos: producto,
+    }));
+    const comunes = buscarAlimentos(texto)
+      .filter((alimento) => !vistos.has(normalizar(alimento)))
+      .map((alimento) => ({ texto: alimento }));
+    return [...deLaCasa, ...comunes].slice(0, 8);
+  }
+
+  /**
+   * Al elegir una sugerencia. Si viene del historial, propongo su unidad y su
+   * ubicación de la última vez (se pueden cambiar). Después paso a la cantidad.
+   * @param {import('./ui/index.js').Sugerencia} sugerencia
+   */
+  function alElegirSugerencia(sugerencia) {
+    if (sugerencia.datos) {
+      elegirEnSelector(unidad, sugerencia.datos.unidad);
+      elegidaAMano = sugerencia.datos.ubicacion;
+      ubicacionDeSugerencia = true;
+      elegirEnSelector(ubicacion, elegidaAMano);
+      ponerErrorCampo(ubicacion, null);
+    }
+    actualizarUbicacion();
+    cantidad.querySelector('input').focus();
+  }
+
   /**
    * Enseña los errores de cada campo (y quita los que ya no están) y lleva
    * el foco al primero. En la ubicación, al primer chip recomendado.
@@ -182,10 +246,11 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
       if (error.campos) {
         mostrarErrores(error.campos);
       } else {
+        // Si el error trae un mensaje que le sirve al usuario (sin red, tarda
+        // demasiado, ya no existe), lo enseño tal cual; si no, uno general.
+        const mensajePropio = ['SIN_CONEXION', 'TIEMPO_AGOTADO', 'NO_EXISTE'].includes(error.codigo);
         avisoGeneral.replaceChildren(
-          crearAviso({
-            mensaje: error.codigo === 'SIN_CONEXION' ? error.message : 'No se ha podido guardar el producto. Inténtalo de nuevo.',
-          })
+          crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido guardar el producto. Inténtalo de nuevo.') })
         );
       }
     }
