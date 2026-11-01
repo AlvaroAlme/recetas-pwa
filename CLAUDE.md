@@ -109,11 +109,7 @@ Proyecto de portfolio de un estudiante de DAW.
 - En Neon (hogar 1): nevera (pechuga de pollo, leche semidesnatada de
   prueba, leche entera 2 l), despensa (lentejas, pasta), congelador
   (pechuga de pollo caducada, queso). El tomate se borró en la prueba.
-- Siguiente: ARREGLAR PRIMERO el import que falta en
-  `web/js/componentes/formularioProducto.js`:
-  `import { mensajeDeError } from '../api.js';` (sin él, si falla un
-  guardado sale un ReferenceError en vez del aviso). Después, criterios de
-  "hecho" de la fase 1 (§10), ✅ 🧪 ⚠️ y el "ok".
+- Siguiente: criterios de "hecho" de la fase 1 (§10), ✅ 🧪 ⚠️ y el "ok".
 - Pendiente pequeño: añadir formatearCantidad() al `@file` de
   `server/pruebas/compartido.test.js`; quitar los 4 espacios delante del
   `import` de `compartido/formato.js`; poner `<body>` con 2 espacios en

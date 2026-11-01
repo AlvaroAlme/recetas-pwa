@@ -7,6 +7,7 @@
  * la pantalla decide qué hacer (crear o editar).
  */
 import { UBICACIONES, UNIDADES } from '/compartido/constantes.js';
+import { mensajeDeError } from '../api.js';
 import { ETIQUETAS_UBICACION, ubicacionesPosibles } from '/compartido/ubicaciones.js';
 import { validarProducto } from '/compartido/validacion.js';
 import { buscarAlimentos } from '/compartido/sugerencias.js';
