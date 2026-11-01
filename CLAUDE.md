@@ -94,21 +94,35 @@ Proyecto de portfolio de un estudiante de DAW.
     (decisión mía; DISENO §3.2 actualizado).
   - 8e-2b: `GET /api/productos/nombres?q=` (D-42: historial del hogar,
     DISTINCT ON, comodines escapados).
-  - Último commit: 98d2d42.
-- En Neon (hogar 1) hay productos de prueba: leche semidesnatada, leche
-  entera y tomate (nevera), lentejas y pasta (despensa), queso y pechuga de
-  pollo caducada (congelador).
-- Siguiente (autocompletado, D-42): 8e-2c `compartido/sugerencias.js`
-  (lista fija de alimentos comunes con tildes); 8e-2d `crearAutocompletar()`
-  (combobox ARIA, 250 ms, historial + lista, al elegir propone unidad y
-  ubicación). Después: 8e-3 editar producto (GET + PUT, "Guardar
-  cambios"); 8f mover y borrar con `<dialog>` (falta el token
-  `--color-sobre-peligro`, medido). Luego criterios de "hecho" de la
-  fase 1 y el "ok".
+  - 8e-2c/8e-2d (2026-11-01): `compartido/sugerencias.js` (89 alimentos,
+    `buscarAlimentos`, pruebas) y `crearAutocompletar()` (combobox ARIA,
+    250 ms, turno, historial + lista fija, propone unidad y ubicación; la
+    ubicación de una sugerencia se olvida al cambiar el nombre).
+  - 8e-3: editar (`/producto/:id`: GET, formulario relleno, PUT, "Cambios
+    guardados.", "Este producto ya no existe", pie oculto con `:has`).
+    "(opcional)" en tono suave (regla 6 de mis reglas de diseño).
+  - 8f: mover (PATCH, "Moviendo…") y borrar con `confirmar()` en un
+    `<dialog>` (D-28); `mensajeDeError()` en `api.js`; tokens
+    `--sombra-flotante`, `--color-sobre-peligro`, `--color-velo`.
+    Probado guardando, moviendo y borrando en Neon.
+  - `npm test`: 36 de 36. Último commit: 2d9dd54.
+- En Neon (hogar 1): nevera (pechuga de pollo, leche semidesnatada de
+  prueba, leche entera 2 l), despensa (lentejas, pasta), congelador
+  (pechuga de pollo caducada, queso). El tomate se borró en la prueba.
+- Siguiente: ARREGLAR PRIMERO el import que falta en
+  `web/js/componentes/formularioProducto.js`:
+  `import { mensajeDeError } from '../api.js';` (sin él, si falla un
+  guardado sale un ReferenceError en vez del aviso). Después, criterios de
+  "hecho" de la fase 1 (§10), ✅ 🧪 ⚠️ y el "ok".
 - Pendiente pequeño: añadir formatearCantidad() al `@file` de
   `server/pruebas/compartido.test.js`; quitar los 4 espacios delante del
   `import` de `compartido/formato.js`; poner `<body>` con 2 espacios en
-  `index.html`; ordenar `leerBusqueda` en el import de `rutas/productos.js`.
+  `index.html`; ordenar `leerBusqueda` en el import de `rutas/productos.js`;
+  en `formularioProducto.js`, sangrado de las líneas 71 y 92 y
+  `crearAutocompletar` antes que `crearAviso`; en `pantallas/producto.js`,
+  el import de `/compartido/ubicaciones.js` junto a los de `/compartido/`.
+- Mis reglas de diseño (skill reglas-diseno-web): la regla 1 pide la
+  etiqueta encima del input; elegí la etiqueta flotante a sabiendas.
   Comprobar que la nota de Bitwarden tiene ya `sslmode=verify-full` (el
   `.env` ya lo tiene).
 - Commits: si me lo pide, los hace Claude (con mi permiso en cada paso).
