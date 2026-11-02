@@ -30,3 +30,10 @@ export const MAX_CANTIDAD = 100_000;
 
 /** Productos que se pueden guardar de una vez desde un ticket. SEC-05. */
 export const MAX_PRODUCTOS_TICKET = 100;
+
+/** Longitud de la contraseña: de 10 a 128 caracteres, sin más reglas (D-17). */
+export const MIN_LONGITUD_CONTRASENA = 10;
+export const MAX_LONGITUD_CONTRASENA = 128;
+
+/** Longitud máxima de un email (la del estándar). */
+export const MAX_LONGITUD_EMAIL = 254;

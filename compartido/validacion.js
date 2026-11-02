@@ -6,8 +6,26 @@
  * El servidor valida SIEMPRE, aunque el formulario ya lo haya hecho: una
  * petición se puede fabricar sin pasar por el formulario.
  */
-import { MAX_CANTIDAD, MAX_LONGITUD_NOMBRE, UBICACIONES, UNIDADES } from './constantes.js';
+import {
+  MAX_CANTIDAD,
+  MAX_LONGITUD_CONTRASENA,
+  MAX_LONGITUD_EMAIL,
+  MAX_LONGITUD_NOMBRE,
+  MIN_LONGITUD_CONTRASENA,
+  UBICACIONES,
+  UNIDADES,
+} from './constantes.js';
 import { esFechaIso } from './fechas.js';
+
+/**
+ * ¿Es un objeto normal ({ … })? null y los arrays también son "object" en
+ * JavaScript, así que typeof solo no basta.
+ * @param {unknown} valor
+ * @returns {valor is Record<string, unknown>}
+ */
+function esObjeto(valor) {
+  return typeof valor === 'object' && valor !== null && !Array.isArray(valor);
+}
 
 /**
  * Un producto ya comprobado y limpio.
@@ -34,7 +52,7 @@ import { esFechaIso } from './fechas.js';
  * @returns {ResultadoProducto}
  */
 export function validarProducto(entrada) {
-  if (typeof entrada !== 'object' || entrada === null || Array.isArray(entrada)) {
+  if (!esObjeto(entrada)) {
     return { ok: false, errores: { general: 'Los datos del producto no son válidos.' } };
   }
 
@@ -77,4 +95,102 @@ export function validarProducto(entrada) {
     ok: true,
     datos: { nombre: nombreLimpio, cantidad: cantidadRedondeada, unidad, ubicacion, fechaCaducidad },
   };
+}
+// ============ Cuentas ============
+
+/**
+ * Formato BÁSICO de email: algo@algo.algo, sin espacios. No intento más: la
+ * prueba de verdad de que un email existe es que llegue un correo.
+ */
+const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * El email como se guarda: sin espacios a los lados y en minúsculas (así el
+ * UNIQUE de la tabla usuarios funciona, aunque escribas "Ana@Correo.com").
+ * @param {unknown} valor
+ * @returns {string}
+ */
+function limpiarEmail(valor) {
+  return typeof valor === 'string' ? valor.trim().toLowerCase() : '';
+}
+
+/**
+ * @param {string} email Ya limpio.
+ * @returns {string | null} El error, o null si está bien.
+ */
+function errorDeEmail(email) {
+  if (email === '') return 'Escribe tu email.';
+  if (email.length > MAX_LONGITUD_EMAIL || !FORMATO_EMAIL.test(email)) return 'Ese email no parece válido.';
+  return null;
+}
+
+/**
+ * Datos para crear una cuenta, ya limpios.
+ * @typedef {Object} DatosRegistro
+ * @property {string} email En minúsculas.
+ * @property {string} nombre Sin espacios a los lados.
+ * @property {string} contrasena Tal cual: los espacios también cuentan.
+ */
+
+/**
+ * Comprueba el formulario de "Crear cuenta" (P-02).
+ * @param {unknown} entrada
+ * @returns {{ ok: true, datos: DatosRegistro } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarRegistro(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Los datos de la cuenta no son válidos.' } };
+  }
+  const email = limpiarEmail(entrada.email);
+  const nombre = typeof entrada.nombre === 'string' ? entrada.nombre.trim() : '';
+  const contrasena = typeof entrada.contrasena === 'string' ? entrada.contrasena : '';
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  const fallo = errorDeEmail(email);
+  if (fallo) errores.email = fallo;
+
+  if (nombre === '') {
+    errores.nombre = 'Escribe tu nombre.';
+  } else if (nombre.length > MAX_LONGITUD_NOMBRE) {
+    errores.nombre = `Tu nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+  }
+
+  if (contrasena.length < MIN_LONGITUD_CONTRASENA) {
+    errores.contrasena = `La contraseña tiene que tener al menos ${MIN_LONGITUD_CONTRASENA} caracteres.`;
+  } else if (contrasena.length > MAX_LONGITUD_CONTRASENA) {
+    errores.contrasena = `La contraseña puede tener como mucho ${MAX_LONGITUD_CONTRASENA} caracteres.`;
+  }
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { email, nombre, contrasena } };
+}
+
+/**
+ * Comprueba el formulario de "Entrar". Aquí NO miro el mínimo de 10: si la
+ * contraseña es corta, simplemente no coincidirá, y el error será el
+ * genérico ("Email o contraseña incorrectos").
+ * @param {unknown} entrada
+ * @returns {{ ok: true, datos: { email: string, contrasena: string } } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarLogin(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Escribe tu email y tu contraseña.' } };
+  }
+  const email = limpiarEmail(entrada.email);
+  const contrasena = typeof entrada.contrasena === 'string' ? entrada.contrasena : '';
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  const fallo = errorDeEmail(email);
+  if (fallo) errores.email = fallo;
+
+  if (contrasena === '') {
+    errores.contrasena = 'Escribe tu contraseña.';
+  } else if (contrasena.length > MAX_LONGITUD_CONTRASENA) {
+    errores.contrasena = `La contraseña puede tener como mucho ${MAX_LONGITUD_CONTRASENA} caracteres.`;
+  }
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { email, contrasena } };
 }

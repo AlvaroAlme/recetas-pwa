@@ -8,9 +8,12 @@
 
 import path from 'node:path';
 import express from 'express';
+import { exigirSesion } from './middlewares/exigirSesion.js';
 import { manejarErrores, rutaNoEncontrada } from './middlewares/errores.js';
-import { usarHogarDesarrollo } from './desarrollo.js';
+import { sesion } from './middlewares/sesion.js';
+import { rutasAuth } from './rutas/auth.js';
 import { rutasProductos } from './rutas/productos.js';
+
 
 const app = express();
 
@@ -25,8 +28,14 @@ app.get('/api/salud', (req, res) => {
   res.json({ ok: true });
 });
 
-// Inventario. De momento con el hogar de prueba; en la fase 2 aquí irá la sesión.
-app.use('/api/productos', usarHogarDesarrollo, rutasProductos);
+// En todas las rutas de la API: si hay una sesión buena, sé quién eres.
+app.use('/api', sesion);
+
+// Cuentas: registro, login y logout (fase 2).
+app.use('/api/auth', rutasAuth);
+
+// Inventario: solo con sesión, y siempre el de TU hogar (req.hogarId).
+app.use('/api/productos', exigirSesion, rutasProductos);
 
 // Cualquier otra /api/... que no exista: 404 en JSON. Va DESPUÉS de todas
 // las rutas de la API y ANTES de los archivos estáticos.
@@ -35,6 +44,8 @@ app.use('/api', rutaNoEncontrada);
 // compartido/ lo ejecutan Node y el navegador: es el mismo archivo en los dos sitios (P-04).
 app.use('/compartido', express.static(path.join(import.meta.dirname, '..', 'compartido')));
 app.use(express.static(CARPETA_WEB));
+
+
 
 // Rutas de la app (/producto/2, /recetas…): no son archivos, las pinta el
 // JavaScript. Devuelvo index.html y el router del navegador elige la pantalla.

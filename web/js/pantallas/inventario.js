@@ -54,7 +54,8 @@ export function pantallaInventario({ consulta }) {
 
   function crearEstadoVacio() {
     return crearVacio({
-      titulo: `${ETIQUETAS_UBICACION[ubicacion]} vacía`,
+      // "Congelador" es masculino: no vale añadir "vacía" a cualquier ubicación.
+      titulo: ubicacion === 'congelador' ? 'Congelador vacío' : `${ETIQUETAS_UBICACION[ubicacion]} vacía`,
       descripcion: 'Añade lo que tienes a mano con el botón «+ Producto».',
       accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: enlaceNuevo() }, 'Añadir producto'),
     });

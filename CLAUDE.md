@@ -46,7 +46,42 @@ Proyecto de portfolio de un estudiante de DAW.
 
 ## Estado actual
 - Fase 0 (proyecto y servidor mínimo) aprobada el 2026-10-27.
-- Fase 1 (base de datos y CRUD del inventario) en curso.
+- Fase 1 (base de datos y CRUD del inventario) aprobada el 2026-11-02.
+  Pendiente de comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px,
+  sin zoom en campos de 16 px y el teclado sobre el pie fijo.
+- Fase 2 (cuentas, sesiones y hogar compartido) en curso. Plan de pasos:
+  1 migración `002_cuentas.sql` (usuarios sin `aviso_ia_aceptado_en`, que
+  llega en la 004; miembros, invitaciones, sesiones); 2 contraseñas con
+  scrypt; 3 registro, login y logout con cookie; 4 middlewares `sesion` y
+  `exigirSesion` (sustituyen al hogar de desarrollo); 5 `origen`, `limite`
+  y helmet con CSP (preguntar antes de instalar helmet); 6 invitaciones,
+  unirse, salir y borrar cuenta; 7 pantallas Entrar, Registro y Ajustes del
+  hogar, y el 401 en `api.js`.
+- Hecho fase 2 (pasos 1–4, 2026-11-02):
+  - 1: migración `002_cuentas.sql` APLICADA en Neon.
+  - 2: `servicios/contrasenas.js` (scrypt N=2^14 r=8 p=5, D-43; NFC;
+    timingSafeEqual) con pruebas.
+  - 3: `validarRegistro`/`validarLogin` en `compartido/validacion.js`
+    (D-40) con pruebas; `servicios/sesiones.js` (token de 32 bytes, solo
+    su SHA-256 en la tabla), `servicios/usuarios.js` (registro en una
+    transacción, login con HASH_FALSO para no revelar emails),
+    `server/cookies.js` (HttpOnly, SameSite=Lax, Secure en producción;
+    lectura propia, D-12), `validacion/auth.js`, `rutas/auth.js`
+    (registro 201/409, login 200/401, logout 204).
+  - 4: middlewares `sesion` y `exigirSesion`; borrados `desarrollo.js`,
+    `semilla.js` y `npm run semilla` (D-39 cumplida). Productos de prueba
+    movidos a "Casa de Ana" (hogar 2); el hogar 1 ya no existe.
+  - Probado: 401 sin cookie, cada cuenta ve solo su hogar, Bea recibe 404
+    con la leche de Ana. `npm test`: 47 de 47.
+  - helmet 8.3.0 instalado (sin dependencias, 0 vulnerabilidades).
+- Cuentas de prueba en Neon: ana@prueba.test ("una clave larga", Casa de
+  Ana, 7 productos) y bea@prueba.test ("otra clave larga", Casa de Bea).
+- En el navegador, sin pantalla Entrar todavía: entrar desde la consola con
+  `fetch('/api/auth/login', …)` y recargar.
+- Siguiente: paso 5, `middlewares/origen.js` (Origin ≠ APP_ORIGEN → 403;
+  Content-Type no JSON → 415), `middlewares/limite.js` (en memoria: 300/15 min
+  por IP; login 10 por IP y 5 por email; registro 5/hora) y helmet con CSP
+  en `app.js` (+ `trust proxy` para Render).
 - Hecho fase 0: git init, .gitignore, .env.ejemplo, package.json,
   express 5.2.1, `server/config.js`, `server/app.js` (Express mínimo y
   `GET /api/salud`; sin helmet ni trust proxy de momento),
@@ -109,7 +144,7 @@ Proyecto de portfolio de un estudiante de DAW.
 - En Neon (hogar 1): nevera (pechuga de pollo, leche semidesnatada de
   prueba, leche entera 2 l), despensa (lentejas, pasta), congelador
   (pechuga de pollo caducada, queso). El tomate se borró en la prueba.
-- Siguiente: criterios de "hecho" de la fase 1 (§10), ✅ 🧪 ⚠️ y el "ok".
+- "Congelador vacío" corregido en el estado vacío del inventario.
 - Pendiente pequeño: añadir formatearCantidad() al `@file` de
   `server/pruebas/compartido.test.js`; quitar los 4 espacios delante del
   `import` de `compartido/formato.js`; poner `<body>` con 2 espacios en

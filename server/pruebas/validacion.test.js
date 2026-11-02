@@ -1,9 +1,9 @@
 /**
- * @file Pruebas de compartido/validacion.js: validarProducto().
+  * @file Pruebas de compartido/validacion.js: validarProducto(), validarRegistro() y validarLogin().
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarProducto } from '../../compartido/validacion.js';
+import { validarLogin, validarProducto, validarRegistro } from '../../compartido/validacion.js';
 
 /** Un producto válido del que parten las pruebas. */
 const BUENO = {
@@ -63,5 +63,47 @@ describe('validarProducto', () => {
     for (const malo of [null, 'leche', 42, []]) {
       assert.deepEqual(validarProducto(malo), { ok: false, errores: { general: 'Los datos del producto no son válidos.' } });
     }
+  });
+});
+
+describe('validarRegistro()', () => {
+  const buena = { email: '  Ana@Correo.COM ', nombre: ' Ana ', contrasena: 'diez letras' };
+
+  it('limpia el email (minúsculas y sin espacios) y el nombre', () => {
+    assert.deepEqual(validarRegistro(buena), {
+      ok: true,
+      datos: { email: 'ana@correo.com', nombre: 'Ana', contrasena: 'diez letras' },
+    });
+  });
+
+  it('marca cada campo con su error', () => {
+    const resultado = validarRegistro({ email: 'ana@correo', nombre: '   ', contrasena: 'corta' });
+    assert.equal(resultado.ok, false);
+    assert.deepEqual(Object.keys(resultado.errores).sort(), ['contrasena', 'email', 'nombre']);
+  });
+
+  it('la contraseña: de 10 a 128 caracteres', () => {
+    assert.equal(validarRegistro({ ...buena, contrasena: '123456789' }).ok, false);
+    assert.equal(validarRegistro({ ...buena, contrasena: '1234567890' }).ok, true);
+    assert.equal(validarRegistro({ ...buena, contrasena: 'x'.repeat(129) }).ok, false);
+  });
+
+  it('rechaza lo que no es un objeto', () => {
+    assert.equal(validarRegistro(null).ok, false);
+    assert.equal(validarRegistro(['ana@correo.com']).ok, false);
+  });
+});
+
+describe('validarLogin()', () => {
+  it('no exige el mínimo de 10 (el error será el genérico)', () => {
+    assert.deepEqual(validarLogin({ email: 'ANA@correo.com', contrasena: 'corta' }), {
+      ok: true,
+      datos: { email: 'ana@correo.com', contrasena: 'corta' },
+    });
+  });
+
+  it('pide email y contraseña', () => {
+    const resultado = validarLogin({ email: '', contrasena: '' });
+    assert.deepEqual(resultado.errores, { email: 'Escribe tu email.', contrasena: 'Escribe tu contraseña.' });
   });
 });
