@@ -74,14 +74,42 @@ Proyecto de portfolio de un estudiante de DAW.
   - Probado: 401 sin cookie, cada cuenta ve solo su hogar, Bea recibe 404
     con la leche de Ana. `npm test`: 47 de 47.
   - helmet 8.3.0 instalado (sin dependencias, 0 vulnerabilidades).
-- Cuentas de prueba en Neon: ana@prueba.test ("una clave larga", Casa de
-  Ana, 7 productos) y bea@prueba.test ("otra clave larga", Casa de Bea).
+- Hecho fase 2 (pasos 5–6b, 2026-11-03):
+  - 5a: `middlewares/origen.js` (Origin ≠ APP_ORIGEN → 403; cuerpo de verdad
+    y no JSON → 415; un POST vacío con Content-Length: 0 sí pasa).
+  - 5b: `middlewares/limite.js` (`crearLimite`, ventana fija en memoria,
+    429 + Retry-After; general 300/15 min por IP, login 10 por IP y 5 por
+    email con `olvidar()` al acertar, registro 5/hora) y sus pruebas.
+  - 5c: helmet con la CSP de §9.7 (`useDefaults: false`, sin
+    upgrade-insecure-requests) y `trust proxy` solo en producción.
+  - 6a: `servicios/hogares.js` (`crearInvitacion`, código de 8 caracteres
+    sin I/L/O/0/1, SHA-256, 48 h), `rutas/hogar.js`, límite 3/hora por
+    persona.
+  - 6b: `validarCodigoInvitacion` (compartido), `validacion/hogar.js`,
+    `unirse` con FOR UPDATE y `dejarHogar` (borra el hogar si te quedas
+    sola, con CONFIRMAR_BORRADO si tiene datos; pasa la propiedad).
+  - Probado: 403 con Origin ajeno, 415, 429 al sexto login fallido, CSP
+    bloquea scripts en línea, Bea se une a Casa de Ana y ven el mismo
+    inventario (Casa de Bea se borró). `npm test`: 51 de 51.
+  - Criterios de servidor de la fase 2: TODOS cumplidos.
+- Cuentas de prueba en Neon: ana@prueba.test ("una clave larga",
+  propietaria de Casa de Ana, 7 productos) y bea@prueba.test ("otra clave
+  larga", miembro de Casa de Ana). NO usar esta base de datos en
+  producción (las contraseñas están en este archivo, que es público).
+- Abrir la app en http://localhost:3000 (no 127.0.0.1: el Origin no
+  coincidiría con APP_ORIGEN). En PowerShell, las peticiones que cambian
+  algo necesitan `-Headers @{ Origin = 'http://localhost:3000' }`.
 - En el navegador, sin pantalla Entrar todavía: entrar desde la consola con
   `fetch('/api/auth/login', …)` y recargar.
-- Siguiente: paso 5, `middlewares/origen.js` (Origin ≠ APP_ORIGEN → 403;
-  Content-Type no JSON → 415), `middlewares/limite.js` (en memoria: 300/15 min
-  por IP; login 10 por IP y 5 por email; registro 5/hora) y helmet con CSP
-  en `app.js` (+ `trust proxy` para Render).
+- Siguiente: paso 6c (explicado en la conversación, sin escribir):
+  `hogares.js` exporta `dejarHogar` y añade `nombreDeCasa`, `obtenerHogar`
+  y `salir`; `usuarios.js` usa `nombreDeCasa` y añade `borrarCuenta`;
+  `validacion/auth.js` `leerBorrarCuenta`; `POST /api/hogar/salir`;
+  `rutas/yo.js` (`GET /api/yo`, `DELETE /api/yo`) montado en app.js. Prueba
+  con Bea y una cuenta nueva de Carla (Ana no se toca). Después, paso 7.
+- Detalle pendiente: en `origen.js`, la primera línea del comentario
+  "¿Lleva cuerpo DE VERDAD?" tiene 4 espacios (van 2); en
+  `server/pruebas/validacion.test.js`, el `@file` con 2 espacios.
 - Hecho fase 0: git init, .gitignore, .env.ejemplo, package.json,
   express 5.2.1, `server/config.js`, `server/app.js` (Express mínimo y
   `GET /api/salud`; sin helmet ni trust proxy de momento),

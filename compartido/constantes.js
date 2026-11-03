@@ -37,3 +37,10 @@ export const MAX_LONGITUD_CONTRASENA = 128;
 
 /** Longitud máxima de un email (la del estándar). */
 export const MAX_LONGITUD_EMAIL = 254;
+
+/**
+ * Códigos de invitación: 8 caracteres de este alfabeto. Sin I, L, O, 0 ni 1,
+ * que se confunden al dictarlos ("¿es una O o un cero?").
+ */
+export const ALFABETO_CODIGO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const LONGITUD_CODIGO = 8;

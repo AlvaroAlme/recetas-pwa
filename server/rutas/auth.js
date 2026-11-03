@@ -9,11 +9,12 @@ import { ErrorApi } from '../errores.js';
 import { borrarSesion } from '../servicios/sesiones.js';
 import * as usuarios from '../servicios/usuarios.js';
 import { leerLogin, leerRegistro } from '../validacion/auth.js';
+import { emailDelLogin, limiteLoginEmail, limiteLoginIp, limiteRegistro } from '../middlewares/limite.js';
 
 export const rutasAuth = Router();
 
 // POST /api/auth/registro: cuenta + hogar "Casa de …" + sesión, todo de una vez.
-rutasAuth.post('/registro', async (req, res) => {
+rutasAuth.post('/registro', limiteRegistro, async (req, res) => {
   const datos = leerRegistro(req.body);
   const entrada = await usuarios.registrar(datos);
   if (!entrada) {
@@ -26,12 +27,14 @@ rutasAuth.post('/registro', async (req, res) => {
 });
 
 // POST /api/auth/login: el mismo error si falla el email o la contraseña.
-rutasAuth.post('/login', async (req, res) => {
+rutasAuth.post('/login', limiteLoginIp, limiteLoginEmail, async (req, res) => {
   const datos = leerLogin(req.body);
   const entrada = await usuarios.iniciarSesion(datos);
   if (!entrada) {
     throw new ErrorApi(401, 'CREDENCIALES', 'Email o contraseña incorrectos.');
   }
+  // Ha acertado: los intentos fallidos de este email ya no cuentan.
+  limiteLoginEmail.olvidar(emailDelLogin(req));
   ponerCookieSesion(res, entrada.sesion);
   res.json({ usuario: entrada.usuario, hogar: entrada.hogar });
 });

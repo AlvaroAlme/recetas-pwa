@@ -7,6 +7,8 @@
  * petición se puede fabricar sin pasar por el formulario.
  */
 import {
+  ALFABETO_CODIGO,
+  LONGITUD_CODIGO,
   MAX_CANTIDAD,
   MAX_LONGITUD_CONTRASENA,
   MAX_LONGITUD_EMAIL,
@@ -193,4 +195,22 @@ export function validarLogin(entrada) {
 
   if (Object.keys(errores).length > 0) return { ok: false, errores };
   return { ok: true, datos: { email, contrasena } };
+}
+
+// ============ Hogar ============
+
+/**
+ * Limpia un código de invitación como lo escriba la persona ("6s4a-jmrb",
+ * " 6S4A JMRB ") y comprueba que PUEDE ser uno de verdad. Si existe, lo
+ * dice el servidor.
+ * @param {unknown} valor
+ * @returns {{ ok: true, datos: string } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarCodigoInvitacion(valor) {
+  const codigo = typeof valor === 'string' ? valor.toUpperCase().replace(/[\s-]/g, '') : '';
+  const valido = codigo.length === LONGITUD_CODIGO && [...codigo].every((letra) => ALFABETO_CODIGO.includes(letra));
+  if (!valido) {
+    return { ok: false, errores: { codigo: `El código son ${LONGITUD_CODIGO} letras y números.` } };
+  }
+  return { ok: true, datos: codigo };
 }

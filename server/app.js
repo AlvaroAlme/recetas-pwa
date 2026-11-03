@@ -8,10 +8,15 @@
 
 import path from 'node:path';
 import express from 'express';
+import helmet from 'helmet';
+import { comprobarOrigen } from './middlewares/origen.js';
+import { config } from './config.js';
 import { exigirSesion } from './middlewares/exigirSesion.js';
+import { limiteGeneral } from './middlewares/limite.js';
 import { manejarErrores, rutaNoEncontrada } from './middlewares/errores.js';
 import { sesion } from './middlewares/sesion.js';
 import { rutasAuth } from './rutas/auth.js';
+import { rutasHogar } from './rutas/hogar.js';
 import { rutasProductos } from './rutas/productos.js';
 
 
@@ -22,20 +27,63 @@ const CARPETA_WEB = path.join(import.meta.dirname, '..', 'web');
 
 app.disable('x-powered-by');
 
+// En Render hay un proxy delante: sin esto, req.ip sería siempre la del
+// proxy y el límite contaría a todo el mundo como una sola IP (§9.5). En mi
+// PC no hay proxy: si lo activara, cualquiera podría inventarse su IP con
+// la cabecera X-Forwarded-For y saltarse el límite.
+if (config.esProduccion) app.set('trust proxy', 1);
+
+// Texto de la CSP con comillas simples DENTRO ('self', 'none'): aquí uso
+// comillas dobles. Es la única excepción a D-35, para no escapar.
+const SOLO_MIO = "'self'";
+const NINGUNO = "'none'";
+
+// Cabeceras de seguridad (§9.7). La CSP le dice al navegador qué puede
+// cargar la página: solo cosas de mi propio origen y nada en línea. Si se
+// colara un <script> en un nombre de producto, el navegador no lo ejecutaría.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      // Solo mis directivas: las de por defecto traen upgrade-insecure-requests,
+      // que en mi PC (http://localhost) impediría cargar el CSS y el JS.
+      useDefaults: false,
+      directives: {
+        defaultSrc: [SOLO_MIO],
+        scriptSrc: [SOLO_MIO],
+        styleSrc: [SOLO_MIO],
+        imgSrc: [SOLO_MIO, 'data:', 'blob:'],
+        connectSrc: [SOLO_MIO],
+        objectSrc: [NINGUNO],
+        baseUri: [SOLO_MIO],
+        frameAncestors: [NINGUNO],
+      },
+    },
+  })
+);
+
 app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/salud', (req, res) => {
   res.json({ ok: true });
 });
 
+// Como mucho 300 peticiones cada 15 minutos por IP en toda la API (§9.5).
+app.use('/api', limiteGeneral);
+
 // En todas las rutas de la API: si hay una sesión buena, sé quién eres.
 app.use('/api', sesion);
+
+// En las peticiones que cambian algo: solo desde mi app y solo JSON (CSRF, §9.4).
+app.use('/api', comprobarOrigen);
 
 // Cuentas: registro, login y logout (fase 2).
 app.use('/api/auth', rutasAuth);
 
 // Inventario: solo con sesión, y siempre el de TU hogar (req.hogarId).
 app.use('/api/productos', exigirSesion, rutasProductos);
+
+// El hogar compartido: invitar, unirse y salir (D-03, D-16).
+app.use('/api/hogar', exigirSesion, rutasHogar);
 
 // Cualquier otra /api/... que no exista: 404 en JSON. Va DESPUÉS de todas
 // las rutas de la API y ANTES de los archivos estáticos.
