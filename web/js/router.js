@@ -29,6 +29,8 @@ import { el } from './dom.js';
  * @property {(entrada: { parametros: Record<string, string>, consulta: URLSearchParams }) => Vista | Promise<Vista>} pantalla
  * @property {(parametros: Record<string, string>) => boolean} [validar]
  *   Si devuelve false, la ruta no vale y sale "no existe" (SEC-06).
+ * @property {boolean} [publica] Entrar, Crear cuenta…: sin pestañas (no hay
+ *   sesión, así que no tiene sentido enseñar Inventario o Ajustes).
  */
 
 /** @type {Ruta[]} */
@@ -137,6 +139,7 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
   $('pie').hidden = !vista.pie;
 
   document.querySelector('.app').classList.toggle('app--secundaria', !ruta.pestana);
+  document.querySelector('.app').classList.toggle('app--publica', Boolean(ruta.publica));
   for (const enlace of document.querySelectorAll('.navegacion a')) {
     if (enlace.getAttribute('href') === ruta.pestana) {
       enlace.setAttribute('aria-current', 'page');

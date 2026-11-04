@@ -424,3 +424,12 @@ export function confirmar({ titulo, texto, textoConfirmar, peligroso = false }) 
     );
   });
 }
+
+/**
+ * Lo que hay escrito en un campo de crearCampo().
+ * @param {HTMLElement} campo
+ * @returns {string}
+ */
+export function leerCampo(campo) {
+  return campo.querySelector('.campo__entrada').value;
+}

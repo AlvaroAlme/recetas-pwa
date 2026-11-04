@@ -18,7 +18,7 @@ import { sesion } from './middlewares/sesion.js';
 import { rutasAuth } from './rutas/auth.js';
 import { rutasHogar } from './rutas/hogar.js';
 import { rutasProductos } from './rutas/productos.js';
-
+import { rutasYo } from './rutas/yo.js';
 
 const app = express();
 
@@ -84,6 +84,9 @@ app.use('/api/productos', exigirSesion, rutasProductos);
 
 // El hogar compartido: invitar, unirse y salir (D-03, D-16).
 app.use('/api/hogar', exigirSesion, rutasHogar);
+
+// Quién soy y borrar mi cuenta.
+app.use('/api/yo', exigirSesion, rutasYo);
 
 // Cualquier otra /api/... que no exista: 404 en JSON. Va DESPUÉS de todas
 // las rutas de la API y ANTES de los archivos estáticos.

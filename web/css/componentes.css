@@ -612,3 +612,38 @@ input:focus-visible + .chip {
     margin-block: auto max(var(--espacio-l), env(safe-area-inset-bottom));
   }
 }
+
+/* ============ Páginas públicas (Entrar, Crear cuenta): sin pestañas ============ */
+.app--publica {
+  --hueco-navegacion: 0px;
+}
+.app--publica .navegacion {
+  display: none;
+}
+@media (min-width: 48em) {
+  /* Sin barra lateral: la página ocupa toda la rejilla. */
+  .app--publica {
+    grid-template-columns: 1fr;
+  }
+  .app--publica .navegacion {
+    display: none;
+  }
+}
+
+.acceso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+  max-width: 400px;
+  margin-inline: auto;
+  padding-top: var(--espacio-l);
+}
+.acceso__lema,
+.acceso__pie {
+  color: var(--color-texto-secundario);
+  text-align: center;
+}
+.acceso a {
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-fuerte);
+}

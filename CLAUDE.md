@@ -92,10 +92,32 @@ Proyecto de portfolio de un estudiante de DAW.
     bloquea scripts en línea, Bea se une a Casa de Ana y ven el mismo
     inventario (Casa de Bea se borró). `npm test`: 51 de 51.
   - Criterios de servidor de la fase 2: TODOS cumplidos.
+- Hecho fase 2 (pasos 6c–7b, 2026-11-04):
+  - 6c: `dejarHogar` exportada, `nombreDeCasa`, `obtenerHogar`, `salir`
+    (409 si eres la única), `borrarCuenta` (pide contraseña),
+    `leerBorrarCuenta`, `POST /api/hogar/salir`, `rutas/yo.js` (`GET` y
+    `DELETE /api/yo`). Probado: herencia de la propiedad al salir y al
+    borrar la cuenta, CONFIRMAR_BORRADO al unirse con datos.
+  - 7a: 401 SIN_SESION en `api.js` → `/entrar?volver=…`; rutas `publica`
+    en el router (sin pestañas, `.app--publica`); `leerCampo()`;
+    `pantallas/entrar.js` con `destinoSeguro()` (contra redirecciones
+    abiertas: rechaza "//" y "/\").
+  - 7b: `pantallas/registro.js` (new-password, ayuda "Mínimo 10
+    caracteres.", 409 en campos.email, mensaje de bienvenida).
+  - Probado en el navegador sin escribir: redirección a /entrar, errores
+    de los formularios. FALTA mi prueba que escribe: entrar con Ana (mal y
+    bien → vuelve a la despensa), `?volver=//google.com` → `/`, registro
+    con ana@ (409) y una cuenta nueva (dani@prueba.test).
 - Cuentas de prueba en Neon: ana@prueba.test ("una clave larga",
-  propietaria de Casa de Ana, 7 productos) y bea@prueba.test ("otra clave
-  larga", miembro de Casa de Ana). NO usar esta base de datos en
-  producción (las contraseñas están en este archivo, que es público).
+  propietaria de Casa de Ana, 7 productos) y carla@prueba.test ("tercera
+  clave larga", propietaria de "Casa de Bea", vacía). Bea ya no existe. NO
+  usar esta base de datos en producción (las contraseñas están en este
+  archivo, que es público).
+- Siguiente: 7c Ajustes (P-16: tu casa, miembros, salir, cerrar sesión,
+  borrar cuenta) y 7d Invitar / Unirse (P-17). Revisar los formularios con
+  mis reglas de diseño (skill reglas-diseno-web). Ideas de las reglas para
+  Entrar/Registro: placeholder "nombre@correo.com" en el email (regla 2) e
+  icono de información en la ayuda de la contraseña (regla 3).
 - Abrir la app en http://localhost:3000 (no 127.0.0.1: el Origin no
   coincidiría con APP_ORIGEN). En PowerShell, las peticiones que cambian
   algo necesitan `-Headers @{ Origin = 'http://localhost:3000' }`.

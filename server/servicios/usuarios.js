@@ -5,9 +5,9 @@
 import { randomBytes } from 'node:crypto';
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
-import { MAX_LONGITUD_NOMBRE } from '../../compartido/constantes.js';
 import { comprobarContrasena, hashearContrasena } from './contrasenas.js';
 import { crearSesion } from './sesiones.js';
+import { dejarHogar, nombreDeCasa } from './hogares.js';
 
 /**
  * Lo que devuelven el registro y el login: quién eres, tu hogar y la
@@ -35,7 +35,7 @@ export async function registrar({ email, nombre, contrasena }) {
   // una conexión de la base de datos parada esperándolo.
   const hash = await hashearContrasena(contrasena);
   // El nombre puede tener 80 caracteres y el del hogar también: "Casa de " + 80 no cabría.
-  const nombreHogar = `Casa de ${nombre}`.slice(0, MAX_LONGITUD_NOMBRE);
+   const nombreHogar = nombreDeCasa(nombre);
 
   try {
     return await conTransaccion(async (cliente) => {
@@ -95,4 +95,28 @@ export async function iniciarSesion({ email, contrasena }) {
     hogar: { id: Number(fila.hogar_id), nombre: fila.hogar_nombre },
     sesion,
   };
+}
+
+/**
+ * Borra mi cuenta, pidiendo la contraseña (que nadie la borre con mi móvil
+ * desbloqueado). Si era la única del hogar, el hogar se va con sus datos;
+ * si no, la propiedad pasa a quien lleve más tiempo (dejarHogar). Al borrar
+ * el usuario, el CASCADE cierra todas sus sesiones.
+ * @param {number} usuarioId
+ * @param {number} hogarId
+ * @param {string} contrasena
+ * @returns {Promise<boolean>} false si la contraseña no es la suya.
+ */
+export async function borrarCuenta(usuarioId, hogarId, contrasena) {
+  const {
+    rows: [fila],
+  } = await pool.query('SELECT hash_contrasena FROM usuarios WHERE id = $1', [usuarioId]);
+  if (!fila || !(await comprobarContrasena(contrasena, fila.hash_contrasena))) return false;
+
+  await conTransaccion(async (cliente) => {
+    // true: borrar la cuenta YA es la confirmación de que el hogar se va.
+    await dejarHogar(cliente, usuarioId, hogarId, true);
+    await cliente.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
+  });
+  return true;
 }

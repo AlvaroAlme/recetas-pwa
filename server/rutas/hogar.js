@@ -38,3 +38,13 @@ rutasHogar.post('/unirse', async (req, res) => {
   }
   res.json({ hogar: resultado.hogar });
 });
+
+// POST /api/hogar/salir: me voy a un hogar nuevo, vacío y mío.
+rutasHogar.post('/salir', async (req, res) => {
+  const resultado = await hogares.salir(req.usuario, req.hogarId);
+  if (!resultado.ok) {
+    throw new ErrorApi(409, 'CONFLICTO', 'Eres la única persona de este hogar: no puedes salir de él.');
+  }
+  res.json({ hogar: resultado.hogar });
+});
+

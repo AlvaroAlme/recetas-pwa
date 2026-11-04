@@ -9,6 +9,7 @@
  * De momento: tiempo máximo, sin conexión y errores de la API. El 401 (ir a
  * /entrar) llega en la fase 2 y "Despertando el servidor…" en la fase 3.
  */
+import { navegar } from './router.js';
 
 /** Tiempo máximo de una petición normal (las de IA tendrán más, fase 5). */
 const TIEMPO_MAXIMO_MS = 15_000;
@@ -75,6 +76,11 @@ async function peticion(metodo, ruta, cuerpo) {
 
   if (!respuesta.ok) {
     const error = datos?.error;
+    // Sin sesión (o caducada): a Entrar, y al entrar vuelvo aquí (DISENO_UI §5.3).
+    // Solo con SIN_SESION: el 401 del login ("contraseña mal") NO es esto.
+    if (respuesta.status === 401 && error?.codigo === 'SIN_SESION' && location.pathname !== '/entrar') {
+      navegar(`/entrar?volver=${encodeURIComponent(location.pathname + location.search)}`, { reemplazar: true });
+    }
     throw new ErrorApi(
       respuesta.status,
       error?.codigo ?? 'INTERNO',
@@ -105,3 +111,4 @@ export const api = {
 export function mensajeDeError(error, general) {
   return ['SIN_CONEXION', 'TIEMPO_AGOTADO', 'NO_EXISTE'].includes(error.codigo) ? error.message : general;
 }
+

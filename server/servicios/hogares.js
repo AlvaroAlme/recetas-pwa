@@ -3,7 +3,7 @@
  * De momento, crear invitaciones; unirse y salir llegan en los pasos 6b y 6c.
  */
 import { createHash, randomInt } from 'node:crypto';
-import { ALFABETO_CODIGO, LONGITUD_CODIGO } from '../../compartido/constantes.js';
+import { ALFABETO_CODIGO, LONGITUD_CODIGO, MAX_LONGITUD_NOMBRE } from '../../compartido/constantes.js';
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
 
@@ -60,7 +60,7 @@ export async function crearInvitacion(hogarId, usuarioId) {
  * @param {boolean} confirmarBorrado
  * @returns {Promise<'HECHO' | 'CONFIRMAR_BORRADO'>}
  */
-async function dejarHogar(cliente, usuarioId, hogarId, confirmarBorrado) {
+export async function dejarHogar(cliente, usuarioId, hogarId, confirmarBorrado) {
   // FOR UPDATE: bloqueo a los miembros del hogar hasta el COMMIT, para que
   // nadie entre ni salga mientras decido.
   const { rows: miembros } = await cliente.query(
@@ -131,6 +131,65 @@ export async function unirse(usuarioId, hogarActualId, codigo, confirmarBorrado)
     const {
       rows: [hogar],
     } = await cliente.query('SELECT id, nombre FROM hogares WHERE id = $1', [hogarNuevoId]);
+    return { ok: true, hogar: { id: Number(hogar.id), nombre: hogar.nombre } };
+  });
+}
+
+/**
+ * El nombre del hogar de una persona: "Casa de Ana". Cortado a 80, porque
+ * "Casa de " + un nombre de 80 no cabría en el CHECK de hogares.
+ * @param {string} nombre
+ * @returns {string}
+ */
+export function nombreDeCasa(nombre) {
+  return `Casa de ${nombre}`.slice(0, MAX_LONGITUD_NOMBRE);
+}
+
+/**
+ * Mi hogar y quién vive en él (para GET /api/yo y Ajustes).
+ * @param {number} hogarId
+ * @returns {Promise<{ id: number, nombre: string, miembros: { id: number, nombre: string, rol: string }[] }>}
+ */
+export async function obtenerHogar(hogarId) {
+  const { rows } = await pool.query(
+    `SELECT h.id, h.nombre, u.id AS usuario_id, u.nombre AS usuario_nombre, m.rol
+       FROM hogares h
+       JOIN miembros m ON m.hogar_id = h.id
+       JOIN usuarios u ON u.id = m.usuario_id
+      WHERE h.id = $1
+      ORDER BY m.unido_en, u.id`,
+    [hogarId]
+  );
+  return {
+    id: Number(rows[0].id),
+    nombre: rows[0].nombre,
+    miembros: rows.map((fila) => ({ id: Number(fila.usuario_id), nombre: fila.usuario_nombre, rol: fila.rol })),
+  };
+}
+
+/**
+ * Salgo de mi hogar y me quedo en uno nuevo, vacío y mío. Si soy la única
+ * persona, no tiene sentido: aviso (la ruta da 409).
+ * @param {{ id: number, nombre: string }} usuario
+ * @param {number} hogarId
+ * @returns {Promise<{ ok: true, hogar: { id: number, nombre: string } } | { ok: false }>}
+ */
+export async function salir(usuario, hogarId) {
+  return conTransaccion(async (cliente) => {
+    const { rows: miembros } = await cliente.query('SELECT usuario_id FROM miembros WHERE hogar_id = $1 FOR UPDATE', [
+      hogarId,
+    ]);
+    if (miembros.length <= 1) return { ok: false };
+
+    await dejarHogar(cliente, usuario.id, hogarId, false);
+    const {
+      rows: [hogar],
+    } = await cliente.query('INSERT INTO hogares (nombre) VALUES ($1) RETURNING id, nombre', [nombreDeCasa(usuario.nombre)]);
+    await cliente.query('INSERT INTO miembros (usuario_id, hogar_id, rol) VALUES ($1, $2, $3)', [
+      usuario.id,
+      hogar.id,
+      'propietario',
+    ]);
     return { ok: true, hogar: { id: Number(hogar.id), nombre: hogar.nombre } };
   });
 }
