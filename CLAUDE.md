@@ -49,7 +49,13 @@ Proyecto de portfolio de un estudiante de DAW.
 - Fase 1 (base de datos y CRUD del inventario) aprobada el 2026-11-02.
   Pendiente de comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px,
   sin zoom en campos de 16 px y el teclado sobre el pie fijo.
-- Fase 2 (cuentas, sesiones y hogar compartido) en curso. Plan de pasos:
+- Fase 2 (cuentas, sesiones y hogar compartido) aprobada el 2026-11-04.
+  Pendiente para más adelante: `PATCH /api/hogar` (cambiar el nombre de la
+  casa; va con la zona horaria y la hora del plan), `server/log.js`
+  (SEC-09), límite de intentos en `/api/hogar/unirse`, `rutas/yo.js` en el
+  árbol de ARQUITECTURA §6, Bienvenida (P-03, fase 3) y Privacidad (P-18).
+- Fase 3 (PWA instalable, sin conexión y primer despliegue): siguiente.
+- Plan que se siguió en la fase 2:
   1 migración `002_cuentas.sql` (usuarios sin `aviso_ia_aceptado_en`, que
   llega en la 004; miembros, invitaciones, sesiones); 2 contraseñas con
   scrypt; 3 registro, login y logout con cookie; 4 middlewares `sesion` y
@@ -121,10 +127,6 @@ Proyecto de portfolio de un estudiante de DAW.
     `pantallas/borrarCuenta.js` (ruta nueva `/cuenta/borrar`, pide la
     contraseña); `api.borrar(ruta, cuerpo)`.
   - Probado: Carla invita, Dani se une confirmando el borrado de su casa.
-- ARREGLAR PRIMERO: en `web/js/pantallas/entrar.js`, línea 29, falta el ()
-  de `tomarMensaje()`. Sin él, `mensaje` es la propia función y la
-  pantalla Entrar enseña su código en un aviso verde. También: el `@file`
-  de `web/js/app.js` aún dice "en la 2, la sesión".
 - Cuentas de prueba en Neon (contraseñas de prueba, solo desarrollo):
   - ana@prueba.test, "una clave larga": sola en Casa de Ana (7 productos).
   - carla@prueba.test, "tercera clave larga": responsable de "Casa de Bea".
@@ -132,8 +134,9 @@ Proyecto de portfolio de un estudiante de DAW.
   NO usar esta base de datos en producción (este archivo es público).
 - Falta por probar del 7d: Dani → "Salir de esta casa" y "Borrar cuenta"
   (si la borras, quítala de esta lista).
-- Siguiente: cerrar la fase 2 (criterios de §10, ✅ 🧪 ⚠️ y el "ok"), y
-  añadir `/cuenta/borrar` a la tabla de rutas de DISENO_UI §5.2.
+- Siguiente: fase 3 (ARQUITECTURA §10): manifest e iconos, `sw.js`,
+  franja "Sin conexión", Bienvenida, y primer despliegue en Render (preguntar
+  antes de crear la cuenta) con una base de datos de producción aparte.
 - Abrir la app en http://localhost:3000 (no 127.0.0.1: el Origin no
   coincidiría con APP_ORIGEN). En PowerShell, las peticiones que cambian
   algo necesitan `-Headers @{ Origin = 'http://localhost:3000' }`.

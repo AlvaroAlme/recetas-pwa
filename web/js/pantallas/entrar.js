@@ -26,7 +26,7 @@ export function destinoSeguro(volver) {
  * @returns {import('../router.js').Vista}
  */
 export function pantallaEntrar({ consulta }) {
-  const mensaje = tomarMensaje;
+  const mensaje = tomarMensaje();
   const volver = destinoSeguro(consulta.get('volver'));
   const aviso = el('div');
   const email = crearCampo({

@@ -883,6 +883,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/plan/:dia/:tipo` | P-14 | Semana | `dia` ∈ `DIAS_SEMANA`, `tipo` ∈ `TIPOS_COMIDA` | `/semana` |
 | `/ajustes` | P-16 | Ajustes | — | — |
 | `/hogar/invitar`, `/hogar/unirse` | P-17 | Ajustes | `?codigo` opcional, formato del código | `/ajustes` |
+| `/cuenta/borrar` | Borrar cuenta (fase 2): aviso de lo que se borra + contraseña | Ajustes | — | `/ajustes` |
 | `/privacidad` | P-18 | — | — | página anterior o `/` |
 | otra | P-19 | — | — | `/` |
 

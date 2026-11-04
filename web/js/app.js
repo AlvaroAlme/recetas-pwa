@@ -1,6 +1,6 @@
 /**
  * @file Arranque del navegador: aquí digo qué pantalla va en cada URL.
- * (En la fase 3 también registrará el Service Worker; en la 2, la sesión.)
+ * (En la fase 3 también registrará el Service Worker.)
  */
 import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
