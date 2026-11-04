@@ -472,8 +472,17 @@ input:focus-visible + .chip {
   border: 2px solid var(--color-peligro);
 }
 .campo__ayuda {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-xs);
   color: var(--color-texto-tenue);
   font-size: var(--texto-secundario);
+}
+/* El icono, del tamaño de la letra (1em) y sin encogerse si el texto es largo. */
+.campo__icono {
+  flex: none;
+  width: 1em;
+  height: 1em;
 }
 .campo__error {
   color: var(--color-peligro);
@@ -646,4 +655,42 @@ input:focus-visible + .chip {
 .acceso a {
   color: var(--color-primario-texto);
   font-weight: var(--peso-fuerte);
+}
+
+/* ============ Filas que solo enseñan (no son enlaces) ============ */
+.fila--estatica {
+  cursor: default;
+}
+@media (hover: hover) {
+  .fila--estatica:hover {
+    background: transparent;
+  }
+}
+.texto--fuerte {
+  font-weight: var(--peso-fuerte);
+}
+
+/* ============ Invitar ============ */
+.invitar__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+  padding: var(--espacio-xl) var(--espacio-l);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie);
+  text-align: center;
+}
+/* El código, grande y con letras separadas, para dictarlo y copiarlo sin errores. */
+.invitar__codigo {
+  font-size: var(--texto-titulo);
+  font-weight: var(--peso-titulo);
+  letter-spacing: 0.15em;
+  font-variant-numeric: tabular-nums;
+}
+.invitar__estado {
+  color: var(--color-exito);
+  font-size: var(--texto-secundario);
+}
+.invitar__estado:empty {
+  display: none;
 }

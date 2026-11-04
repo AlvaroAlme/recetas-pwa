@@ -108,16 +108,32 @@ Proyecto de portfolio de un estudiante de DAW.
     de los formularios. FALTA mi prueba que escribe: entrar con Ana (mal y
     bien → vuelve a la despensa), `?volver=//google.com` → `/`, registro
     con ana@ (409) y una cuenta nueva (dani@prueba.test).
-- Cuentas de prueba en Neon: ana@prueba.test ("una clave larga",
-  propietaria de Casa de Ana, 7 productos) y carla@prueba.test ("tercera
-  clave larga", propietaria de "Casa de Bea", vacía). Bea ya no existe. NO
-  usar esta base de datos en producción (las contraseñas están en este
-  archivo, que es público).
-- Siguiente: 7c Ajustes (P-16: tu casa, miembros, salir, cerrar sesión,
-  borrar cuenta) y 7d Invitar / Unirse (P-17). Revisar los formularios con
-  mis reglas de diseño (skill reglas-diseno-web). Ideas de las reglas para
-  Entrar/Registro: placeholder "nombre@correo.com" en el email (regla 2) e
-  icono de información en la ayuda de la contraseña (regla 3).
+- Hecho fase 2 (pasos 7c–7d, 2026-11-04):
+  - Reglas de diseño 2 y 3: placeholder "nombre@correo.com" en los emails
+    e icono de información (SVG con createElementNS) en las ayudas.
+    `crearCampo` pone `placeholder: ' '` por defecto (sin él, la etiqueta
+    flotante se quedaba siempre arriba).
+  - 7c: `pantallas/ajustes.js` (Tu casa: miembros con "Responsable",
+    invitar, unirse, salir con confirmación; Cuenta: email, cerrar sesión,
+    borrar cuenta).
+  - 7d: `pantallas/invitar.js` (código al pulsar, copiar y compartir),
+    `pantallas/unirse.js` (CONFIRMAR_BORRADO con el diálogo) y
+    `pantallas/borrarCuenta.js` (ruta nueva `/cuenta/borrar`, pide la
+    contraseña); `api.borrar(ruta, cuerpo)`.
+  - Probado: Carla invita, Dani se une confirmando el borrado de su casa.
+- ARREGLAR PRIMERO: en `web/js/pantallas/entrar.js`, línea 29, falta el ()
+  de `tomarMensaje()`. Sin él, `mensaje` es la propia función y la
+  pantalla Entrar enseña su código en un aviso verde. También: el `@file`
+  de `web/js/app.js` aún dice "en la 2, la sesión".
+- Cuentas de prueba en Neon (contraseñas de prueba, solo desarrollo):
+  - ana@prueba.test, "una clave larga": sola en Casa de Ana (7 productos).
+  - carla@prueba.test, "tercera clave larga": responsable de "Casa de Bea".
+  - dani@prueba.test, "cuarta clave larga": miembro de "Casa de Bea".
+  NO usar esta base de datos en producción (este archivo es público).
+- Falta por probar del 7d: Dani → "Salir de esta casa" y "Borrar cuenta"
+  (si la borras, quítala de esta lista).
+- Siguiente: cerrar la fase 2 (criterios de §10, ✅ 🧪 ⚠️ y el "ok"), y
+  añadir `/cuenta/borrar` a la tabla de rutas de DISENO_UI §5.2.
 - Abrir la app en http://localhost:3000 (no 127.0.0.1: el Origin no
   coincidiría con APP_ORIGEN). En PowerShell, las peticiones que cambian
   algo necesitan `-Headers @{ Origin = 'http://localhost:3000' }`.

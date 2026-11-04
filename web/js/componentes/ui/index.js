@@ -18,6 +18,48 @@ function nuevoId(prefijo) {
   return `${prefijo}-${contadorIds}`;
 }
 
+/** El "espacio de nombres" de SVG: sin él, el navegador no dibuja el icono. */
+const SVG = 'http://www.w3.org/2000/svg';
+
+/**
+ * Crea un elemento SVG con sus atributos. Es como el(), pero con
+ * createElementNS: los elementos SVG no son HTML.
+ * @param {string} etiqueta 'svg', 'circle', 'path'…
+ * @param {Record<string, string>} atributos
+ * @param {...SVGElement} hijos
+ * @returns {SVGElement}
+ */
+function elSvg(etiqueta, atributos, ...hijos) {
+  const elemento = document.createElementNS(SVG, etiqueta);
+  for (const [nombre, valor] of Object.entries(atributos)) elemento.setAttribute(nombre, valor);
+  elemento.append(...hijos);
+  return elemento;
+}
+
+/**
+ * Icono de información: un círculo con una "i" (SVG propio, D-30). Toma el
+ * color del texto (currentColor) y el lector de pantallas lo salta
+ * (aria-hidden): la información ya la da el texto de al lado.
+ * @returns {SVGElement}
+ */
+function crearIconoInfo() {
+  return elSvg(
+    'svg',
+    {
+      class: 'campo__icono',
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2',
+      'stroke-linecap': 'round',
+      'aria-hidden': 'true',
+      focusable: 'false',
+    },
+    elSvg('circle', { cx: '12', cy: '12', r: '9' }),
+    elSvg('path', { d: 'M12 11v5M12 7.5v.5' })
+  );
+}
+
 /**
  * Chips de opción única. Por dentro son radios nativos: el navegador me da
  * gratis las flechas del teclado y el "1 de 3, seleccionado" del lector.
@@ -196,11 +238,12 @@ export function crearCampo({ etiqueta, nombre, valor, ayuda, atributos = {} }) {
         id,
         name: nombre,
         value: valor,
+        placeholder: ' ',
         'aria-describedby': ayuda ? idAyuda : null,
         ...atributos,
       })
     ),
-    ayuda && el('p', { class: 'campo__ayuda', id: idAyuda }, ayuda),
+    ayuda && el('p', { class: 'campo__ayuda', id: idAyuda }, crearIconoInfo(), ayuda),
     el('p', { class: 'campo__error', id: `${id}-error`, hidden: true })
   );
 }

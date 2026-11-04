@@ -25,7 +25,7 @@ export function pantallaRegistro({ consulta }) {
   const email = crearCampo({
     etiqueta: 'Email',
     nombre: 'email',
-    atributos: { type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false' },
+    atributos: { type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', placeholder: 'nombre@correo.com' },
   });
   const contrasena = crearCampo({
     etiqueta: 'Contraseña',

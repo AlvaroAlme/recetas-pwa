@@ -7,7 +7,7 @@ import { validarLogin } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
 import { crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
-import { navegar } from '../router.js';
+import { navegar, tomarMensaje } from '../router.js';
 
 /**
  * A dónde vuelvo al entrar: SOLO a rutas de mi app. Tiene que empezar por
@@ -26,12 +26,13 @@ export function destinoSeguro(volver) {
  * @returns {import('../router.js').Vista}
  */
 export function pantallaEntrar({ consulta }) {
+  const mensaje = tomarMensaje;
   const volver = destinoSeguro(consulta.get('volver'));
   const aviso = el('div');
   const email = crearCampo({
     etiqueta: 'Email',
     nombre: 'email',
-    atributos: { type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false' },
+    atributos: { type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', placeholder: 'nombre@correo.com' },
   });
   const contrasena = crearCampo({
     etiqueta: 'Contraseña',
@@ -79,6 +80,7 @@ export function pantallaEntrar({ consulta }) {
     contenido: el(
       'div',
       { class: 'acceso' },
+      mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` }),
       el('p', { class: 'acceso__lema' }, 'Recetas con lo que tengas en la nevera.'),
       el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, email, contrasena, boton),
       el(
