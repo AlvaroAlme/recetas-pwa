@@ -1,6 +1,6 @@
 /**
  * @file Arranque del navegador: aquí digo qué pantalla va en cada URL.
- * (En la fase 3 también registrará el Service Worker.)
+ * También registro el Service Worker (sw.js), que guarda la app para abrirla sin red.
  */
 import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
@@ -33,3 +33,11 @@ iniciarRouter({
   ],
   noExiste: pantallaNoExiste,
 });
+
+
+// Los navegadores antiguos no tienen Service Worker: la app funciona igual, pero sin red no abre.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch((error) => {
+    console.error('No se ha podido registrar el Service Worker:', error);
+  });
+}

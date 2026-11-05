@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Fondo salvia (D-41) a sangre: iOS redondea las esquinas él solo. -->
+  <rect width="512" height="512" fill="#488063"/>
+  <!-- El frigorífico, en crema. -->
+  <rect x="166" y="86" width="180" height="340" rx="30" fill="#faf6ee"/>
+  <!-- La línea entre el congelador y la nevera. -->
+  <rect x="166" y="196" width="180" height="12" fill="#488063"/>
+  <!-- Las dos asas. -->
+  <rect x="306" y="124" width="14" height="44" rx="7" fill="#488063"/>
+  <rect x="306" y="236" width="14" height="70" rx="7" fill="#488063"/>
+</svg>

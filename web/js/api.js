@@ -14,6 +14,24 @@ import { navegar } from './router.js';
 /** Tiempo máximo de una petición normal (las de IA tendrán más, fase 5). */
 const TIEMPO_MAXIMO_MS = 15_000;
 
+/** La copia de la API que guarda el Service Worker. Mismo nombre que en sw.js. */
+const CACHE_API = 'api-v1';
+
+/**
+ * Las rutas que cambian quién eres o de qué casa. Después de una escritura en
+ * ellas, la copia sin red ya no vale, y además es privada (§4.2).
+ */
+const CAMBIAN_DE_CASA = ['/auth/', '/hogar/', '/yo'];
+
+/** Borro la copia de los datos. Si no hay Cache Storage o falla, no pasa nada. */
+async function borrarCopiaDeDatos() {
+  try {
+    await globalThis.caches?.delete(CACHE_API);
+  } catch {
+    // No hay copia que borrar.
+  }
+}
+
 /**
  * Error de una petición. Tiene la misma forma que el JSON de error del
  * servidor (§5.1), y algunos códigos solo del navegador:
@@ -69,6 +87,12 @@ async function peticion(metodo, ruta, cuerpo) {
     });
   }
 
+  // Si he cambiado de cuenta o de casa, la copia sin red ya no es mía.
+
+  if (respuesta.ok && metodo !== 'GET' && CAMBIAN_DE_CASA.some((prefijo) => ruta.startsWith(prefijo))) {
+    await borrarCopiaDeDatos();
+  }
+
   if (respuesta.status === 204) return null;
 
   // Si el cuerpo no es JSON (no debería pasar en /api), sigo con null.
@@ -79,6 +103,7 @@ async function peticion(metodo, ruta, cuerpo) {
     // Sin sesión (o caducada): a Entrar, y al entrar vuelvo aquí (DISENO_UI §5.3).
     // Solo con SIN_SESION: el 401 del login ("contraseña mal") NO es esto.
     if (respuesta.status === 401 && error?.codigo === 'SIN_SESION' && location.pathname !== '/entrar') {
+      await borrarCopiaDeDatos();
       navegar(`/entrar?volver=${encodeURIComponent(location.pathname + location.search)}`, { reemplazar: true });
     }
     throw new ErrorApi(
