@@ -6,7 +6,7 @@
 import { UBICACIONES } from '/compartido/constantes.js';
 import { api, mensajeDeError } from '../api.js';
 import { crearFormularioProducto } from '../componentes/formularioProducto.js';
-import { confirmar, crearAviso, crearCarga, crearVacio, ponerCargando } from '../componentes/ui/index.js';
+import { confirmar, crearAviso, crearCarga, crearSinConexion, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
 import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
@@ -104,11 +104,20 @@ function pantallaEditar(id) {
     const botonesMover = destinos.map((destino) =>
       el(
         'button',
-        { class: 'boton boton--secundario', type: 'button', onclick: (evento) => mover(destino, evento.currentTarget) },
+        {
+          class: 'boton boton--secundario',
+          type: 'button',
+          'data-escribe': true,
+          onclick: (evento) => mover(destino, evento.currentTarget),
+        },
         `A ${ETIQUETAS_UBICACION[destino]}`
       )
     );
-    const botonBorrar = el('button', { class: 'boton boton--peligro', type: 'button', onclick: borrar }, 'Borrar producto');
+    const botonBorrar = el(
+      'button',
+      { class: 'boton boton--peligro', type: 'button', 'data-escribe': true, onclick: borrar },
+      'Borrar producto'
+    );
 
     async function mover(destino, boton) {
       // Mientras se mueve, no dejo pulsar el otro destino (no moverlo dos veces).
@@ -170,8 +179,9 @@ function pantallaEditar(id) {
 
   /** @param {import('../api.js').ErrorApi} error */
   function crearError(error) {
+    if (error.codigo === 'SIN_CONEXION') return crearSinConexion(cargar);
     return crearAviso({
-      mensaje: error.codigo === 'SIN_CONEXION' ? error.message : 'No se ha podido cargar el producto.',
+      mensaje: mensajeDeError(error, 'No se ha podido cargar el producto.'),
       accion: el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: cargar }, 'Reintentar'),
     });
   }

@@ -24,7 +24,7 @@ export function pantallaUnirse() {
       maxlength: 9,
     },
   });
-  const boton = el('button', { class: 'boton boton--primario', type: 'submit' }, 'Unirme');
+  const boton = el('button', { class: 'boton boton--primario', type: 'submit', 'data-escribe': true }, 'Unirme');
   let enviando = false;
 
   /**

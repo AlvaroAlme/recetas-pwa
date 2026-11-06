@@ -202,6 +202,20 @@ export function crearVacio({ titulo, descripcion, accion }) {
 }
 
 /**
+ * Sin red y sin copia guardada de esta pantalla (DISENO_UI §8). Al volver la
+ * red, conexion.js repinta la pantalla él solo; "Reintentar" es por si acaso.
+ * @param {() => void} alReintentar
+ * @returns {HTMLElement}
+ */
+export function crearSinConexion(alReintentar) {
+  return crearVacio({
+    titulo: 'Sin conexión',
+    descripcion: 'Conéctate a internet para ver esta pantalla por primera vez.',
+    accion: el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: alReintentar }, 'Reintentar'),
+  });
+}
+
+/**
  * Mensaje destacado. Los errores usan role="alert" (el lector los dice al
  * momento); el resto, role="status".
  * @param {{ tipo?: 'error' | 'aviso' | 'exito', mensaje: string, accion?: Node }} opciones

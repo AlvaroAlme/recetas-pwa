@@ -4,7 +4,7 @@
  * fases.
  */
 import { api, mensajeDeError } from '../api.js';
-import { confirmar, crearAviso, crearCarga, ponerCargando } from '../componentes/ui/index.js';
+import { confirmar, crearAviso, crearCarga, crearSinConexion, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar, tomarMensaje } from '../router.js';
 
@@ -22,10 +22,12 @@ export function pantallaAjustes() {
       zona.replaceChildren(crearSeccionCasa(usuario, hogar), crearSeccionCuenta(usuario));
     } catch (error) {
       zona.replaceChildren(
-        crearAviso({
-          mensaje: mensajeDeError(error, 'No se han podido cargar tus ajustes.'),
-          accion: el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: cargar }, 'Reintentar'),
-        })
+        error.codigo === 'SIN_CONEXION'
+          ? crearSinConexion(cargar)
+          : crearAviso({
+              mensaje: mensajeDeError(error, 'No se han podido cargar tus ajustes.'),
+              accion: el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: cargar }, 'Reintentar'),
+            })
       );
     }
   }
@@ -57,7 +59,7 @@ export function pantallaAjustes() {
     // Salir solo tiene sentido si hay más gente: si no, la API da 409.
     const botonSalir =
       hogar.miembros.length > 1 &&
-      el('button', { class: 'boton boton--secundario', type: 'button', onclick: salirDeLaCasa }, 'Salir de esta casa');
+      el('button', { class: 'boton boton--secundario', type: 'button', 'data-escribe': true, onclick: salirDeLaCasa }, 'Salir de esta casa');
 
     async function salirDeLaCasa() {
       const seguro = await confirmar({
@@ -102,7 +104,7 @@ export function pantallaAjustes() {
     const aviso = el('div');
     const botonCerrar = el(
       'button',
-      { class: 'boton boton--secundario', type: 'button', onclick: cerrarSesion },
+      { class: 'boton boton--secundario', type: 'button', 'data-escribe': true, onclick: cerrarSesion },
       'Cerrar sesión'
     );
 

@@ -8,8 +8,8 @@
 import { UBICACIONES } from '/compartido/constantes.js';
 import { avisoCaducidad, formatearCantidad } from '/compartido/formato.js';
 import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
-import { api } from '../api.js';
-import { crearAviso, crearCarga, crearFila, crearSelector, crearVacio } from '../componentes/ui/index.js';
+import { api, mensajeDeError } from '../api.js';
+import { crearAviso, crearCarga, crearFila, crearSelector, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { tomarMensaje } from '../router.js';
 
@@ -44,10 +44,12 @@ export function pantallaInventario({ consulta }) {
     } catch (error) {
       if (miTurno !== turno) return;
       zona.replaceChildren(
-        crearAviso({
-          mensaje: error.codigo === 'SIN_CONEXION' ? error.message : 'No se ha podido cargar el inventario.',
-          accion: el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: cargar }, 'Reintentar'),
-        })
+        error.codigo === 'SIN_CONEXION'
+          ? crearSinConexion(cargar)
+          : crearAviso({
+              mensaje: mensajeDeError(error, 'No se ha podido cargar el inventario.'),
+              accion: el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: cargar }, 'Reintentar'),
+            })
       );
     }
   }

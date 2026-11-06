@@ -694,3 +694,16 @@ input:focus-visible + .chip {
 .invitar__estado:empty {
   display: none;
 }
+
+/* ============ Franja "Sin conexión" (§3.2 FranjaConexion) ============ */
+.franja-conexion {
+  padding: var(--espacio-s) max(var(--espacio-l), env(safe-area-inset-left));
+  background: var(--color-fondo-aviso);
+  color: var(--color-aviso);
+  font-size: var(--texto-secundario);
+  line-height: var(--linea-secundario);
+  text-align: center;
+}
+.franja-conexion__motivo {
+  display: block;
+}

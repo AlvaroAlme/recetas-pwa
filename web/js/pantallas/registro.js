@@ -34,7 +34,7 @@ export function pantallaRegistro({ consulta }) {
     // new-password: el llavero de iCloud (o Bitwarden) ofrece una contraseña segura.
     atributos: { type: 'password', autocomplete: 'new-password' },
   });
-  const boton = el('button', { class: 'boton boton--primario', type: 'submit' }, 'Crear cuenta');
+  const boton = el('button', { class: 'boton boton--primario', type: 'submit', 'data-escribe': true }, 'Crear cuenta');
   const CAMPOS = [
     ['nombre', nombre],
     ['email', email],

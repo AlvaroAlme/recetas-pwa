@@ -2,6 +2,7 @@
  * @file Arranque del navegador: aquí digo qué pantalla va en cada URL.
  * También registro el Service Worker (sw.js), que guarda la app para abrirla sin red.
  */
+import { iniciarConexion } from './conexion.js';
 import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
@@ -16,6 +17,7 @@ import { pantallaUnirse } from './pantallas/unirse.js';
 /** Un id de la URL tiene que ser un entero positivo, como en el servidor. */
 const ES_ID = /^[1-9]\d*$/;
 
+iniciarConexion();
 iniciarRouter({
   rutas: [
     // Públicas: no hace falta sesión.

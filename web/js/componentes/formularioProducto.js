@@ -114,7 +114,7 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
     'Quitar fecha'
   );
   // type="submit" con form="…": envía el formulario aunque esté fuera de él (en el pie).
-  const boton = el('button', { class: 'boton boton--primario', type: 'submit', form: idFormulario }, textoBoton);
+  const boton = el('button', { class: 'boton boton--primario', type: 'submit', form: idFormulario, 'data-escribe': true }, textoBoton);
 
   // Los campos en el orden de la pantalla: así el foco va al PRIMERO que falla.
   const CAMPOS = [

@@ -12,7 +12,7 @@ const conGuion = (codigo) => `${codigo.slice(0, 4)}-${codigo.slice(4)}`;
 /** @returns {import('../router.js').Vista} */
 export function pantallaInvitar() {
   const zona = el('div', { class: 'invitar' });
-  const boton = el('button', { class: 'boton boton--primario', type: 'button', onclick: crearCodigo }, 'Crear código');
+  const boton = el('button', { class: 'boton boton--primario', type: 'button', 'data-escribe': true, onclick: crearCodigo }, 'Crear código');
 
   async function crearCodigo() {
     ponerCargando(boton, true, 'Creando…');

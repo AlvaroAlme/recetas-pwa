@@ -15,7 +15,7 @@ export function pantallaBorrarCuenta() {
     nombre: 'contrasena',
     atributos: { type: 'password', autocomplete: 'current-password' },
   });
-  const boton = el('button', { class: 'boton boton--peligro', type: 'submit' }, 'Borrar mi cuenta');
+  const boton = el('button', { class: 'boton boton--peligro', type: 'submit', 'data-escribe': true }, 'Borrar mi cuenta');
   let enviando = false;
 
   /** @param {SubmitEvent} evento */

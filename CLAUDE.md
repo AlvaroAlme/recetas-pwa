@@ -58,7 +58,13 @@ La Bienvenida (P-03) se decide al final de la fase.
 Hecho (2026-11-05): paso 1 (icono "A · Nevera", PNG 180/192/512, manifest,
 etiquetas en `index.html`) y paso 2 (`sw.js`: precaché `app-v2`, la API
 primero la red con copia en `api-v1` y `X-Desde-Cache`; `api.js` borra la
-copia al cambiar de cuenta o de casa y con el 401). Siguiente: paso 3.
+copia al cambiar de cuenta o de casa y con el 401). Hecho (2026-11-06):
+paso 3 (`conexion.js`: franja "Sin conexión · datos de las HH:MM", botones
+con `data-escribe` deshabilitados con `aria-disabled` y el motivo,
+`crearSinConexion()` cuando no hay copia, y al volver la red comprueba
+`/api/salud` y repinta si no hay formulario; `sw.js` en `app-v5`).
+Siguiente: paso 4 (servidor para producción). Pendiente de la fase 3:
+"Despertando el servidor…" tras 3 s (§8.3).
 
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
@@ -70,6 +76,9 @@ copia al cambiar de cuenta o de casa y con el 401). Siguiente: paso 3.
 - La `clave` de idempotencia del lote (P-06) llega en la fase 5.
 - Probar desde la pantalla: Dani → "Salir de esta casa" y "Borrar cuenta".
 
+**Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10
+("Versión 2"): V2-01 consejos de cocina con IA, V2-02 productos de temporada.
+
 **Detalles de estilo pendientes:** `@file` de
 `server/pruebas/compartido.test.js` sin formatearCantidad(); 4 espacios
 delante del `import` de `compartido/formato.js`; `<body>` con 6 espacios en
@@ -79,9 +88,9 @@ y 92 y `crearAutocompletar` antes que `crearAviso`; en
 `pantallas/producto.js`, el import de `/compartido/ubicaciones.js` junto a
 los de `/compartido/`; en `origen.js`, un comentario con 4 espacios; en
 `server/pruebas/validacion.test.js`, el `@file` con 2 espacios; en
-`web/sw.js`, el bloque `if (url.pathname.startsWith('/api/'))` sin sangrar;
-en `api.js`, una línea en blanco de más tras "la copia sin red ya no es
-mía"; en `app.js`, dos líneas en blanco antes del registro del SW.
+`web/sw.js`, el bloque `if (url.pathname.startsWith('/api/'))` sin sangrar; en `app.js`, dos líneas en blanco antes del registro del SW; en
+`conexion.js`, tres líneas en blanco tras `let textoActual` y
+`actualizarEscrituras();` con 4 espacios.
 
 **Cuentas de prueba** (base de datos de DESARROLLO; nunca en producción,
 porque este archivo es público):

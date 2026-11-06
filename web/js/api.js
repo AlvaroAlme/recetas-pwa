@@ -10,6 +10,7 @@
  * /entrar) llega en la fase 2 y "Despertando el servidor…" en la fase 3.
  */
 import { navegar } from './router.js';
+import { avisarConexion } from './conexion.js';
 
 /** Tiempo máximo de una petición normal (las de IA tendrán más, fase 5). */
 const TIEMPO_MAXIMO_MS = 15_000;
@@ -82,13 +83,17 @@ async function peticion(metodo, ruta, cuerpo) {
     if (error.name === 'TimeoutError') {
       throw new ErrorApi(0, 'TIEMPO_AGOTADO', 'El servidor está tardando demasiado.', { reintentable: true });
     }
+    avisarConexion(false);
     throw new ErrorApi(0, 'SIN_CONEXION', 'No hay conexión a internet. Comprueba la red e inténtalo de nuevo.', {
       reintentable: true,
     });
   }
 
-  // Si he cambiado de cuenta o de casa, la copia sin red ya no es mía.
+  // ¿Respuesta del servidor o copia del Service Worker? Se lo cuento a la franja.
+  const fechaCopia = respuesta.headers.get('X-Desde-Cache');
+  avisarConexion(fechaCopia === null, fechaCopia);
 
+  // Si he cambiado de cuenta o de casa, la copia sin red ya no es mía.
   if (respuesta.ok && metodo !== 'GET' && CAMBIAN_DE_CASA.some((prefijo) => ruta.startsWith(prefijo))) {
     await borrarCopiaDeDatos();
   }

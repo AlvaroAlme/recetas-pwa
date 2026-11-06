@@ -39,7 +39,7 @@ export function pantallaEntrar({ consulta }) {
     nombre: 'contrasena',
     atributos: { type: 'password', autocomplete: 'current-password' },
   });
-  const boton = el('button', { class: 'boton boton--primario', type: 'submit' }, 'Entrar');
+  const boton = el('button', { class: 'boton boton--primario', type: 'submit', 'data-escribe': true }, 'Entrar');
   let enviando = false;
 
   /** @param {SubmitEvent} evento */

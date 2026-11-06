@@ -157,13 +157,6 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
 /**
  * Va a otra pantalla de la app sin recargar.
  * @param {string} url '/producto/7', '/?ubicacion=despensa'…
- * @param {{ reemplazar?: boolean }} [opciones] reemplazar: no deja la
- *   pantalla actual en el historial (tras guardar un formulario, para que
- *   "Atrás" no vuelva a él).
- */
-/**
- * Va a otra pantalla de la app sin recargar.
- * @param {string} url '/producto/7', '/?ubicacion=despensa'…
  * @param {{ reemplazar?: boolean, mensaje?: string }} [opciones]
  *   reemplazar: no deja la pantalla actual en el historial (tras guardar un
  *   formulario, para que "Atrás" no vuelva a él).
@@ -194,6 +187,14 @@ export function volver(porDefecto) {
   } else {
     navegar(porDefecto, { reemplazar: true });
   }
+}
+
+/**
+ * Vuelvo a pintar la pantalla actual (al recuperar la conexión). Como en la
+ * primera vez, no muevo el foco; como al volver, no muevo el scroll.
+ */
+export function repintar() {
+  pintar({ esPrimera: true, volviendo: true });
 }
 
 /**

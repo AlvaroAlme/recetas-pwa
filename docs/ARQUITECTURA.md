@@ -43,6 +43,8 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 - Varios hogares por usuario (P-01).
 - Recuperar la contraseña por email hasta la fase 8 (P-10).
 - Analíticas, temas personalizados y cualquier cosa que no esté en la app Expo.
+- Las ideas de la versión 2 (consejos de cocina, productos de temporada):
+  apuntadas en §10, "Versión 2".
 
 ### 1.3 Diferencias de comportamiento respecto a la app Expo
 
@@ -945,6 +947,16 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - se puede recuperar la contraseña con un enlace de un solo uso que caduca;
 - `npm audit` sin vulnerabilidades altas;
 - el README permite levantar el proyecto desde cero.
+
+### Versión 2 — Ideas apuntadas (después del despliegue)
+Ideas del autor (2026-11-06) para una actualización **cuando la versión 1
+esté terminada y desplegada**. Todavía no son decisiones: cada una se
+diseña y se decide (D-xx) cuando le toque.
+
+| # | Idea | Qué es | Preguntas que habrá que decidir |
+|---|---|---|---|
+| V2-01 | **Consejos y trucos de cocina** | Consejos que da la IA: cómo ligar una salsa, cómo dejar las patatas más crujientes, etc. | ¿Se pregunta libremente o se eligen temas? ¿Gasta la cuota diaria de IA (D-15) o tiene la suya? ¿Se guardan los consejos (por hogar, como las recetas) para no repetir llamadas? ¿Se enlazan con las recetas (un consejo para la receta que estás viendo)? |
+| V2-02 | **Productos de temporada** | Al cambiar de estación o al acercarse una fiesta, recomendar productos de temporada: fruta y verdura (fresas y melocotón en verano), pescado (también va por temporadas) y dulces de fiesta (turrón y panettone en Navidad) | ¿Lista fija revisada en `compartido/` (gratis y sin red) o la da la IA? ¿De dónde salen los datos de temporada (fuente fiable, España)? Fiestas con fecha que cambia cada año (Semana Santa). ¿Dónde se ven (aviso en el inventario, pestaña propia, en la lista de la compra)? ¿Se tienen en cuenta en el prompt de las recetas? |
 
 ---
 
