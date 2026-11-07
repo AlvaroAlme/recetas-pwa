@@ -8,7 +8,7 @@
     "node": ">=22.11"
   },
   "scripts": {
-    "start": "node server/index.js",
+    "start": "node --env-file-if-exists=.env server/index.js",
     "dev": "node --env-file=.env --watch server/index.js",
     "migrar": "node --env-file=.env server/bd/cli-migrar.js",
     "test": "node --test"

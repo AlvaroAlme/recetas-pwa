@@ -63,8 +63,11 @@ paso 3 (`conexion.js`: franja "Sin conexión · datos de las HH:MM", botones
 con `data-escribe` deshabilitados con `aria-disabled` y el motivo,
 `crearSinConexion()` cuando no hay copia, y al volver la red comprueba
 `/api/salud` y repinta si no hay formulario; `sw.js` en `app-v5`).
-Siguiente: paso 4 (servidor para producción). Pendiente de la fase 3:
-"Despertando el servidor…" tras 3 s (§8.3).
+Hecho (2026-11-07): paso 4 (`index.js` migra antes de `listen` y no
+arranca si falla; cierre ordenado con `SIGTERM`; `npm start` con
+`--env-file-if-exists=.env`). Siguiente: paso 5 (Neon de producción y
+Render). Pendiente de la fase 3: "Despertando el servidor…" tras 3 s
+(§8.3) y ver el cierre con `SIGTERM` en los logs de Render.
 
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
