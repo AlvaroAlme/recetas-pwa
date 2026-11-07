@@ -11,3 +11,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+
+# Grafo de graphify: se regenera con /graphify
+graphify-out/
