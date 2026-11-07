@@ -1,7 +1,9 @@
-# Recetas Nevera PWA
+# Vigía (antes Recetas Nevera PWA)
 
-PWA instalable (iPhone) para gestionar nevera, despensa, congelador y tuppers,
-con recetas generadas por IA. Recreación de la app Expo "Recetas Nevera".
+PWA instalable (iPhone) para controlar lo que hay en la nevera, la despensa,
+el congelador y los tuppers, y no tirar comida, con recetas generadas por IA.
+Nombre comercial "Vigía" desde el 2026-11-07 (D-45); la carpeta y el repo
+siguen como `recetas-nevera-pwa`. Recreación de la app Expo "Recetas Nevera".
 Proyecto de portfolio de un estudiante de DAW.
 
 ## Cómo trabajar conmigo (modo mentor)
@@ -65,8 +67,12 @@ con `data-escribe` deshabilitados con `aria-disabled` y el motivo,
 `/api/salud` y repinta si no hay formulario; `sw.js` en `app-v5`).
 Hecho (2026-11-07): paso 4 (`index.js` migra antes de `listen` y no
 arranca si falla; cierre ordenado con `SIGTERM`; `npm start` con
-`--env-file-if-exists=.env`). Siguiente: paso 5 (Neon de producción y
-Render). Pendiente de la fase 3: "Despertando el servidor…" tras 3 s
+`--env-file-if-exists=.env`). Hecho (2026-11-07): identidad visual
+**Vigía** (D-45, sustituye a D-41): papel y verde pino, estados de
+caducidad ok/pronto/caducado, Bricolage Grotesque en títulos
+(`web/fuentes/`), icono "ojo-hoja"; todas las pantallas rediseñadas en
+CSS y revisadas (AA en claro y oscuro, 375 y 1440 px); `sw.js` en `app-v6`.
+Siguiente: paso 5 (Neon de producción y Render). Pendiente de la fase 3: "Despertando el servidor…" tras 3 s
 (§8.3) y ver el cierre con `SIGTERM` en los logs de Render.
 
 **Pendiente de otras fases:**
@@ -81,6 +87,11 @@ Render). Pendiente de la fase 3: "Despertando el servidor…" tras 3 s
 
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10
 ("Versión 2"): V2-01 consejos de cocina con IA, V2-02 productos de temporada.
+
+**Detalles del rediseño pendientes:** el lema de `entrar.js` sin punto
+final; cambiar por SVG los caracteres "‹" (`router.js`), "+"
+(`inventario.js`) y "✓"/"✗" (mensajes y `ponerErrorCampo`); probar en el
+iPhone el icono instalado, la barra con `theme-color` y VoiceOver.
 
 **Detalles de estilo pendientes:** `@file` de
 `server/pruebas/compartido.test.js` sin formatearCantidad(); 4 espacios

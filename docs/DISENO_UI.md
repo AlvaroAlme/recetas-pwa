@@ -1,11 +1,11 @@
-# Diseño de la interfaz — Recetas Nevera PWA
+# Diseño de la interfaz — Vigía (antes Recetas Nevera PWA)
 
 | | |
 |---|---|
 | **Estado** | Fase B **aprobada** el 19 de octubre de 2026 |
 | **Fecha** | 19 de octubre de 2026 |
 | **Basado en** | `docs/COMPONENTES.md`, `constants/tema.ts` y `app/**/*.tsx` de la app Expo; `docs/ARQUITECTURA.md` (decisiones D-01 a D-32) |
-| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad visual propia (crema y salvia, 30-10-2026) (registro en `ARQUITECTURA.md` §11) |
+| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad crema y salvia (30-10-2026, sustituida) · D-45 identidad Vigía (07-11-2026) (registro en `ARQUITECTURA.md` §11) |
 
 **[sin verificar]** marca lo que se comprueba en el iPhone en la fase indicada antes de darlo por bueno.
 
@@ -32,17 +32,14 @@
 
 Archivo: `web/css/tokens.css`. Es la **única** fuente de colores, espacios, radios y tamaños. Ningún otro CSS escribe un color a mano (como en `tema.ts`).
 
-### 2.1 Colores: base crema y salvia (D-41)
+### 2.1 Colores: Vigía, papel y verde pino (D-45)
 
-Identidad propia del proyecto (ya no son los colores de `tema.ts`). Se eligió así:
-- **Base:** un blanco **crema** suave (tono cálido, muy poca saturación). En oscuro, un marrón casi negro, tostado, en lugar del `#000`.
-- **Botones:** **salvia**, un verde grisáceo de cocina, con radio de 21 px.
-- **Escalas de Fibonacci:** cada color tiene 10 pasos, **1, 2, 3, 5, 8, 13, 21, 34, 55 y 89**. El número dice lo oscuro que es: claridad OKLCH = 0,985 − (paso / 89) × 0,70. Los claros quedan muy juntos y los oscuros muy separados, y cada zona tiene su uso: 1–8 fondos y tintes, 13–21 bordes, **34 el botón en oscuro**, **55 el botón en claro** y 89 texto sobre tintes.
-
-| Paso | 1 | 2 | 3 | 5 | 8 | 13 | 21 | 34 | 55 | 89 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **Crema** (tono 85) | `#fcf7ec` | `#f9f4ea` | `#f7f2e7` | `#f2ece0` | `#ece4d5` | `#e1d7c5` | `#cdc3ae` | `#aea38c` | `#7a715f` | `#30291c` |
-| **Salvia** (tono 160) | `#effbf4` | `#eafaf0` | `#e0faeb` | `#d4f7e3` | `#c5f2d8` | `#b1e7c9` | `#96d5b2` | `#71b591` | `#488063` | `#02331f` |
+Identidad de **Vigía** (D-45, sustituye a la base crema y salvia de D-41). Se eligió así:
+- **Base:** un blanco roto neutro, **papel** (`#f6f5f0`), y encima las listas, los campos y los diálogos en **blanco** (`superficie`). En oscuro, un verde casi negro (`#121614`).
+- **Primario:** **verde pino** (`#1d5e47`), más profundo que el salvia: el texto blanco del botón da 7,65:1 y el mismo color sirve como texto.
+- **Acento:** **azafrán**, "la luz del vigía". Solo en gráficos (la pupila del icono); nunca como texto.
+- **Caducidad:** tres estados propios, `ok`, `pronto` y `caducado`, cada uno con su color y su fondo. `peligro`, `aviso` y `exito` son ahora alias de ellos.
+- **Estilo:** plano y sobrio, de herramienta (recomendación de ui-ux-pro-max para apps de inventario y lista de la compra): sin degradados, sombras mínimas.
 
 ```css
 :root {
@@ -51,75 +48,104 @@ Identidad propia del proyecto (ya no son los colores de `tema.ts`). Se eligió a
   color-scheme: light dark;
 
   /* ---- Modo claro ---- */
-  --color-fondo: #faf6ee;             /* crema */
-  --color-superficie: #f2ece0;        /* tarjetas y zonas elevadas (crema 5) */
-  --color-texto: #2a241d;
-  --color-texto-secundario: #4f463c;
-  --color-texto-tenue: #655c52;
-  --color-borde: #cdc3ae;             /* separadores (crema 21): decorativo */
-  --color-borde-control: #7a715f;     /* borde de campos y casillas (crema 55): ≥ 3:1 */
-  --color-placeholder: #746a60;
-  --color-primario: #488063;          /* salvia 55: fondo de botones */
-  --color-primario-texto: #256d4c;    /* salvia como TEXTO (enlaces, botón secundario) */
+  --color-fondo: #f6f5f0;             /* papel: blanco roto neutro */
+  --color-superficie: #ffffff;        /* filas y tarjetas encima del papel */
+  --color-superficie-2: #ecebe4;      /* zonas hundidas y fila pulsada */
+  --color-texto: #1c211e;
+  --color-texto-secundario: #424a45;
+  --color-texto-tenue: #59625d;
+  --color-borde: #d9d8d0;             /* separadores: decorativo */
+  --color-borde-control: #7b827d;     /* borde de campos y chips: ≥ 3:1 */
+  --color-placeholder: #646c67;
+  --color-primario: #1d5e47;          /* verde pino: fondo de botones */
+  --color-primario-texto: #1d5e47;    /* el mismo: como texto ya da 7:1 */
   --color-sobre-primario: #ffffff;    /* texto encima de primario */
-  --color-peligro: #b3261e;
-  --color-fondo-peligro: #fbe6e3;
+  --color-acento: #a87108;            /* azafrán, "la luz del vigía": solo gráficos (≥ 3:1), nunca texto */
+
+  /* Caducidad: siempre con texto e icono, nunca solo el color. */
+  --color-ok: #1b6a43;
+  --color-fondo-ok: #e0f1e6;
+  --color-pronto: #8a4a00;
+  --color-fondo-pronto: #fcebc9;
+  --color-caducado: #b42318;
+  --color-fondo-caducado: #fde3df;
+
+  /* Los nombres de siempre, ahora apuntan a los estados. */
+  --color-peligro: var(--color-caducado);
+  --color-fondo-peligro: var(--color-fondo-caducado);
   --color-sobre-peligro: #ffffff;     /* texto encima de peligro (botón Borrar) */
-  --color-aviso: #8a5300;
-  --color-fondo-aviso: #fbedd3;
-  --color-exito: #256d4c;             /* familia salvia */
-  --color-fondo-exito: #d4f7e3;       /* salvia 5 */
+  --color-aviso: var(--color-pronto);
+  --color-fondo-aviso: var(--color-fondo-pronto);
+  --color-exito: var(--color-ok);
+  --color-fondo-exito: var(--color-fondo-ok);
+
+  /* SOMBRA: muy suave para las filas sobre el papel; más fuerte para lo que flota.
+     Van aquí, ANTES del modo oscuro: si fueran después, pisarían las del oscuro. */
+  --sombra-1: 0 1px 2px rgb(28 33 30 / 0.06), 0 1px 1px rgb(28 33 30 / 0.04);
+  --sombra-flotante: 0 8px 24px rgb(28 33 30 / 0.14);
+  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
+  --color-velo: rgb(18 22 20 / 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     /* ---- Modo oscuro ---- */
-    --color-fondo: #18130e;
-    --color-superficie: #241e19;
-    --color-texto: #f3ede4;
-    --color-texto-secundario: #d3cdc6;
-    --color-texto-tenue: #b4aca4;
-    --color-borde: #3d3732;
-    --color-borde-control: #77706b;
-    --color-placeholder: #8b857f;
-    --color-primario: #71b591;          /* salvia 34 */
-    --color-primario-texto: #71b591;
-    --color-sobre-primario: #02331f;    /* salvia 89 */
-    --color-peligro: #f28b82;
-    --color-fondo-peligro: #3d1b17;
-    --color-sobre-peligro: #3d1b17;   /* en oscuro el rojo es claro: texto oscuro */
-    --color-aviso: #f0c04a;
-    --color-fondo-aviso: #3a2c0f;
-    --color-exito: #71b591;
-    --color-fondo-exito: #162f22;
+    --color-fondo: #121614;
+    --color-superficie: #1b201d;
+    --color-superficie-2: #252b27;
+    --color-texto: #eef1ee;
+    --color-texto-secundario: #c9cfcb;
+    --color-texto-tenue: #a3aba6;
+    --color-borde: #313833;
+    --color-borde-control: #7d8680;
+    --color-placeholder: #939b96;
+    --color-primario: #6fcf9f;
+    --color-primario-texto: #7fd6a9;
+    --color-sobre-primario: #06281a;
+    --color-acento: #f2c14e;
+
+    --color-ok: #7fd6a9;
+    --color-fondo-ok: #163222;
+    --color-pronto: #f5b94a;
+    --color-fondo-pronto: #3a2a0c;
+    --color-caducado: #ff8a7a;
+    --color-fondo-caducado: #3f1813;
+    --color-sobre-peligro: #3f1813;   /* en oscuro el rojo es claro: texto oscuro */
+
+    /* En oscuro la sombra no se ve: lo que se separa del fondo es la superficie. */
+    --sombra-1: none;
+    /* Una sombra clara apenas se ve: la hago más intensa. */
+    --sombra-flotante: 0 8px 24px rgb(0 0 0 / 0.5);
   }
 }
 ```
 
-**Contraste medido** (WCAG; texto ≥ 4,5:1, bordes de controles y botón sobre el fondo ≥ 3:1):
+**Contraste medido** (WCAG; texto ≥ 4,5:1, bordes de controles, botón sobre el fondo y gráficos ≥ 3:1):
 
 | Par | Claro | Oscuro |
 |---|---|---|
-| texto / fondo · superficie | 14,24 · 13,04 | 15,85 · 14,16 |
-| texto-secundario / superficie | 7,85 | 10,45 |
-| texto-tenue / fondo · superficie | 6,08 · 5,57 | 8,24 · 7,36 |
-| placeholder / fondo | 4,90 | 5,06 |
-| primario-texto / fondo · superficie | 5,78 · 5,30 | 7,66 · 6,84 |
-| sobre-primario / primario (texto del botón) | **4,62** | 5,83 |
-| primario / fondo (el botón se distingue del fondo; anillo de foco) | 4,29 | 7,66 |
-| borde-control / fondo | 4,47 | 3,79 |
-| peligro / fondo-peligro · superficie | 5,46 · 5,56 | 6,43 · 6,90 |
-| sobre-peligro / peligro (texto del botón Borrar) | 6,54 | 6,43 |
-| aviso / fondo-aviso · superficie | 5,47 · 5,38 | 7,98 · 9,68 |
-| éxito / fondo-éxito · superficie | 5,40 · 5,30 | 5,96 · 6,84 |
+| texto / fondo · superficie | 14,96 · 16,33 | 16,04 · 14,52 |
+| texto-secundario / fondo · superficie | 8,37 · 9,14 | 11,53 · 10,44 |
+| texto-tenue / fondo · superficie | 5,78 · 6,31 | 7,76 · 7,03 |
+| placeholder / fondo · superficie | 4,95 · 5,41 | 6,41 · 5,80 |
+| primario-texto / fondo · superficie | 7,01 · 7,65 | 10,51 · 9,52 |
+| sobre-primario / primario (texto del botón) | 7,65 | 8,37 |
+| primario / fondo (botón y anillo de foco) | 7,01 | 9,65 |
+| borde-control / fondo · superficie | 3,61 · 3,94 | 4,86 · 4,40 |
+| acento / fondo (solo gráficos) | 3,82 | 10,88 |
+| ok / fondo-ok · superficie | 5,61 · 6,58 | 7,99 · 9,52 |
+| pronto / fondo-pronto · superficie | 5,84 · 6,86 | 7,86 · 9,38 |
+| caducado / fondo-caducado · superficie | 5,39 · 6,57 | 6,78 · 7,21 |
+| sobre-peligro / peligro (botón Borrar) | 6,57 | 6,78 |
 
 **Reglas:**
-- `--color-primario` es para **rellenos** (el fondo del botón y la pestaña activa). Para **texto** de color salvia se usa `--color-primario-texto`: el salvia 55 da 4,29:1 sobre crema, que no llega a 4,5.
-- `--color-borde` es solo decorativo (separadores). El borde que **delimita** un campo o una casilla es `--color-borde-control`.
-- Éxito es de la familia salvia: un aviso de éxito lleva siempre "✓" y texto, así que no se confunde con un botón.
+- `--color-primario` es para **rellenos** (botón, chip elegido, pestaña activa); para texto verde se usa `--color-primario-texto` (en claro es el mismo color; en oscuro, un poco más claro).
+- `--color-acento` nunca va en texto: solo en gráficos, donde basta 3:1.
+- `--color-borde` es solo decorativo (separadores). El borde que **delimita** un campo o un chip es `--color-borde-control`.
+- La caducidad se muestra como **etiqueta** con texto e icono distinto (aspa = caducado o caduca hoy, reloj = de 1 a 3 días, punto = aún le queda), nunca solo con el color.
 - Solo se combinan los pares de la tabla. Si hace falta uno nuevo, se mide antes de usarlo.
 
-En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `media="(prefers-color-scheme: …)"`) con `#faf6ee` y `#18130e`, para el color de la barra del navegador **[sin verificar]** en la PWA de iOS (fase 3).
+En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `media="(prefers-color-scheme: …)"`) con `#f6f5f0` y `#121614`, para el color de la barra del navegador **[sin verificar]** en la PWA de iOS (fase 3).
 
 ### 2.2 Espacio, radios, tamaños
 
@@ -132,31 +158,22 @@ En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `
   --espacio-l: 16px;
   --espacio-xl: 24px;
   --espacio-xxl: 32px;
+  --espacio-xxxl: 48px;
 
-  /* RADIO: pasos de Fibonacci (D-41) */
-  --radio-s: 8px;          /* campos de texto */
-  --radio-m: 13px;         /* tarjetas, filas y <dialog> */
-  --radio-l: 21px;         /* botones */
-  --radio-pildora: 999px;  /* chips y etiquetas */
+  /* RADIO: más contenidos que antes; es una herramienta, no un juguete. */
+  --radio-s: 6px;          /* campos de texto */
+  --radio-m: 10px;         /* tarjetas, filas y <dialog> */
+  --radio-l: 14px;         /* botones */
+  --radio-pildora: 999px;  /* chips y etiquetas de caducidad */
 
-  --tactil: 44px;          /* TAMANO_TACTIL: mínimo de cualquier zona pulsable */
-  --ancho-maximo: 640px;   /* ANCHO_MAXIMO: el contenido no se estira */
+  --tactil: 44px;          /* mínimo de cualquier zona pulsable */
+  --ancho-maximo: 640px;   /* el contenido no se estira */
   --ancho-barra-lateral: 88px;
   --alto-navegacion: 64px;  /* barra inferior del móvil, sin la zona segura */
-
-  /* SOMBRA: solo para lo que flota encima del contenido (desplegables). */
-  --sombra-flotante: 0 8px 24px rgb(42 36 29 / 0.14);
-  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
-  --color-velo: rgb(24 19 14 / 0.5);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* En oscuro, una sombra clara apenas se ve: la hago más intensa. */
-    --sombra-flotante: 0 8px 24px rgb(0 0 0 / 0.5);
-  }
 }
 ```
+
+Las sombras y el velo del `<dialog>` están en el bloque de colores de §2.1, **antes** del modo oscuro: si fueran después, pisarían los valores del oscuro.
 
 ### 2.3 Tipografía: tamaños de `tema.ts` y tamaño de letra del sistema (D-29)
 
@@ -167,9 +184,19 @@ En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `
 - **En los demás navegadores**, `html { font-size: 106.25% }` (16 × 1,0625 = 17 px) respeta el tamaño de letra que el usuario haya configurado en su navegador.
 - Con el tamaño por defecto, los tamaños son **exactamente los de `tema.ts`**. Si en el iPhone no fuera 17 px, solo hay que cambiar ese número.
 
+**Dos letras (D-29 ampliada por D-45):**
+- **Texto:** la del sistema (`--fuente-texto`), para conservar el tamaño de letra de iOS y no descargar nada.
+- **Títulos y marca** (`h1`–`h3`, el nombre "Vigía", el código de invitación): **Bricolage Grotesque** (`--fuente-titulos`), licencia OFL, un solo archivo variable de 41 KB en `web/fuentes/` (la CSP solo permite `'self'`), con `font-display: swap` y `preload` en `index.html`. Está en `ARCHIVOS` de `sw.js`, así que también funciona sin red.
+
 ```css
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/fuentes/bricolage-grotesque.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
 html {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--fuente-texto);
   font-size: 106.25%;                 /* 1rem = 17 px con el tamaño por defecto */
   -webkit-text-size-adjust: 100%;     /* iOS no agranda el texto por su cuenta al girar */
 }
@@ -185,13 +212,17 @@ html {
 }
 
 :root {
-  /* TIPOGRAFIA de tema.ts: tamaño (px / 17 rem) · altura de línea (lineHeight / fontSize) */
-  --texto-titulo: calc(24rem / 17);      --linea-titulo: 1.25;     /* 24 / 30, 700 */
-  --texto-subtitulo: calc(18rem / 17);   --linea-subtitulo: 1.333; /* 18 / 24, 600 */
-  --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.375;    /* 16 / 22 */
+  --fuente-titulos: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fuente-texto: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Tamaño (px / 17 rem) · altura de línea. Título y subtítulo, algo mayores
+     que en tema.ts para que se note la letra de la marca (D-45). */
+  --texto-titulo: calc(26rem / 17);      --linea-titulo: 1.15;     /* 26, 700 */
+  --texto-subtitulo: calc(19rem / 17);   --linea-subtitulo: 1.3;   /* 19, 700 en .titulo-seccion */
+  --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.4;      /* 16 */
   --texto-secundario: calc(14rem / 17);  --linea-secundario: 1.429;/* 14 / 20 */
   --texto-pequeno: calc(13rem / 17);     --linea-pequeno: 1.385;   /* 13 / 18 */
-  --texto-seccion: calc(13rem / 17);     /* 600, mayúsculas, letter-spacing 0.5 px */
+  --texto-seccion: calc(13rem / 17);     /* ya no se usa en .titulo-seccion (D-45) */
   --peso-normal: 400;
   --peso-fuerte: 600;
   --peso-titulo: 700;
@@ -278,7 +309,7 @@ html {
 - **Pie:** `position: sticky; bottom: 0`, con el borde superior y el `padding-bottom` de la zona segura (§6.4). Dentro: botones en fila con `gap: var(--espacio-s)`, cada uno con `flex: 1`.
 - **Accesibilidad:**
   - `<main>` recibe el foco (`tabindex="-1"`) **al cambiar de pantalla**, para que el lector de pantallas empiece por el contenido nuevo;
-  - el título de la pestaña del navegador (`document.title`) cambia con cada pantalla ("Nevera · Recetas Nevera");
+  - el título de la pestaña del navegador (`document.title`) cambia con cada pantalla ("Inventario · Vigía");
   - un enlace "Saltar al contenido" es el primer elemento enfocable.
 
 #### Texto
@@ -302,7 +333,7 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
 </button>
 ```
 - **Variantes:** `--primario` (fondo `primario`, texto `sobre-primario`), `--secundario` (borde de 1,5 px `primario`), `--peligro` (fondo `peligro`), `--fantasma` (solo texto `primario`). Más `--ajustado`, que no ocupa todo el ancho (`anchoCompleto: false`).
-- **Medidas:** `min-height: calc(var(--tactil) + 4px)` (48 px, como Expo); la fantasma, 44 px. `border-radius: var(--radio-l)` (21 px, D-41). Texto `--texto-cuerpo` con peso 600; puede ocupar dos líneas.
+- **Medidas:** `min-height: calc(var(--tactil) + 4px)` (48 px, como Expo); la fantasma, 44 px. `border-radius: var(--radio-l)` (14 px, D-45). Texto `--texto-cuerpo` con peso 600; puede ocupar dos líneas.
 - **Cargando:** `aria-busy="true"` y `disabled`; el texto pasa a `tituloCargando` ("Guardando…") y aparece el indicador. **Evita las dobles pulsaciones** (doble guardado o doble llamada a la IA).
 - **Deshabilitado por un motivo** (sin conexión, falta confirmar líneas): en lugar de `disabled`, `aria-disabled="true"` + `aria-describedby` hacia el motivo visible ("Necesitas conexión para guardar"). Así el botón sigue enfocable y el lector de pantallas **explica por qué** no se puede pulsar. El JS ignora el clic.
 - **Navegar o actuar:** si el botón lleva a otra pantalla ("+ Producto", "Ir a Ajustes") se usa `<a class="boton" href="/producto/nuevo">`, que se abre con un toque largo y el lector anuncia "enlace". Si hace algo ("Guardar"), `<button>`.
@@ -487,9 +518,9 @@ Leyenda: `[ Botón ]` primario · `[ Botón ]°` secundario · `‹texto›` fan
 #### P-01 · Entrar — `/entrar` · Escritorio E-3
 ```
 ┌──────────────────────────────┐
-│        🥕 Recetas Nevera      │
-│  Recetas con lo que tengas    │
-│  en la nevera.                │
+│        [icono] Vigía          │
+│  Controla lo que tienes,      │
+│  no desperdicies.             │
 │                               │
 │  Email                        │
 │  [__________________________] │
@@ -827,7 +858,7 @@ En la receta guardada, el pie solo tiene `[La he cocinado]` y al final hay un `�
 │ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │
 └──────────────────────────────┘
 ```
-La sección de avisos cambia según el estado (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Recetas Nevera" **[sin verificar]** la ruta exacta (fase 4).
+La sección de avisos cambia según el estado (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Vigía" **[sin verificar]** la ruta exacta (fase 4).
 
 #### P-17 · Invitar / unirse — `/hogar/invitar` · `/hogar/unirse` · E-2
 ```
@@ -1002,7 +1033,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 1. **Abrir la URL en Safari** → `/entrar`. Sin cuenta → `‹Créala›` → `/registro` → `[Crear cuenta]` → el servidor crea la cuenta, la casa "Casa de {nombre}" y la sesión → `/bienvenida`.
 2. **Paso 1, tu casa:** nombre editable · `‹Tengo un código›` → `/hogar/unirse` · `‹Invitar más tarde›`.
 3. **Paso 2, instalar** (solo si **no** está en modo `standalone`):
-   - **iPhone/iPad (Safari):** "Para recibir avisos en el iPhone tienes que añadir la app a la pantalla de inicio: 1. Pulsa Compartir [icono]. 2. Elige «Añadir a pantalla de inicio». 3. Abre Recetas Nevera desde el icono nuevo." **[sin verificar]** los nombres exactos de los menús en el iOS actual (fase 3). Safari no tiene un botón de instalar que se pueda programar.
+   - **iPhone/iPad (Safari):** "Para recibir avisos en el iPhone tienes que añadir la app a la pantalla de inicio: 1. Pulsa Compartir [icono]. 2. Elige «Añadir a pantalla de inicio». 3. Abre Vigía desde el icono nuevo." **[sin verificar]** los nombres exactos de los menús en el iOS actual (fase 3). Safari no tiene un botón de instalar que se pueda programar.
    - **Chrome/Edge (PC, Android):** botón `[Instalar la app]` si llega el evento `beforeinstallprompt` (**[sin verificar]**, fase 3). Si no, se explica que se puede instalar desde el menú del navegador.
    - **Ya instalada:** se salta el paso.
 4. **Paso 3, avisos** (solo dentro de la PWA instalada o en navegadores con `PushManager`):
@@ -1052,7 +1083,7 @@ Comunes a todas:
 
 | Requisito | Cómo se cumple | Cómo se comprueba |
 |---|---|---|
-| **Contraste AA** | Solo se usan los pares medidos de §2.1 (texto ≥ 4,5:1 en los dos modos, D-41). El texto salvia usa `primario-texto`, nunca `primario`. Anillo de foco `primario` sobre `fondo` (≥ 3:1). Los campos y casillas se delimitan con `borde-control` (≥ 3:1); `borde` es solo decorativo | Herramienta de contraste del navegador en las dos combinaciones, en la fase 1 |
+| **Contraste AA** | Solo se usan los pares medidos de §2.1 (texto ≥ 4,5:1 en los dos modos, D-45). El texto verde usa `primario-texto`, nunca `primario`. Anillo de foco `primario` sobre `fondo` (≥ 3:1). Los campos y casillas se delimitan con `borde-control` (≥ 3:1); `borde` es solo decorativo | Herramienta de contraste del navegador en las dos combinaciones, en la fase 1 |
 | **Zonas táctiles de 44 px** | `--tactil` como `min-height`/`min-width` en botones, filas, pestañas, casillas y enlaces de acción. Chips de 40 px + separación (**[sin verificar]**, §3.2) | Inspector: medir cada elemento pulsable |
 | **Foco visible** | `:focus-visible` con 3 px y separación de 2 px en todo; **nunca `outline: none`** sin sustituto. Orden de foco = orden visual. Foco a `<main>` al cambiar de pantalla y de vuelta al botón al cerrar un `<dialog>` | Recorrer cada pantalla solo con el tabulador |
 | **Lectores de pantalla** | HTML semántico (`<nav>`, `<main>`, `<header>`, `<h1>`/`<h2>`, `<button>`, `<a>`, `<fieldset>`/`<legend>`, `<ol>` para los pasos); un `<h1>` por pantalla; `aria-current` en la pestaña; `aria-invalid` + `aria-describedby` en los errores; `role="alert"` solo en errores y `role="status"` para cargas y avisos; `aria-busy` al cargar; iconos con `aria-hidden`; filas leídas como un solo elemento ("Leche, Caduca mañana, 1 l") | VoiceOver en el iPhone (rotor por encabezados y controles) en cada fase con pantallas nuevas |
