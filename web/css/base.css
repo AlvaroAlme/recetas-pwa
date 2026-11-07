@@ -7,8 +7,19 @@
   box-sizing: border-box;
 }
 
+/* La letra de los títulos, servida desde la propia app (la CSP solo deja 'self').
+   Un solo archivo variable: vale para cualquier peso entre 200 y 800.
+   swap: mientras carga se ve la del sistema, nunca un hueco en blanco. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/fuentes/bricolage-grotesque.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--fuente-texto);
   font-size: 106.25%;                 /* 1rem = 17 px con el tamaño por defecto */
   -webkit-text-size-adjust: 100%;     /* iOS no agranda el texto por su cuenta al girar */
 }
@@ -37,6 +48,12 @@ h1, h2, h3, p, ul, ol, fieldset {
   margin: 0;
 }
 
+/* Los títulos llevan la letra de la marca, un poco más apretada. */
+h1, h2, h3 {
+  font-family: var(--fuente-titulos);
+  letter-spacing: -0.01em;
+}
+
 /* Los botones y los campos heredan la letra. Si no, el navegador les pone
    una más pequeña y el iPhone hace zoom al tocar un campo de menos de 16 px. */
 button, input, select, textarea {
@@ -52,6 +69,12 @@ img, svg {
 /* Que `hidden` oculte SIEMPRE, aunque otra regla le ponga un display. */
 [hidden] {
   display: none !important;
+}
+
+/* El texto seleccionado, con los colores de la marca (no el azul del navegador). */
+::selection {
+  background: var(--color-fondo-ok);
+  color: var(--color-texto);
 }
 
 :focus-visible {

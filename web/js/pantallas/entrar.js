@@ -81,7 +81,7 @@ export function pantallaEntrar({ consulta }) {
       'div',
       { class: 'acceso' },
       mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` }),
-      el('p', { class: 'acceso__lema' }, 'Recetas con lo que tengas en la nevera.'),
+      el('p', { class: 'acceso__lema' }, 'Controla lo que tienes, no desperdicies'),
       el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, email, contrasena, boton),
       el(
         'p',

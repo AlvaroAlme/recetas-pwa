@@ -163,6 +163,20 @@
   background: var(--color-primario);
 }
 
+/* Muy estrecho (un móvil con zoom al 200 %): los nombres de las pestañas no
+   caben y se pisan. Se ocultan a la vista, pero el lector los sigue leyendo
+   (como .solo-lector); el icono queda solo, con la misma zona de toque. */
+@media (max-width: 19.99em) {
+  .navegacion a span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* ============ Páginas secundarias (formularios…) ============ */
 /* En el móvil no llevan barra de pestañas: más sitio para el formulario. */
 .app--secundaria {
@@ -173,6 +187,30 @@
 }
 .app--secundaria .pie {
   padding-bottom: max(var(--espacio-m), env(safe-area-inset-bottom));
+}
+
+/* ============ Marca (logo y nombre) ============ */
+/* En el móvil no se ve: la barra de abajo solo lleva las pestañas. */
+.marca {
+  display: none;
+}
+@media (min-width: 48em) {
+  .marca {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacio-xs);
+    margin-bottom: var(--espacio-xl);
+  }
+  .marca__icono {
+    border-radius: var(--radio-m);
+  }
+  .marca__nombre {
+    font-family: var(--fuente-titulos);
+    font-size: var(--texto-secundario);
+    font-weight: var(--peso-titulo);
+    letter-spacing: -0.01em;
+  }
 }
 
 /* ============ Desde 48em: barra lateral ============ */
@@ -245,6 +283,19 @@
 .boton--ajustado {
   width: auto;
 }
+/* Al pasar el ratón: el relleno se oscurece un poco (en oscuro, se aclara). */
+@media (hover: hover) {
+  .boton {
+    transition: background-color var(--duracion-rapida) ease-out;
+  }
+  .boton--primario:not([disabled], [aria-disabled='true']):hover {
+    background: color-mix(in oklab, var(--color-primario) 85%, var(--color-texto));
+  }
+  .boton--secundario:not([disabled], [aria-disabled='true']):hover,
+  .boton--fantasma:not([disabled], [aria-disabled='true']):hover {
+    background: var(--color-superficie-2);
+  }
+}
 .boton[disabled],
 .boton[aria-disabled='true'] {
   opacity: 0.45;
@@ -302,37 +353,61 @@ input:focus-visible + .chip {
   outline: var(--foco);
   outline-offset: var(--foco-separacion);
 }
+@media (hover: hover) {
+  input:not(:checked) + .chip:hover {
+    background: var(--color-superficie-2);
+  }
+}
 
 /* ============ Lista y filas ============ */
-/* En el móvil, de borde a borde (anulo el margen de la pantalla). */
+/* Un bloque blanco sobre el papel, con esquinas (como las listas agrupadas
+   de iOS). Las filas se separan con una línea, no son tarjetas sueltas. */
 .lista {
-  margin-inline: calc(var(--espacio-l) * -1);
+  margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--color-borde);
+  overflow: hidden;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-m);
+  box-shadow: var(--sombra-1);
 }
 .fila {
   display: flex;
   align-items: center;
   gap: var(--espacio-m);
-  min-height: 56px;
+  min-height: 60px;
   padding: var(--espacio-s) var(--espacio-l);
   border-bottom: 1px solid var(--color-borde);
   color: var(--color-texto);
   text-decoration: none;
+  transition: background-color var(--duracion-rapida) ease-out;
+}
+/* La última fila no lleva línea: ya está el borde de la lista. Vale tanto si
+   la fila es un enlace dentro del <li> como si es el propio <li> (Ajustes). */
+.lista > li:last-child,
+.lista > li:last-child > .fila {
+  border-bottom: 0;
+}
+/* El foco, por dentro: si no, el overflow de la lista cortaría el anillo. */
+.fila:focus-visible {
+  outline-offset: calc(var(--foco-separacion) * -2);
+  border-radius: var(--radio-m);
 }
 .fila:active {
-  background: var(--color-superficie);
+  background: var(--color-superficie-2);
 }
 @media (hover: hover) {
   .fila:hover {
-    background: var(--color-superficie);
+    background: var(--color-superficie-2);
   }
 }
 .fila__textos {
   display: flex;
   flex: 1;
   flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-xs);
   min-width: 0;
 }
 .fila__titulo {
@@ -343,20 +418,50 @@ input:focus-visible + .chip {
   line-height: var(--linea-secundario);
 }
 .fila__detalle {
-  color: var(--color-texto-tenue);
+  color: var(--color-texto-secundario);
+  font-variant-numeric: tabular-nums;   /* las cantidades no "bailan" de una fila a otra */
   white-space: nowrap;
 }
-/* En escritorio, la lista va dentro de la columna, con borde y esquinas. */
-@media (min-width: 48em) {
-  .lista {
-    margin-inline: 0;
-    overflow: hidden;
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-m);
-  }
-  .lista li:last-child .fila {
-    border-bottom: 0;
-  }
+
+/* ============ Etiqueta de caducidad (dentro de una fila) ============ */
+/* El tono que pone avisoCaducidad() decide el estado: peligro = caducado
+   (o caduca hoy), aviso = pronto, tenue = aún le queda. Siempre con texto
+   y con un icono distinto: nunca solo el color. */
+.fila__subtitulo[class*='tono--'] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-xs);
+  padding: 1px var(--espacio-s) 1px 6px;
+  border-radius: var(--radio-pildora);
+  font-weight: var(--peso-fuerte);
+}
+/* El icono: un recorte (mask) pintado con el color del texto, así vale en
+   claro, en oscuro y en alto contraste. */
+.fila__subtitulo[class*='tono--']::before {
+  content: '';
+  flex: none;
+  width: 0.9em;
+  height: 0.9em;
+  background: currentColor;
+  mask: var(--icono-estado) center / contain no-repeat;
+}
+.fila__subtitulo.tono--tenue {
+  /* Punto lleno: todo bien. */
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Ccircle cx='6' cy='6' r='4' fill='black'/%3E%3C/svg%3E");
+  background: var(--color-fondo-ok);
+  color: var(--color-ok);
+}
+.fila__subtitulo.tono--aviso {
+  /* Reloj: queda poco. */
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='4.6'/%3E%3Cpath d='M6 3.4V6l1.7 1.1'/%3E%3C/svg%3E");
+  background: var(--color-fondo-pronto);
+  color: var(--color-pronto);
+}
+.fila__subtitulo.tono--peligro {
+  /* Aspa: caducado. */
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 3l6 6M9 3l-6 6'/%3E%3C/svg%3E");
+  background: var(--color-fondo-caducado);
+  color: var(--color-caducado);
 }
 
 /* ============ Cargando, vacío y aviso ============ */
@@ -432,7 +537,14 @@ input:focus-visible + .chip {
   padding: calc(var(--texto-pequeno) * var(--linea-pequeno) + var(--espacio-s)) var(--espacio-m) var(--espacio-s);
   border: 1px solid var(--color-borde-control);
   border-radius: var(--radio-s);
-  background: var(--color-fondo);
+  /* Blanco sobre el papel: el campo se ve como un hueco donde escribir. */
+  background: var(--color-superficie);
+  transition: border-color var(--duracion-rapida) ease-out;
+}
+@media (hover: hover) {
+  .campo__entrada:hover:not(:focus, [aria-invalid='true']) {
+    border-color: var(--color-texto-secundario);
+  }
 }
 /* Etiqueta flotante: sin escribir, en el centro, como si fuera el texto de relleno. */
 .campo__etiqueta {
@@ -530,7 +642,7 @@ input:focus-visible + .chip {
   padding: var(--espacio-xs) 0;
   overflow-y: auto;
   list-style: none;
-  background: var(--color-fondo);
+  background: var(--color-superficie);
   border: 1px solid var(--color-borde-control);
   border-radius: var(--radio-m);
   box-shadow: var(--sombra-flotante);
@@ -544,14 +656,14 @@ input:focus-visible + .chip {
   padding: var(--espacio-s) var(--espacio-m);
   cursor: pointer;
 }
-/* La opción activa: fondo y una barrita salvia a la izquierda (no solo color). */
+/* La opción activa: fondo y una barrita verde a la izquierda (no solo color). */
 .sugerencias__opcion[aria-selected='true'] {
-  background: var(--color-superficie);
+  background: var(--color-superficie-2);
   box-shadow: inset 3px 0 0 var(--color-primario);
 }
 @media (hover: hover) {
   .sugerencias__opcion:hover {
-    background: var(--color-superficie);
+    background: var(--color-superficie-2);
   }
 }
 .sugerencias__detalle {
@@ -560,24 +672,40 @@ input:focus-visible + .chip {
   white-space: nowrap;
 }
 /* ============ Botón de peligro (Borrar) ============ */
+/* Relleno rojo cuando borrar ES la acción (el diálogo de confirmar, Borrar cuenta). */
 .boton--peligro {
   background: var(--color-peligro);
   color: var(--color-sobre-peligro);
 }
+/* Detrás de una sección (Editar producto: después de "Mover"), borrar es la
+   última opción, no la principal: solo el borde. */
+.seccion + .boton--peligro {
+  background: transparent;
+  border-color: var(--color-peligro);
+  color: var(--color-peligro);
+}
+@media (hover: hover) {
+  .boton--peligro:not([disabled], [aria-disabled='true']):hover {
+    background: color-mix(in oklab, var(--color-peligro) 85%, var(--color-texto));
+  }
+  .seccion + .boton--peligro:not([disabled], [aria-disabled='true']):hover {
+    background: var(--color-fondo-peligro);
+  }
+}
 
 /* ============ Secciones dentro de una pantalla ============ */
+/* Un título pequeño con la letra de la marca (sin mayúsculas: se leen peor). */
 .titulo-seccion {
-  color: var(--color-texto-secundario);
-  font-size: var(--texto-seccion);
-  font-weight: var(--peso-fuerte);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--color-texto);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+  font-weight: var(--peso-titulo);
 }
 .seccion {
   display: flex;
   flex-direction: column;
-  gap: var(--espacio-s);
-  margin-block: var(--espacio-xl);
+  gap: var(--espacio-m);
+  margin-block: var(--espacio-xxl) var(--espacio-xl);
 }
 .seccion__acciones {
   display: flex;
@@ -594,7 +722,7 @@ input:focus-visible + .chip {
   padding: var(--espacio-xl);
   border: 0;
   border-radius: var(--radio-m);
-  background: var(--color-fondo);
+  background: var(--color-superficie);
   color: var(--color-texto);
   box-shadow: var(--sombra-flotante);
 }
@@ -652,9 +780,41 @@ input:focus-visible + .chip {
   color: var(--color-texto-secundario);
   text-align: center;
 }
+/* Entrar: el icono de Vigía encima del lema. Es un fondo (decorativo), así
+   que el lector de pantallas no lo lee. */
+.acceso__lema {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-m);
+  margin-block: var(--espacio-l) var(--espacio-s);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+  text-wrap: balance;
+}
+.acceso__lema::before {
+  content: '';
+  width: 72px;
+  height: 72px;
+  border-radius: 22%;
+  background: url('/iconos/icono.svg') center / cover no-repeat;
+  box-shadow: var(--sombra-1);
+}
 .acceso a {
   color: var(--color-primario-texto);
   font-weight: var(--peso-fuerte);
+  text-underline-offset: 0.2em;
+}
+/* El enlace va dentro de una frase: el relleno agranda la zona que se puede
+   tocar (hasta unos 44 px de alto) sin mover el texto. */
+.acceso__pie a {
+  padding-block: var(--espacio-m);
+}
+/* En pantallas grandes, el formulario baja un poco: no pegado a la cabecera. */
+@media (min-width: 48em) {
+  .acceso {
+    padding-top: var(--espacio-xxxl);
+  }
 }
 
 /* ============ Filas que solo enseñan (no son enlaces) ============ */
@@ -666,8 +826,40 @@ input:focus-visible + .chip {
     background: transparent;
   }
 }
+/* En una fila que solo enseña (Ajustes: "Responsable"), el detalle es una
+   etiqueta: se lee como un papel de la persona, no como una cantidad. */
+.fila--estatica .fila__detalle {
+  padding: 1px var(--espacio-s);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie-2);
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-secundario);
+  line-height: var(--linea-secundario);
+  font-weight: var(--peso-fuerte);
+}
 .texto--fuerte {
   font-weight: var(--peso-fuerte);
+}
+
+/* ============ Ajustes ============ */
+/* La primera sección empieza pegada a la cabecera, sin el hueco de arriba. */
+.seccion:first-child {
+  margin-top: 0;
+}
+/* El nombre de la casa, justo debajo de "Tu casa": un poco más grande. */
+.titulo-seccion + .texto--fuerte {
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+}
+/* "Borrar cuenta" lleva a una pantalla de confirmar: va en rojo para que
+   no se confunda con las demás opciones (con texto, no solo el color). */
+.boton--fantasma[href='/cuenta/borrar'] {
+  color: var(--color-peligro);
+}
+@media (hover: hover) {
+  .boton--fantasma[href='/cuenta/borrar']:hover {
+    background: var(--color-fondo-peligro);
+  }
 }
 
 /* ============ Invitar ============ */
@@ -676,16 +868,32 @@ input:focus-visible + .chip {
   flex-direction: column;
   gap: var(--espacio-m);
   padding: var(--espacio-xl) var(--espacio-l);
+  border: 1px solid var(--color-borde);
   border-radius: var(--radio-m);
   background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
   text-align: center;
 }
-/* El código, grande y con letras separadas, para dictarlo y copiarlo sin errores. */
+/* El código, grande y con letras separadas, para dictarlo y copiarlo sin
+   errores. Con la letra de la marca: es lo que se recuerda de la pantalla. */
 .invitar__codigo {
-  font-size: var(--texto-titulo);
+  font-family: var(--fuente-titulos);
+  /* Grande, pero sin salirse de la tarjeta en móviles estrechos (320 px). */
+  font-size: clamp(var(--texto-titulo), 8.5vw, calc(var(--texto-titulo) * 1.25));
+  line-height: var(--linea-titulo);
   font-weight: var(--peso-titulo);
   letter-spacing: 0.15em;
   font-variant-numeric: tabular-nums;
+  color: var(--color-primario-texto);
+}
+
+/* ============ Unirse: el campo del código ============ */
+/* Se ve en mayúsculas y separado, igual que en la tarjeta de Invitar. Solo
+   cambia cómo se ve: validarUnirse() ya lo pasa a mayúsculas al enviar. */
+.campo__entrada[name='codigo'] {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 .invitar__estado {
   color: var(--color-exito);

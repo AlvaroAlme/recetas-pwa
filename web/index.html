@@ -4,22 +4,28 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="Recetas con lo que tengas en la nevera.">
-    <meta name="theme-color" content="#faf6ee" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#18130e" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="Controla lo que hay en tu nevera, despensa y congelador, y no tires comida.">
+    <meta name="theme-color" content="#f6f5f0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#121614" media="(prefers-color-scheme: dark)">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/iconos/icono.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/iconos/apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-title" content="Nevera">
+    <meta name="apple-mobile-web-app-title" content="Vigía">
+    <link rel="preload" href="/fuentes/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/css/tokens.css">
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/componentes.css">
-    <title>Recetas Nevera</title>
+    <title>Vigía</title>
   </head>
       <body>
     <a class="saltar" href="#contenido">Saltar al contenido</a>
     <div class="app">
       <nav class="navegacion" aria-label="Principal">
+        <!-- La marca, solo en la barra lateral del escritorio (en el móvil no cabe). -->
+        <p class="marca">
+          <img class="marca__icono" src="/iconos/icono.svg" alt="" width="40" height="40">
+          <span class="marca__nombre">Vigía</span>
+        </p>
         <ul>
           <li>
             <a href="/">

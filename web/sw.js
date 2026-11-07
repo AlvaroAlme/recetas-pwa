@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v5';
+const VERSION = 'app-v6';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -52,6 +52,7 @@ const ARCHIVOS = [
   '/iconos/icono-192.png',
   '/iconos/icono-512.png',
   '/iconos/apple-touch-icon.png',
+  '/fuentes/bricolage-grotesque.woff2',
 ];
 
 self.addEventListener('install', (evento) => {

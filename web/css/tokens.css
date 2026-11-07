@@ -1,63 +1,88 @@
 /*
- * Tokens: los colores, espacios y tamaños de toda la app. Identidad propia
- * (D-41): base crema y botones salvia, con escalas de Fibonacci. Ningún
+ * Tokens: los colores, espacios y tamaños de toda la app. Identidad de
+ * Vigía (D-45, sustituye a D-41): fondo papel, verde pino y azafrán. Ningún
  * otro CSS escribe un color o un tamaño a mano: usa estas variables.
  */
- 
- /* ============ Colores (DISENO_UI §2.1, D-41) ============ */
+
+/* ============ Colores (D-45; contraste medido en los dos modos) ============ */
 :root {
   /* Avisa al navegador de que hay modo claro y oscuro: así los controles
      nativos (selector de fecha, casillas, barras de scroll) también cambian. */
   color-scheme: light dark;
 
   /* ---- Modo claro ---- */
-  --color-fondo: #faf6ee;             /* crema */
-  --color-superficie: #f2ece0;        /* tarjetas y zonas elevadas (crema 5) */
-  --color-texto: #2a241d;
-  --color-texto-secundario: #4f463c;
-  --color-texto-tenue: #655c52;
-  --color-borde: #cdc3ae;             /* separadores (crema 21): decorativo */
-  --color-borde-control: #7a715f;     /* borde de campos y casillas (crema 55): ≥ 3:1 */
-  --color-placeholder: #746a60;
-  --color-primario: #488063;          /* salvia 55: fondo de botones */
-  --color-primario-texto: #256d4c;    /* salvia como TEXTO (enlaces, botón secundario) */
+  --color-fondo: #f6f5f0;             /* papel: blanco roto neutro */
+  --color-superficie: #ffffff;        /* filas y tarjetas encima del papel */
+  --color-superficie-2: #ecebe4;      /* zonas hundidas y fila pulsada */
+  --color-texto: #1c211e;
+  --color-texto-secundario: #424a45;
+  --color-texto-tenue: #59625d;
+  --color-borde: #d9d8d0;             /* separadores: decorativo */
+  --color-borde-control: #7b827d;     /* borde de campos y chips: ≥ 3:1 */
+  --color-placeholder: #646c67;
+  --color-primario: #1d5e47;          /* verde pino: fondo de botones */
+  --color-primario-texto: #1d5e47;    /* el mismo: como texto ya da 7:1 */
   --color-sobre-primario: #ffffff;    /* texto encima de primario */
-  --color-peligro: #b3261e;
-  --color-fondo-peligro: #fbe6e3;
+  --color-acento: #a87108;            /* azafrán, "la luz del vigía": solo gráficos (≥ 3:1), nunca texto */
+
+  /* Caducidad: siempre con texto e icono, nunca solo el color. */
+  --color-ok: #1b6a43;
+  --color-fondo-ok: #e0f1e6;
+  --color-pronto: #8a4a00;
+  --color-fondo-pronto: #fcebc9;
+  --color-caducado: #b42318;
+  --color-fondo-caducado: #fde3df;
+
+  /* Los nombres de siempre, ahora apuntan a los estados. */
+  --color-peligro: var(--color-caducado);
+  --color-fondo-peligro: var(--color-fondo-caducado);
   --color-sobre-peligro: #ffffff;     /* texto encima de peligro (botón Borrar) */
-  --color-aviso: #8a5300;
-  --color-fondo-aviso: #fbedd3;
-  --color-exito: #256d4c;             /* familia salvia */
-  --color-fondo-exito: #d4f7e3;       /* salvia 5 */
+  --color-aviso: var(--color-pronto);
+  --color-fondo-aviso: var(--color-fondo-pronto);
+  --color-exito: var(--color-ok);
+  --color-fondo-exito: var(--color-fondo-ok);
+
+  /* SOMBRA: muy suave para las filas sobre el papel; más fuerte para lo que flota.
+     Van aquí, ANTES del modo oscuro: si fueran después, pisarían las del oscuro. */
+  --sombra-1: 0 1px 2px rgb(28 33 30 / 0.06), 0 1px 1px rgb(28 33 30 / 0.04);
+  --sombra-flotante: 0 8px 24px rgb(28 33 30 / 0.14);
+  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
+  --color-velo: rgb(18 22 20 / 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     /* ---- Modo oscuro ---- */
-    --color-fondo: #18130e;
-    --color-superficie: #241e19;
-    --color-texto: #f3ede4;
-    --color-texto-secundario: #d3cdc6;
-    --color-texto-tenue: #b4aca4;
-    --color-borde: #3d3732;
-    --color-borde-control: #77706b;
-    --color-placeholder: #8b857f;
-    --color-primario: #71b591;          /* salvia 34 */
-    --color-primario-texto: #71b591;
-    --color-sobre-primario: #02331f;    /* salvia 89 */
-    --color-peligro: #f28b82;
-    --color-fondo-peligro: #3d1b17;
-    --color-sobre-peligro: #3d1b17;   /* en oscuro el rojo es claro: texto oscuro */
-    --color-aviso: #f0c04a;
-    --color-fondo-aviso: #3a2c0f;
-    --color-exito: #71b591;
-    --color-fondo-exito: #162f22;
-    /* En oscuro, una sombra clara apenas se ve: la hago más intensa. */
+    --color-fondo: #121614;
+    --color-superficie: #1b201d;
+    --color-superficie-2: #252b27;
+    --color-texto: #eef1ee;
+    --color-texto-secundario: #c9cfcb;
+    --color-texto-tenue: #a3aba6;
+    --color-borde: #313833;
+    --color-borde-control: #7d8680;
+    --color-placeholder: #939b96;
+    --color-primario: #6fcf9f;
+    --color-primario-texto: #7fd6a9;
+    --color-sobre-primario: #06281a;
+    --color-acento: #f2c14e;
+
+    --color-ok: #7fd6a9;
+    --color-fondo-ok: #163222;
+    --color-pronto: #f5b94a;
+    --color-fondo-pronto: #3a2a0c;
+    --color-caducado: #ff8a7a;
+    --color-fondo-caducado: #3f1813;
+    --color-sobre-peligro: #3f1813;   /* en oscuro el rojo es claro: texto oscuro */
+
+    /* En oscuro la sombra no se ve: lo que se separa del fondo es la superficie. */
+    --sombra-1: none;
+    /* Una sombra clara apenas se ve: la hago más intensa. */
     --sombra-flotante: 0 8px 24px rgb(0 0 0 / 0.5);
   }
 }
 
-/* ============ Espacio, radios y tamaños (§2.2) ============ */
+/* ============ Espacio, radios y tamaños ============ */
 :root {
   /* ESPACIO: múltiplos de 4, en px (no crecen con la letra: crecen los textos) */
   --espacio-xs: 4px;
@@ -66,29 +91,30 @@
   --espacio-l: 16px;
   --espacio-xl: 24px;
   --espacio-xxl: 32px;
+  --espacio-xxxl: 48px;
 
-  /* RADIO: pasos de Fibonacci (D-41) */
-  --radio-s: 8px;          /* campos de texto */
-  --radio-m: 13px;         /* tarjetas, filas y <dialog> */
-  --radio-l: 21px;         /* botones */
-  --radio-pildora: 999px;  /* chips y etiquetas */
+  /* RADIO: más contenidos que antes; es una herramienta, no un juguete. */
+  --radio-s: 6px;          /* campos de texto */
+  --radio-m: 10px;         /* tarjetas, filas y <dialog> */
+  --radio-l: 14px;         /* botones */
+  --radio-pildora: 999px;  /* chips y etiquetas de caducidad */
 
   --tactil: 44px;          /* mínimo de cualquier zona pulsable */
   --ancho-maximo: 640px;   /* el contenido no se estira */
   --ancho-barra-lateral: 88px;
   --alto-navegacion: 64px;  /* barra inferior del móvil, sin la zona segura */
-  
-  /* SOMBRA: solo para lo que flota encima del contenido (desplegables). */
-  --sombra-flotante: 0 8px 24px rgb(42 36 29 / 0.14);
-  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
-  --color-velo: rgb(24 19 14 / 0.5);
 }
 
-/* ============ Letra (§2.3): px / 17 en rem ============ */
+/* ============ Letra: px / 17 en rem ============ */
 :root {
-  --texto-titulo: calc(24rem / 17);      --linea-titulo: 1.25;
-  --texto-subtitulo: calc(18rem / 17);   --linea-subtitulo: 1.333;
-  --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.375;
+  /* Títulos y marca con Bricolage Grotesque (en /fuentes, por la CSP);
+     el texto sigue con la del sistema (D-29). */
+  --fuente-titulos: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fuente-texto: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --texto-titulo: calc(26rem / 17);      --linea-titulo: 1.15;
+  --texto-subtitulo: calc(19rem / 17);   --linea-subtitulo: 1.3;
+  --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.4;
   --texto-secundario: calc(14rem / 17);  --linea-secundario: 1.429;
   --texto-pequeno: calc(13rem / 17);     --linea-pequeno: 1.385;
   --texto-seccion: calc(13rem / 17);     /* 600, mayúsculas, letter-spacing 0.5 px */
@@ -97,8 +123,9 @@
   --peso-titulo: 700;
 }
 
-/* ============ Foco (§2.4) ============ */
+/* ============ Foco y movimiento ============ */
 :root {
   --foco: 3px solid var(--color-primario);
   --foco-separacion: 2px;
+  --duracion-rapida: 150ms;   /* cambios de color al pasar o pulsar */
 }

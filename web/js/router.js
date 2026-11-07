@@ -131,7 +131,7 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
   if (miTurno !== turno) return;
 
   $('titulo').textContent = vista.titulo;
-  document.title = `${vista.titulo} · Recetas Nevera`;
+  document.title = `${vista.titulo} · Vigía`;
   $('pantalla').replaceChildren(vista.contenido);
   $('accion-cabecera').replaceChildren(...(vista.accion ? [vista.accion] : []));
   $('atras-cabecera').replaceChildren(...(vista.atras ? [crearAtras(vista.atras)] : []));

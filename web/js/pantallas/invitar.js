@@ -60,7 +60,7 @@ export function pantallaInvitar() {
           class: 'boton boton--fantasma',
           type: 'button',
           onclick: () =>
-            navigator.share({ text: `Únete a mi casa en Recetas Nevera con este código: ${codigo}` }).catch(() => {}),
+            navigator.share({ text: `Únete a mi casa en Vigía con este código: ${codigo}` }).catch(() => {}),
         },
         'Compartir…'
       );
