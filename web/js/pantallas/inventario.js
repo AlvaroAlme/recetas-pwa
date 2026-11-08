@@ -20,6 +20,8 @@ import { tomarMensaje } from '../router.js';
 export function pantallaInventario({ consulta }) {
   // "Producto añadido.", "Cambios guardados."… si vengo de guardar algo.
   const mensaje = tomarMensaje();
+  // Lo guardo en una constante para poder quitarlo al cambiar de ubicación.
+  const avisoMensaje = mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` });
   // Si la URL trae una ubicación que no existe, uso la nevera (DISENO_UI §5.2).
   const pedida = consulta.get('ubicacion');
   let ubicacion = UBICACIONES.includes(pedida) ? pedida : 'nevera';
@@ -83,6 +85,8 @@ export function pantallaInventario({ consulta }) {
   // Cambiar de ubicación NO repinta la pantalla entera: cambio la URL sin
   // añadir historial y recargo solo la lista. Así el foco se queda en el chip.
   function cambiarUbicacion(valor) {
+    // El mensaje ("«Leche» borrado…") era de la ubicación anterior: lo quito.
+    if (avisoMensaje) avisoMensaje.remove();
     ubicacion = valor;
     history.replaceState(history.state, '', `/?ubicacion=${valor}`);
     cargar();
@@ -95,7 +99,7 @@ export function pantallaInventario({ consulta }) {
     contenido: el(
       'div',
       { class: 'inventario' },
-      mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` }),
+      avisoMensaje,
       crearSelector({
         leyenda: 'Ubicación',
         nombre: 'ubicacion',

@@ -72,8 +72,17 @@ arranca si falla; cierre ordenado con `SIGTERM`; `npm start` con
 caducidad ok/pronto/caducado, Bricolage Grotesque en títulos
 (`web/fuentes/`), icono "ojo-hoja"; todas las pantallas rediseñadas en
 CSS y revisadas (AA en claro y oscuro, 375 y 1440 px); `sw.js` en `app-v6`.
-Siguiente: paso 5 (Neon de producción y Render). Pendiente de la fase 3: "Despertando el servidor…" tras 3 s
-(§8.3) y ver el cierre con `SIGTERM` en los logs de Render.
+Hecho (2026-11-08): paso 5 (proyecto Neon `vigia-produccion`, nota de
+Bitwarden `vigia-produccion`; Render `vigia-despensa`, Frankfurt, Free,
+`NODE_VERSION=22`, health check `/api/salud`; URL
+https://vigia-despensa.onrender.com; ojo: `APP_ORIGEN` con https, si no
+todo lo que guarda da 403) y paso 6 en el iPhone: instalación sin barra
+de Safari, `theme-color`, letra del sistema, sin zoom, teclado, cuenta,
+inventario, sin conexión y VoiceOver, todo bien. Arreglado: el aviso de
+éxito del inventario ya se quita al cambiar de ubicación (`app-v8`, sin
+desplegar). Pendiente de la fase 3: tras desplegar `app-v8`, comprobar
+que la app instalada se actualiza y el `SIGTERM` en los logs de Render;
+"Despertando el servidor…" tras 3 s (§8.3).
 
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
@@ -95,8 +104,10 @@ iPhone el icono instalado, la barra con `theme-color` y VoiceOver.
 
 **Hecho (2026-11-08):** botón "Mostrar / Ocultar" en los campos de
 contraseña (lo pone `crearCampo()` cuando `type: 'password'`; vale para
-Crear cuenta, Entrar y Borrar cuenta); `sw.js` en `app-v7`. Falta
-probarlo en el iPhone tras desplegar.
+Crear cuenta, Entrar y Borrar cuenta); `sw.js` en `app-v7`. Probado en
+el iPhone (2026-11-08) tras cerrar y abrir la app: el SW viejo seguía
+sirviendo `app-v6`. Mejora propuesta: recargar sola al llegar una versión
+nueva del SW (`app.js`).
 
 **Detalles de estilo pendientes:** `@file` de
 `server/pruebas/compartido.test.js` sin formatearCantidad(); 4 espacios
