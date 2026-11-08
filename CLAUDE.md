@@ -80,8 +80,11 @@ todo lo que guarda da 403) y paso 6 en el iPhone: instalación sin barra
 de Safari, `theme-color`, letra del sistema, sin zoom, teclado, cuenta,
 inventario, sin conexión y VoiceOver, todo bien. Arreglado: el aviso de
 éxito del inventario ya se quita al cambiar de ubicación (`app-v8`, sin
-desplegar). Pendiente de la fase 3: tras desplegar `app-v8`, comprobar
-que la app instalada se actualiza y el `SIGTERM` en los logs de Render;
+desplegar). Desplegado `app-v8`: la app instalada se actualiza al
+cerrarla y abrirla (prueba 7 bien). El `SIGTERM` no llegaba a Node con
+`npm start` (npm → sh → node): en Render el Start Command es
+`node server/index.js` y ya salen "SIGTERM recibido" y "Servidor
+cerrado." en los logs. Pendiente de la fase 3:
 "Despertando el servidor…" tras 3 s (§8.3).
 
 **Pendiente de otras fases:**
