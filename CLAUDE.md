@@ -47,16 +47,17 @@ Proyecto de portfolio de un estudiante de DAW.
 - Nunca subir `.env` ni secretos al repo.
 
 ## Estado actual
-**Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02) y 2 (2026-11-04). El
-detalle de cada paso está en los commits (`git log`).
+**Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04) y
+3 (2026-11-08). El detalle de cada paso está en los commits (`git log`).
+Siguiente: fase 4 (tuppers y avisos Web Push, ARQUITECTURA §10).
 
-**Fase 3 (PWA instalable, sin conexión y primer despliegue): en curso.**
+**Fase 3 (PWA instalable, sin conexión y primer despliegue): aprobada.**
 Plan: 1 manifest e iconos; 2 `web/sw.js` (precaché con versión, primero la
 red en la API, §8.1); 3 sin conexión (`conexion.js`, franja, escrituras
 deshabilitadas, §8.2); 4 servidor para producción (migraciones al
 arrancar, `npm start`); 5 Render (preguntar antes de crear la cuenta) con
 un proyecto NUEVO de Neon para producción (D-44); 6 pruebas en el iPhone.
-La Bienvenida (P-03) se decide al final de la fase.
+La Bienvenida (P-03) se hace entera en la fase 4 (D-46, 2026-11-08).
 Hecho (2026-11-05): paso 1 (icono "A · Nevera", PNG 180/192/512, manifest,
 etiquetas en `index.html`) y paso 2 (`sw.js`: precaché `app-v2`, la API
 primero la red con copia en `api-v1` y `X-Desde-Cache`; `api.js` borra la
