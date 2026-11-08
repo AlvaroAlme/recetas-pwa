@@ -14,12 +14,18 @@ const ESPERA_SALUD_MS = 60_000;
 /** El id del motivo: los botones que escriben lo enlazan con aria-describedby. */
 const ID_MOTIVO = 'motivo-conexion';
 
+/** Lo que digo mientras Render despierta (ARQUITECTURA §8.3, R-09). */
+const TEXTO_DESPERTANDO = 'Despertando el servidor… puede tardar un minuto';
+
 let conexion = true;
+// La fecha de la copia que estoy enseñando sin conexión (X-Desde-Cache).
+let fechaCopia = null;
+// Cuántas peticiones llevan más de 3 s sin respuesta. Es un contador y no
+// un sí/no porque puede haber varias a la vez (la lista y un botón).
+let esperando = 0;
 // El texto que hay ahora en la franja: si no cambia, no la toco (y el
 // lector de pantallas no lo repite con cada petición).
 let textoActual = '';
-
-
 
 /**
  * api.js me cuenta cómo ha ido cada petición.
@@ -28,24 +34,44 @@ let textoActual = '';
  */
 export function avisarConexion(hay, fechaDatos = null) {
   conexion = hay;
-  const texto = hay ? '' : textoFranja(fechaDatos);
-    actualizarEscrituras();
+  fechaCopia = fechaDatos;
+  actualizarEscrituras();
+  pintarFranja();
+}
+
+/**
+ * api.js me avisa cuando una petición lleva 3 s sin respuesta (empieza) y
+ * cuando por fin llega o falla (termina). En el plan gratuito, Render se
+ * duerme y tarda un minuto en despertar: así la persona sabe por qué espera.
+ * @param {boolean} empieza
+ */
+export function avisarDespertando(empieza) {
+  esperando += empieza ? 1 : -1;
+  pintarFranja();
+}
+
+/**
+ * Pinto la franja según el estado. Sin conexión manda sobre "Despertando":
+ * si lo que enseño es una copia, eso es lo que importa saber.
+ */
+function pintarFranja() {
+  const texto = !conexion ? textoFranja(fechaCopia) : esperando > 0 ? TEXTO_DESPERTANDO : '';
   if (texto === textoActual) return;
   textoActual = texto;
-  document
-    .getElementById('franja-conexion')
-    .replaceChildren(
-      ...(texto
-        ? [
-            el(
-              'p',
-              { class: 'franja-conexion' },
-              texto,
+  document.getElementById('franja-conexion').replaceChildren(
+    ...(texto
+      ? [
+          el(
+            'p',
+            { class: 'franja-conexion' },
+            texto,
+            // El motivo solo sin conexión: despertando, sí se puede guardar (solo tarda).
+            !conexion &&
               el('span', { class: 'franja-conexion__motivo', id: ID_MOTIVO }, 'Necesitas conexión para guardar cambios.')
-            ),
-          ]
-        : [])
-    );
+          ),
+        ]
+      : [])
+  );
 }
 
 /**

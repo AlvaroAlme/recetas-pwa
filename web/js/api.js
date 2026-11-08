@@ -6,14 +6,21 @@
  * tratan en un solo sitio y siempre llegan igual: un ErrorApi con un mensaje
  * en español listo para enseñar (ARQUITECTURA §8.3).
  *
- * De momento: tiempo máximo, sin conexión y errores de la API. El 401 (ir a
- * /entrar) llega en la fase 2 y "Despertando el servidor…" en la fase 3.
+ * Trato el tiempo máximo, sin conexión, el 401 (ir a /entrar), los errores
+ * de la API y "Despertando el servidor…" cuando Render tarda.
  */
 import { navegar } from './router.js';
-import { avisarConexion } from './conexion.js';
+import { avisarConexion, avisarDespertando } from './conexion.js';
 
-/** Tiempo máximo de una petición normal (las de IA tendrán más, fase 5). */
-const TIEMPO_MAXIMO_MS = 15_000;
+/**
+ * Tiempo máximo de una petición normal (las de IA tendrán más, fase 5).
+ * 75 s y no 15: Render gratis tarda un minuto en despertar (R-09), y con
+ * 15 s la primera petición del día siempre daría "tarda demasiado".
+ */
+const TIEMPO_MAXIMO_MS = 75_000;
+
+/** Si en 3 s no hay respuesta, aviso de que el servidor puede estar despertando. */
+const AVISO_DESPERTANDO_MS = 3_000;
 
 /** La copia de la API que guarda el Service Worker. Mismo nombre que en sw.js. */
 const CACHE_API = 'api-v1';
@@ -76,6 +83,13 @@ async function peticion(metodo, ruta, cuerpo) {
   }
 
   let respuesta;
+  // Si a los 3 s no ha llegado nada, lo digo en la franja. Me acuerdo de si
+  // he avisado para quitar el aviso al terminar (y solo entonces).
+  let avisado = false;
+  const temporizador = setTimeout(() => {
+    avisado = true;
+    avisarDespertando(true);
+  }, AVISO_DESPERTANDO_MS);
   try {
     respuesta = await fetch(`/api${ruta}`, opciones);
   } catch (error) {
@@ -87,6 +101,10 @@ async function peticion(metodo, ruta, cuerpo) {
     throw new ErrorApi(0, 'SIN_CONEXION', 'No hay conexión a internet. Comprueba la red e inténtalo de nuevo.', {
       reintentable: true,
     });
+  } finally {
+    // Haya ido bien o mal, la espera ha terminado: paro el reloj y quito el aviso.
+    clearTimeout(temporizador);
+    if (avisado) avisarDespertando(false);
   }
 
   // ¿Respuesta del servidor o copia del Service Worker? Se lo cuento a la franja.

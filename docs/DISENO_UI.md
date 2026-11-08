@@ -1074,7 +1074,7 @@ Comunes a todas:
 **Mientras se guarda en el servidor:**
 - solo se bloquea **el botón** de la acción ("Guardando…", con `aria-busy`); la pantalla se sigue viendo;
 - los campos del formulario se deshabilitan para que no cambien a mitad;
-- si tarda más de 15 s: "El servidor está tardando demasiado." + `[Reintentar]` (con la misma `clave` donde aplique);
+- si tarda más de 75 s: "El servidor está tardando demasiado." + `[Reintentar]` (con la misma `clave` donde aplique);
 - **nunca** se muestra "guardado" hasta que el servidor responde que sí.
 
 ---

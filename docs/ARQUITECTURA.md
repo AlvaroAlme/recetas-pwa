@@ -736,7 +736,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 |---|---|---|
 | Sin red | `fetch` lanza `TypeError` | "No hay conexión a internet. Comprueba la red e inténtalo de nuevo." (texto de `claude.ts`) + **Reintentar** |
 | Servidor dormido | No responde en 3 s | Mientras se espera: "Despertando el servidor… puede tardar un minuto" (R-09) |
-| Tiempo agotado | `AbortController` (15 s; 120 s en las rutas de IA, como `TIEMPO_MAXIMO_MS`) | "El servidor está tardando demasiado." + Reintentar |
+| Tiempo agotado | `AbortController` (75 s, para que Render pueda despertar; 120 s en las rutas de IA, como `TIEMPO_MAXIMO_MS`) | "El servidor está tardando demasiado." + Reintentar |
 | 401 | Código | Va a `/entrar` y, al entrar, vuelve a la pantalla en la que estaba |
 | 409 `INVENTARIO_CAMBIADO` | Código | "Alguien de tu casa ha cambiado el inventario. Revisa las cantidades." → recarga los datos |
 | 429 / `CUOTA_IA` | Código | El mensaje del servidor ("Has usado tus 10 consultas de hoy…") |

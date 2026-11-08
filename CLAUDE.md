@@ -84,8 +84,11 @@ desplegar). Desplegado `app-v8`: la app instalada se actualiza al
 cerrarla y abrirla (prueba 7 bien). El `SIGTERM` no llegaba a Node con
 `npm start` (npm → sh → node): en Render el Start Command es
 `node server/index.js` y ya salen "SIGTERM recibido" y "Servidor
-cerrado." en los logs. Pendiente de la fase 3:
-"Despertando el servidor…" tras 3 s (§8.3).
+cerrado." en los logs. Hecho: "Despertando el servidor… puede tardar un
+minuto" en la franja si una petición tarda más de 3 s (`api.js` avisa con
+`avisarDespertando()` de `conexion.js`; sin conexión manda sobre el aviso)
+y tiempo máximo de 75 s (§8.3); `sw.js` en `app-v9`, sin desplegar.
+Falta: verlo en Render tras 15 min sin uso y el "ok" de la fase 3.
 
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
@@ -121,9 +124,7 @@ y 92 y `crearAutocompletar` antes que `crearAviso`; en
 `pantallas/producto.js`, el import de `/compartido/ubicaciones.js` junto a
 los de `/compartido/`; en `origen.js`, un comentario con 4 espacios; en
 `server/pruebas/validacion.test.js`, el `@file` con 2 espacios; en
-`web/sw.js`, el bloque `if (url.pathname.startsWith('/api/'))` sin sangrar; en `app.js`, dos líneas en blanco antes del registro del SW; en
-`conexion.js`, tres líneas en blanco tras `let textoActual` y
-`actualizarEscrituras();` con 4 espacios.
+`web/sw.js`, el bloque `if (url.pathname.startsWith('/api/'))` sin sangrar; en `app.js`, dos líneas en blanco antes del registro del SW.
 
 **Cuentas de prueba** (base de datos de DESARROLLO; nunca en producción,
 porque este archivo es público):
