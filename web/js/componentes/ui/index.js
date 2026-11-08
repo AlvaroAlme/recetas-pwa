@@ -232,6 +232,8 @@ export function crearAviso({ tipo = 'error', mensaje, accion }) {
 
 /**
  * Campo de texto con su etiqueta, su ayuda y su hueco para el error (§3.2 CampoTexto).
+ * Si es una contraseña, le pongo dentro un botón "Mostrar / Ocultar" para que
+ * puedas ver lo que escribes.
  * @param {{ etiqueta: string | Array<string | Node>, nombre: string, valor?: string, ayuda?: string, atributos?: Record<string, any> }} opciones
  *   atributos: los del <input> (type, placeholder, inputmode, oninput…).
  * @returns {HTMLDivElement}
@@ -239,23 +241,46 @@ export function crearAviso({ tipo = 'error', mensaje, accion }) {
 export function crearCampo({ etiqueta, nombre, valor, ayuda, atributos = {} }) {
   const id = nuevoId(nombre);
   const idAyuda = `${id}-ayuda`;
+  // El input en una constante: el botón de la contraseña necesita cambiarle el type.
+  const entrada = el('input', {
+    class: 'campo__entrada',
+    type: 'text',
+    id,
+    name: nombre,
+    value: valor,
+    placeholder: ' ',
+    'aria-describedby': ayuda ? idAyuda : null,
+    ...atributos,
+  });
+  // Solo en las contraseñas. type: 'button' para que no envíe el formulario.
+  // El aria-label lleva el texto que se ve ("Mostrar") y dice de qué es.
+  const botonVer =
+    atributos.type === 'password' &&
+    el(
+      'button',
+      {
+        class: 'campo__ver',
+        type: 'button',
+        'aria-controls': id,
+        'aria-label': 'Mostrar contraseña',
+        onclick: () => {
+          const mostrar = entrada.type === 'password';
+          entrada.type = mostrar ? 'text' : 'password';
+          botonVer.textContent = mostrar ? 'Ocultar' : 'Mostrar';
+          botonVer.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        },
+      },
+      'Mostrar'
+    );
   return el(
     'div',
     { class: 'campo' },
-        el(
+    el(
       'div',
       { class: 'campo__caja' },
       el('label', { class: 'campo__etiqueta', for: id }, etiqueta),
-      el('input', {
-        class: 'campo__entrada',
-        type: 'text',
-        id,
-        name: nombre,
-        value: valor,
-        placeholder: ' ',
-        'aria-describedby': ayuda ? idAyuda : null,
-        ...atributos,
-      })
+      entrada,
+      botonVer
     ),
     ayuda && el('p', { class: 'campo__ayuda', id: idAyuda }, crearIconoInfo(), ayuda),
     el('p', { class: 'campo__error', id: `${id}-error`, hidden: true })

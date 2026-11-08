@@ -630,6 +630,33 @@ input:focus-visible + .chip {
   color: var(--color-texto-tenue);
   font-weight: var(--peso-normal);
 }
+/* ============ Contraseña: botón "Mostrar / Ocultar" ============ */
+/* Dentro del campo, a la derecha. Texto (no solo un ojo) y 44 px para el dedo. */
+.campo__ver {
+  position: absolute;
+  top: 50%;
+  right: var(--espacio-xs);
+  transform: translateY(-50%);
+  min-width: var(--tactil);
+  min-height: var(--tactil);
+  padding: 0 var(--espacio-s);
+  border: 0;
+  border-radius: var(--radio-s);
+  background: transparent;
+  color: var(--color-primario-texto);
+  font-size: var(--texto-secundario);
+  font-weight: var(--peso-fuerte);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .campo__ver:hover {
+    background: var(--color-superficie-2);
+  }
+}
+/* Sitio a la derecha para el botón: el texto no se mete debajo. */
+.campo__caja:has(.campo__ver) .campo__entrada {
+  padding-right: calc(5.5em + var(--espacio-s));
+}
 /* ============ Autocompletar ============ */
 .sugerencias {
   position: absolute;

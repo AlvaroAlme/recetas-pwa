@@ -93,6 +93,11 @@ final; cambiar por SVG los caracteres "‹" (`router.js`), "+"
 (`inventario.js`) y "✓"/"✗" (mensajes y `ponerErrorCampo`); probar en el
 iPhone el icono instalado, la barra con `theme-color` y VoiceOver.
 
+**Hecho (2026-11-08):** botón "Mostrar / Ocultar" en los campos de
+contraseña (lo pone `crearCampo()` cuando `type: 'password'`; vale para
+Crear cuenta, Entrar y Borrar cuenta); `sw.js` en `app-v7`. Falta
+probarlo en el iPhone tras desplegar.
+
 **Detalles de estilo pendientes:** `@file` de
 `server/pruebas/compartido.test.js` sin formatearCantidad(); 4 espacios
 delante del `import` de `compartido/formato.js`; `<body>` con 6 espacios en
