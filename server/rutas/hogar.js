@@ -3,12 +3,22 @@
  * (exigirSesion va delante en app.js), así que req.usuario y req.hogarId existen.
  */
 import { Router } from 'express';
+import * as agenda from '../agenda.js';
 import { limiteInvitaciones } from '../middlewares/limite.js';
 import { ErrorApi } from '../errores.js';
-import { leerUnirse } from '../validacion/hogar.js';
+import { leerCambiosHogar, leerUnirse } from '../validacion/hogar.js';
 import * as hogares from '../servicios/hogares.js';
 
 export const rutasHogar = Router();
+
+// PATCH /api/hogar: { nombre?, zonaHoraria? }. Cualquiera de la casa puede.
+rutasHogar.patch('/', async (req, res) => {
+  const cambios = leerCambiosHogar(req.body);
+  const hogar = await hogares.actualizarHogar(req.hogarId, cambios);
+  // Con otra zona, las 10:00 de los avisos son otro instante.
+  if (cambios.zonaHoraria) await agenda.recalcular();
+  res.json({ hogar });
+});
 
 // POST /api/hogar/invitaciones: un código para que alguien se una a mi hogar.
 rutasHogar.post('/invitaciones', limiteInvitaciones, async (req, res) => {

@@ -3,6 +3,7 @@
  * nadie pueda borrarla con tu móvil desbloqueado. No se puede deshacer.
  */
 import { api, mensajeDeError } from '../api.js';
+import { desactivarAvisos } from '../avisos.js';
 import { crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
@@ -35,6 +36,9 @@ export function pantallaBorrarCuenta() {
     ponerCargando(boton, true, 'Borrando…');
     try {
       await api.borrar('/yo', { contrasena: valor });
+      // El servidor ya ha borrado sus suscripciones; quito la de este
+      // navegador para que la próxima cuenta no la vea "activada".
+      await desactivarAvisos({ avisarAlServidor: false }).catch(() => {});
       navegar('/entrar', { reemplazar: true, mensaje: 'Tu cuenta se ha borrado.' });
     } catch (error) {
       enviando = false;

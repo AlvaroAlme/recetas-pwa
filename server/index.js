@@ -5,10 +5,13 @@
  * y pongo a escuchar la app que monta app.js. Lo tengo separado para poder
  * probar la app en las pruebas sin ocupar el puerto de verdad.
  *
- * Más adelante, antes de escuchar, aquí irá también la agenda de avisos.
+ * Después de migrar, envío los avisos que se quedaron atrasados mientras el
+ * servidor estaba parado y calculo el próximo (la agenda vive en memoria, §7.3).
  */
 import { config } from './config.js';
 import { app } from './app.js';
+import * as agenda from './agenda.js';
+import { enviarPendientes } from './servicios/avisos.js';
 import { migrar } from './bd/migrar.js';
 import { pool } from './bd/pool.js';
 
@@ -27,6 +30,16 @@ async function arrancar() {
     await pool.end();
     return;
   }
+
+  // Si falla el envío, arranco igual: la app sirve aunque no haya avisos, y
+  // recalcular() deja la agenda lista para reintentar en el siguiente ping.
+  try {
+    const enviados = await enviarPendientes();
+    if (enviados > 0) console.log(`Avisos atrasados enviados: ${enviados}`);
+  } catch (error) {
+    console.error('No se han podido enviar los avisos atrasados:', error.message);
+  }
+  await agenda.recalcular();
 
   const servidor = app.listen(config.puerto, config.host, async (error) => {
     // En Express 5, si el servidor no puede arrancar, el error llega aquí.

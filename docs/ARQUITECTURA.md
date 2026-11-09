@@ -68,7 +68,7 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 | R-01 | En iOS/iPadOS, Web Push solo funciona en **web apps añadidas a la pantalla de inicio** (desde iOS 16.4), y el manifest debe declarar `display` como `standalone` o `fullscreen`. Una web sin ese manifest se guarda como marcador y se abre en el navegador | [WebKit: Web Push for Web Apps on iOS and iPadOS](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/) | `manifest.webmanifest` con `"display": "standalone"`. En Safari sin instalar, Ajustes muestra cómo instalarla en lugar del botón de activar avisos |
 | R-02 | El permiso de notificaciones se pide **en respuesta a una acción del usuario**, como pulsar un botón de "suscribirse" | Misma fuente | Botón "Activar avisos en este dispositivo" en Ajustes y en el primer uso. Nunca se pide al cargar la página |
 | R-03 | Safari, también el de iOS, **no admite `actions`** (botones) en `showNotification()` | [caniuse: options.actions](https://caniuse.com/mdn-api_serviceworkerregistration_shownotification_options_actions_parameter) · [MDN: showNotification](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification) | DIF-01. El aviso abre `/tupper/:id`, cuya acción principal es "Marcar como consumido". Lo mismo resuelve SEC-07 |
-| R-04 | **Declarative Web Push** (iOS/iPadOS 18.4+): JSON con `"web_push": 8030`, un objeto `notification` con `title` obligatorio y la URL `navigate`. Se puede suscribir con `window.pushManager` sin Service Worker. Si hay Service Worker se dispara `push` igualmente, y si no muestra su propio aviso a tiempo **se usa el declarativo como respaldo** | [WebKit: Meet Declarative Web Push](https://webkit.org/blog/16535/meet-declarative-web-push/) | D-13: un único formato de mensaje. Entre iOS 16.4 y 18.3 lo muestra el Service Worker. **[sin verificar]** la posición exacta de `navigate` y `app_badge` en el JSON: se comprueba en el *explainer* en la fase 4 |
+| R-04 | **Declarative Web Push** (iOS/iPadOS 18.4+): JSON con `"web_push": 8030`, un objeto `notification` con `title` obligatorio y la URL `navigate`. Se puede suscribir con `window.pushManager` sin Service Worker. Si hay Service Worker se dispara `push` igualmente, y si no muestra su propio aviso a tiempo **se usa el declarativo como respaldo** | [WebKit: Meet Declarative Web Push](https://webkit.org/blog/16535/meet-declarative-web-push/) | D-13: un único formato de mensaje. Entre iOS 16.4 y 18.3 lo muestra el Service Worker. Comprobado el 2026-11-08 en el blog (el *explainer* es un borrador anterior): `navigate` y `app_badge` van **dentro** de `notification`; `title` y `navigate` son obligatorios. `tag` no se cita, pero es de `NotificationOptions`. Con SW, iOS lanza `push` y usa el declarativo solo si el SW no muestra su aviso |
 | R-05 | La API de Badging (`setAppBadge`) existe en las web apps de iOS | [WebKit 13878](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/) | No se usa en la v1 (la app Expo tampoco ponía globo: `shouldSetBadge: false`) |
 | R-06 | Una web app de la pantalla de inicio tiene las mismas cuotas de almacenamiento que el navegador. Si no se usa en un tiempo, sus datos **pueden borrarse**; `navigator.storage.persist()` se concede según heurísticas, como estar instalada | [WebKit: Updates to Storage Policy](https://webkit.org/blog/14403/updates-to-storage-policy/) | La caché local es **solo una copia**: la fuente de verdad es el servidor. Si iOS la borra no se pierde nada. Se llama a `persist()` como mejora |
 | R-07 | Unión Europea: Apple anunció que quitaría las web apps de la pantalla de inicio en iOS 17.4, pero **se echó atrás** y las mantiene | Prensa de marzo de 2024: [9to5Mac](https://9to5mac.com/2024/02/08/ios-17-4-web-app-eu/), [iMore](https://imore.com/ios/apple-backtracks-ios-174-web-app-changes-in-eu-just-weeks-after-citing-security-and-privacy-concerns). **[sin verificar en fuente oficial actual]**: la [página de Apple sobre la DMA](https://developer.apple.com/support/dma-and-apps-in-the-eu/) ya no lo menciona | Se comprueba en la fase 3 instalándola en tu iPhone (estás en España). Si fallara, avisaría antes de seguir |
@@ -160,7 +160,8 @@ CREATE TABLE usuarios (
 CREATE TABLE hogares (
   id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre           TEXT NOT NULL CHECK (char_length(btrim(nombre)) BETWEEN 1 AND 80),
-  zona_horaria     TEXT NOT NULL DEFAULT 'Europe/Madrid',   -- la valida la API (lista IANA)
+  zona_horaria     TEXT NOT NULL DEFAULT 'Europe/Madrid'    -- la valida la API (lista IANA)
+                   CHECK (char_length(zona_horaria) BETWEEN 1 AND 64),
   hora_aviso_plan  TIME NOT NULL DEFAULT '21:00'
                    CHECK (date_part('second', hora_aviso_plan) = 0),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -809,7 +810,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 ### 9.8 Validación de entradas y SSRF
 - Toda entrada se valida en el servidor (§5.1), aunque el formulario ya lo haga.
 - **Archivos del ticket:** tipo declarado + firma real + tamaño, antes de enviarlos a Claude.
-- **SSRF** (*Server-Side Request Forgery*): el servidor hace peticiones al `endpoint` de cada suscripción. Si aceptara cualquier URL, un atacante podría hacer que el servidor llamara a direcciones internas. Por eso solo se aceptan endpoints HTTPS de servicios de push conocidos: `*.push.apple.com` (citado por [WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/)), `fcm.googleapis.com`, `updates.push.services.mozilla.com` y `*.notify.windows.com`. Las tres últimas están **[sin verificar]** en fuente oficial (fase 4).
+- **SSRF** (*Server-Side Request Forgery*): el servidor hace peticiones al `endpoint` de cada suscripción. Si aceptara cualquier URL, un atacante podría hacer que el servidor llamara a direcciones internas. Por eso solo se aceptan endpoints HTTPS de servicios de push conocidos: `*.push.apple.com` (citado por [WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/)), `fcm.googleapis.com`, `updates.push.services.mozilla.com` y `*.notify.windows.com`. Comprobado el 2026-11-08: Mozilla documenta `updates.push.services.mozilla.com` ([autopush](https://autopush.readthedocs.io/)) y Microsoft el dominio `notify.windows.com`, cuyo subdominio cambia ([WNS](https://learn.microsoft.com/en-us/windows/apps/develop/notifications/push-notifications/wns-overview)). `fcm.googleapis.com` sigue **[sin verificar]** en fuente oficial. Implementado en `server/validacion/push.js` (también rechaza puerto y usuario en la URL).
 
 ### 9.9 Dependencias
 
@@ -817,7 +818,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 |---|---|---|
 | `express` | Servidor HTTP | D-10 |
 | `pg` | PostgreSQL | D-08 |
-| `web-push` | VAPID y cifrado | D-11 |
+| `web-push` | VAPID y cifrado | D-11. Versión fija **3.6.7** (`--save-exact`): la 4.0.0 salió el 2026-11-06, con cambios incompatibles; se revisa cuando tenga unas semanas |
 | `helmet` | Cabeceras de seguridad | D-12 |
 
 El **frontend no tiene dependencias**. Las pruebas usan `node:test` y las variables de entorno se cargan con `node --env-file`, ambos incluidos en Node. Cada instalación se hace **tras preguntarte**, como hasta ahora.

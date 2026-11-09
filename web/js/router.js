@@ -157,7 +157,7 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
 /**
  * Va a otra pantalla de la app sin recargar.
  * @param {string} url '/producto/7', '/?ubicacion=despensa'…
- * @param {{ reemplazar?: boolean, mensaje?: string }} [opciones]
+ * @param {{ reemplazar?: boolean, mensaje?: string | { texto: string, tipo: 'aviso' } }} [opciones]
  *   reemplazar: no deja la pantalla actual en el historial (tras guardar un
  *   formulario, para que "Atrás" no vuelva a él).
  *   mensaje: aviso de éxito que enseña la pantalla de destino.
@@ -200,7 +200,7 @@ export function repintar() {
 /**
  * El mensaje de éxito que me ha dejado la pantalla anterior. Solo lo doy una
  * vez: lo borro del historial para que no salga otra vez al recargar.
- * @returns {string | undefined}
+ * @returns {string | { texto: string, tipo: 'aviso' } | undefined}
  */
 export function tomarMensaje() {
   const mensaje = history.state?.mensaje;

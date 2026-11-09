@@ -1,9 +1,10 @@
 /**
- * @file Pantalla Ajustes (P-16): de momento, la parte de la fase 2 (tu casa
- * y tu cuenta). Los avisos, la IA y la hora del planificador llegan en sus
- * fases.
+ * @file Pantalla Ajustes (P-16): los avisos de este dispositivo (fase 4),
+ * tu casa y tu cuenta. La IA y la hora del planificador llegan en sus fases.
  */
 import { api, mensajeDeError } from '../api.js';
+import { desactivarAvisos } from '../avisos.js';
+import { crearPanelAvisos } from '../componentes/panelAvisos.js';
 import { confirmar, crearAviso, crearCarga, crearSinConexion, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar, tomarMensaje } from '../router.js';
@@ -19,7 +20,7 @@ export function pantallaAjustes() {
     zona.replaceChildren(crearCarga('Cargando…'));
     try {
       const { usuario, hogar } = await api.get('/yo');
-      zona.replaceChildren(crearSeccionCasa(usuario, hogar), crearSeccionCuenta(usuario));
+      zona.replaceChildren(crearSeccionAvisos(), crearSeccionCasa(usuario, hogar), crearSeccionCuenta(usuario));
     } catch (error) {
       zona.replaceChildren(
         error.codigo === 'SIN_CONEXION'
@@ -30,6 +31,16 @@ export function pantallaAjustes() {
             })
       );
     }
+  }
+
+  /** "Avisos en este dispositivo": cada dispositivo los activa por su cuenta (§7.6). */
+  function crearSeccionAvisos() {
+    return el(
+      'section',
+      { class: 'seccion', 'aria-labelledby': 'titulo-avisos' },
+      el('h2', { class: 'titulo-seccion', id: 'titulo-avisos' }, 'Avisos en este dispositivo'),
+      crearPanelAvisos()
+    );
   }
 
   /**
@@ -111,6 +122,9 @@ export function pantallaAjustes() {
     async function cerrarSesion() {
       ponerCargando(botonCerrar, true, 'Cerrando sesión…');
       try {
+        // Primero los avisos (necesita la sesión): este dispositivo deja de
+        // recibir los de esta cuenta (§7.1, paso 6).
+        await desactivarAvisos();
         await api.post('/auth/logout');
         navegar('/entrar', { reemplazar: true });
       } catch (error) {

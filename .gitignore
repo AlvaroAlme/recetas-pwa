@@ -14,3 +14,6 @@ Thumbs.db
 
 # Grafo de graphify: se regenera con /graphify
 graphify-out/
+
+# Configuración de Claude en este equipo (launch.json del panel del navegador)
+.claude/

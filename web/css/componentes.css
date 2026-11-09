@@ -942,3 +942,86 @@ input:focus-visible + .chip {
 .franja-conexion__motivo {
   display: block;
 }
+/* ============ Tarjeta (§3.2): un bloque de información que no se pulsa ============ */
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+  padding: 14px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie);
+}
+
+/* ============ Ficha del tupper (P-07) ============ */
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+}
+/* El nombre, con la letra de la marca: es lo que buscas al abrir el aviso. */
+.ficha__nombre {
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-titulo);
+  line-height: var(--linea-titulo);
+  font-weight: var(--peso-titulo);
+}
+.ficha__estado {
+  margin-top: var(--espacio-m);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+}
+.ficha__estado--exito {
+  color: var(--color-exito);
+  font-weight: var(--peso-fuerte);
+}
+
+/* ============ Avisos en este dispositivo (P-16, Bienvenida) ============ */
+.panel-avisos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-m);
+}
+.panel-avisos .seccion__acciones {
+  align-self: stretch;
+}
+/* El estado lleva ✓ y texto: no depende solo del verde. */
+.panel-avisos__activados {
+  color: var(--color-exito);
+  font-weight: var(--peso-fuerte);
+}
+/* Pasos numerados (instalar la app en el iPhone). */
+.pasos {
+  padding-left: var(--espacio-xl);
+  list-style: decimal;
+}
+.pasos li + li {
+  margin-top: var(--espacio-xs);
+}
+
+/* ============ Bienvenida (P-03) ============ */
+.bienvenida {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.bienvenida__saludo {
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+}
+.bienvenida__encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+}
+.bienvenida__titulo {
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-titulo);
+  line-height: var(--linea-titulo);
+  font-weight: var(--peso-titulo);
+}
+.bienvenida .tarjeta {
+  gap: var(--espacio-s);
+  align-items: flex-start;
+}

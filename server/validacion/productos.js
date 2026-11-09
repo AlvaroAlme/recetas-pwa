@@ -17,14 +17,16 @@ const REVISA_CAMPOS = 'Revisa los campos marcados.';
  * Lee el id de la URL (/api/productos/:id), que siempre llega como texto.
  * Si no es un entero positivo, ese producto no puede existir: contesto 404,
  * igual que si fuera de otro hogar (§5.1).
+ * También lo uso para los tuppers, con su propio mensaje.
  * @param {string} texto
+ * @param {string} [mensaje] El texto del 404.
  * @returns {number}
  * @throws {ErrorApi} 404 NO_EXISTE
  */
-export function leerId(texto) {
+export function leerId(texto, mensaje = 'Este producto ya no existe.') {
   const id = Number(texto);
   if (!/^[1-9]\d*$/.test(texto) || !Number.isSafeInteger(id)) {
-    throw new ErrorApi(404, 'NO_EXISTE', 'Este producto ya no existe.');
+    throw new ErrorApi(404, 'NO_EXISTE', mensaje);
   }
   return id;
 }

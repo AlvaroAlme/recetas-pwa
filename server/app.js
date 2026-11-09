@@ -18,6 +18,9 @@ import { sesion } from './middlewares/sesion.js';
 import { rutasAuth } from './rutas/auth.js';
 import { rutasHogar } from './rutas/hogar.js';
 import { rutasProductos } from './rutas/productos.js';
+import { rutasPush } from './rutas/push.js';
+import { rutasTareas } from './rutas/tareas.js';
+import { rutasTuppers } from './rutas/tuppers.js';
 import { rutasYo } from './rutas/yo.js';
 
 const app = express();
@@ -70,6 +73,10 @@ app.get('/api/salud', (req, res) => {
 // Como mucho 300 peticiones cada 15 minutos por IP en toda la API (§9.5).
 app.use('/api', limiteGeneral);
 
+// El ping de cron-job.org va ANTES de la sesión y del control de Origin: no
+// es un navegador. Lo protege CRON_SECRETO.
+app.use('/api/tareas', rutasTareas);
+
 // En todas las rutas de la API: si hay una sesión buena, sé quién eres.
 app.use('/api', sesion);
 
@@ -81,6 +88,12 @@ app.use('/api/auth', rutasAuth);
 
 // Inventario: solo con sesión, y siempre el de TU hogar (req.hogarId).
 app.use('/api/productos', exigirSesion, rutasProductos);
+
+// Tuppers (fase 4): igual, solo los de TU hogar.
+app.use('/api/tuppers', exigirSesion, rutasTuppers);
+
+// Avisos Web Push de este dispositivo (fase 4).
+app.use('/api/push', exigirSesion, rutasPush);
 
 // El hogar compartido: invitar, unirse y salir (D-03, D-16).
 app.use('/api/hogar', exigirSesion, rutasHogar);

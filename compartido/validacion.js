@@ -10,9 +10,11 @@ import {
   ALFABETO_CODIGO,
   LONGITUD_CODIGO,
   MAX_CANTIDAD,
+  MAX_DIAS_TUPPER,
   MAX_LONGITUD_CONTRASENA,
   MAX_LONGITUD_EMAIL,
   MAX_LONGITUD_NOMBRE,
+  MIN_DIAS_TUPPER,
   MIN_LONGITUD_CONTRASENA,
   UBICACIONES,
   UNIDADES,
@@ -98,6 +100,50 @@ export function validarProducto(entrada) {
     datos: { nombre: nombreLimpio, cantidad: cantidadRedondeada, unidad, ubicacion, fechaCaducidad },
   };
 }
+// ============ Tuppers ============
+
+/**
+ * Un tupper ya comprobado y limpio.
+ * @typedef {Object} DatosTupper
+ * @property {string} nombre Sin espacios a los lados.
+ * @property {import('./constantes.js').Ubicacion} ubicacion
+ * @property {number} diasMaximos Entero de 1 a 365.
+ */
+
+/**
+ * Comprueba los datos de un tupper nuevo (P-06). La fecha límite NO llega:
+ * la calcula el servidor con el "hoy" de la zona horaria de la casa.
+ * @param {unknown} entrada
+ * @returns {{ ok: true, datos: DatosTupper } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarTupper(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Los datos del tupper no son válidos.' } };
+  }
+  const { nombre, ubicacion, diasMaximos } = entrada;
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  const nombreLimpio = typeof nombre === 'string' ? nombre.trim() : '';
+  if (nombreLimpio === '') {
+    errores.nombre = 'Escribe qué hay en el tupper.';
+  } else if (nombreLimpio.length > MAX_LONGITUD_NOMBRE) {
+    errores.nombre = `El nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+  }
+
+  if (!UBICACIONES.includes(ubicacion)) {
+    errores.ubicacion = 'Elige dónde guardas el tupper.';
+  }
+
+  // Number.isInteger ya descarta los textos ("3"), los decimales y NaN.
+  if (!Number.isInteger(diasMaximos) || diasMaximos < MIN_DIAS_TUPPER || diasMaximos > MAX_DIAS_TUPPER) {
+    errores.diasMaximos = `Escribe un número de días entre ${MIN_DIAS_TUPPER} y ${MAX_DIAS_TUPPER}.`;
+  }
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { nombre: nombreLimpio, ubicacion, diasMaximos } };
+}
+
 // ============ Cuentas ============
 
 /**
@@ -198,6 +244,20 @@ export function validarLogin(entrada) {
 }
 
 // ============ Hogar ============
+
+/**
+ * Comprueba el nombre de la casa (Bienvenida, Ajustes).
+ * @param {unknown} valor
+ * @returns {{ ok: true, datos: string } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarNombreCasa(valor) {
+  const nombre = typeof valor === 'string' ? valor.trim() : '';
+  if (nombre === '') return { ok: false, errores: { nombre: 'Escribe el nombre de tu casa.' } };
+  if (nombre.length > MAX_LONGITUD_NOMBRE) {
+    return { ok: false, errores: { nombre: `El nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.` } };
+  }
+  return { ok: true, datos: nombre };
+}
 
 /**
  * Limpia un código de invitación como lo escriba la persona ("6s4a-jmrb",

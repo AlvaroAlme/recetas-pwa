@@ -73,7 +73,13 @@ export function pantallaRegistro({ consulta }) {
     ponerCargando(boton, true, 'Creando cuenta…');
     try {
       const { hogar } = await api.post('/auth/registro', resultado.datos);
-      navegar(volver, { reemplazar: true, mensaje: `Ya tienes cuenta. Tu casa, «${hogar.nombre}», está lista.` });
+      // Si venías de un enlace (?volver=/hogar/unirse…), te llevo allí; si
+      // no, a la Bienvenida, que ya saluda y enseña tu casa (§7.6).
+      if (consulta.has('volver')) {
+        navegar(volver, { reemplazar: true, mensaje: `Ya tienes cuenta. Tu casa, «${hogar.nombre}», está lista.` });
+      } else {
+        navegar('/bienvenida', { reemplazar: true });
+      }
     } catch (error) {
       enviando = false;
       ponerCargando(boton, false);

@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v9';
+const VERSION = 'app-v12';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -27,12 +27,15 @@ const ARCHIVOS = [
   '/css/componentes.css',
   '/js/app.js',
   '/js/api.js',
+  '/js/avisos.js',
   '/js/conexion.js',
   '/js/dom.js',
   '/js/router.js',
   '/js/componentes/formularioProducto.js',
+  '/js/componentes/panelAvisos.js',
   '/js/componentes/ui/index.js',
   '/js/pantallas/ajustes.js',
+  '/js/pantallas/bienvenida.js',
   '/js/pantallas/borrarCuenta.js',
   '/js/pantallas/entrar.js',
   '/js/pantallas/inventario.js',
@@ -40,6 +43,7 @@ const ARCHIVOS = [
   '/js/pantallas/noExiste.js',
   '/js/pantallas/producto.js',
   '/js/pantallas/registro.js',
+  '/js/pantallas/tupper.js',
   '/js/pantallas/unirse.js',
   '/compartido/constantes.js',
   '/compartido/fechas.js',
@@ -83,6 +87,60 @@ self.addEventListener('fetch', (evento) => {
   const clave = peticion.mode === 'navigate' ? '/index.html' : peticion;
   evento.respondWith(desdeLaCache(clave, peticion));
 });
+
+// ============ Avisos Web Push (§7.2) ============
+
+// Llega un aviso. El servidor manda siempre el mismo JSON, el de Declarative
+// Web Push (R-04): { web_push: 8030, notification: { title, body, navigate,
+// lang, tag } }. En iOS 18.4+, si yo no enseño el aviso a tiempo, lo enseña
+// el sistema con ese JSON; en el resto de navegadores lo enseño yo.
+self.addEventListener('push', (evento) => {
+  let aviso = {};
+  try {
+    aviso = evento.data?.json().notification ?? {};
+  } catch {
+    // No es JSON: enseño un aviso genérico (userVisibleOnly obliga a enseñar algo).
+  }
+  evento.waitUntil(
+    self.registration.showNotification(aviso.title || 'Vigía', {
+      body: aviso.body,
+      tag: aviso.tag,
+      lang: aviso.lang,
+      icon: '/iconos/icono-192.png',
+      data: { url: aviso.navigate },
+    })
+  );
+});
+
+// Tocan el aviso: abro su pantalla. Si la app ya está abierta, la traigo
+// delante y navego; si no, abro una ventana nueva.
+self.addEventListener('notificationclick', (evento) => {
+  evento.notification.close();
+  evento.waitUntil(abrirPantalla(evento.notification.data?.url));
+});
+
+/**
+ * Abre una URL de la app. Solo del propio origen (SEC-06): si el aviso
+ * trajera otra cosa, abro el inventario.
+ * @param {unknown} url
+ */
+async function abrirPantalla(url) {
+  let destino = new URL('/', self.location.origin);
+  try {
+    const pedida = new URL(String(url), self.location.origin);
+    if (pedida.origin === self.location.origin) destino = pedida;
+  } catch {
+    // URL rota: me quedo con el inventario.
+  }
+  // Solo las ventanas que controlo: navigate() falla en las demás.
+  const ventanas = await self.clients.matchAll({ type: 'window' });
+  const abierta = ventanas.find((ventana) => new URL(ventana.url).origin === self.location.origin);
+  if (abierta) {
+    await abierta.focus();
+    return abierta.navigate(destino.href);
+  }
+  return self.clients.openWindow(destino.href);
+}
 
 /**
  * Pido al servidor todos los archivos y los guardo. Si falla uno solo, la

@@ -1,9 +1,10 @@
 /**
  * @file Pantalla Inventario (P-04): lo que hay en la nevera, la despensa o el
- * congelador, ordenado por caducidad (index.tsx de la app Expo).
+ * congelador, ordenado por caducidad (index.tsx de la app Expo). Arriba, los
+ * tuppers de esa ubicación; debajo, los productos.
  *
  * La ubicación va en la URL (/?ubicacion=despensa): así, al volver de un
- * producto con "Atrás", sigues en la misma. Los tuppers llegan en su fase.
+ * producto con "Atrás", sigues en la misma.
  */
 import { UBICACIONES } from '/compartido/constantes.js';
 import { avisoCaducidad, formatearCantidad } from '/compartido/formato.js';
@@ -21,13 +22,19 @@ export function pantallaInventario({ consulta }) {
   // "Producto añadido.", "Cambios guardados."… si vengo de guardar algo.
   const mensaje = tomarMensaje();
   // Lo guardo en una constante para poder quitarlo al cambiar de ubicación.
-  const avisoMensaje = mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` });
+  // Si llega como { texto, tipo: 'aviso' } (tupper guardado sin aviso), va en amarillo y sin ✓.
+  const avisoMensaje =
+    mensaje &&
+    (typeof mensaje === 'string'
+      ? crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` })
+      : crearAviso({ tipo: mensaje.tipo, mensaje: mensaje.texto }));
   // Si la URL trae una ubicación que no existe, uso la nevera (DISENO_UI §5.2).
   const pedida = consulta.get('ubicacion');
   let ubicacion = UBICACIONES.includes(pedida) ? pedida : 'nevera';
 
   const zona = el('div', { class: 'inventario__zona' });
   const botonNuevo = el('a', { class: 'boton boton--primario' }, '+ Producto');
+  const botonTupper = el('a', { class: 'boton boton--secundario' }, '+ Tupper');
   // Igual que en el router: si cambio de ubicación mientras carga, la
   // respuesta vieja no pinta encima de la nueva.
   let turno = 0;
@@ -38,11 +45,26 @@ export function pantallaInventario({ consulta }) {
   async function cargar() {
     const miTurno = ++turno;
     botonNuevo.setAttribute('href', enlaceNuevo());
+    botonTupper.setAttribute('href', `/tupper/nuevo?ubicacion=${ubicacion}`);
     zona.replaceChildren(crearCarga('Cargando inventario…'));
     try {
-      const { productos } = await api.get(`/productos?ubicacion=${ubicacion}`);
+      // Las dos peticiones a la vez: no espero a una para lanzar la otra.
+      const [{ productos }, { tuppers }] = await Promise.all([
+        api.get(`/productos?ubicacion=${ubicacion}`),
+        api.get(`/tuppers?ubicacion=${ubicacion}`),
+      ]);
       if (miTurno !== turno) return;
-      zona.replaceChildren(productos.length === 0 ? crearEstadoVacio() : crearLista(productos));
+      if (productos.length === 0 && tuppers.length === 0) {
+        zona.replaceChildren(crearEstadoVacio());
+      } else if (tuppers.length === 0) {
+        // Sin tuppers, la lista de siempre, sin títulos de sección.
+        zona.replaceChildren(crearListaProductos(productos));
+      } else {
+        zona.replaceChildren(
+          crearSeccion('Tuppers', crearListaTuppers(tuppers)),
+          crearSeccion('Productos', productos.length > 0 ? crearListaProductos(productos) : crearSinProductos())
+        );
+      }
     } catch (error) {
       if (miTurno !== turno) return;
       zona.replaceChildren(
@@ -60,12 +82,49 @@ export function pantallaInventario({ consulta }) {
     return crearVacio({
       // "Congelador" es masculino: no vale añadir "vacía" a cualquier ubicación.
       titulo: ubicacion === 'congelador' ? 'Congelador vacío' : `${ETIQUETAS_UBICACION[ubicacion]} vacía`,
-      descripcion: 'Añade lo que tienes a mano con el botón «+ Producto».',
+      descripcion: 'Añade lo que tienes a mano con «+ Producto», o lo que te ha sobrado con «+ Tupper».',
       accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: enlaceNuevo() }, 'Añadir producto'),
     });
   }
 
-  function crearLista(productos) {
+  /**
+   * Una sección con su título (h2), enlazado con aria-labelledby para que el
+   * lector diga "Tuppers, región".
+   * @param {string} titulo
+   * @param {Node} contenido
+   */
+  function crearSeccion(titulo, contenido) {
+    const id = `titulo-${titulo.toLowerCase()}`;
+    return el(
+      'section',
+      { class: 'seccion', 'aria-labelledby': id },
+      el('h2', { class: 'titulo-seccion', id }, titulo),
+      contenido
+    );
+  }
+
+  function crearSinProductos() {
+    return el('p', { class: 'tono--tenue' }, 'No hay productos en esta ubicación.');
+  }
+
+  function crearListaTuppers(tuppers) {
+    return el(
+      'ul',
+      { class: 'lista' },
+      tuppers.map((tupper) => {
+        const aviso = avisoCaducidad(tupper.fechaLimite);
+        return crearFila({
+          href: `/tupper/${tupper.id}`,
+          titulo: tupper.nombre,
+          subtitulo: aviso.texto,
+          tono: aviso.tono,
+          detalle: 'Tupper',
+        });
+      })
+    );
+  }
+
+  function crearListaProductos(productos) {
     return el(
       'ul',
       { class: 'lista' },
@@ -110,6 +169,6 @@ export function pantallaInventario({ consulta }) {
       }),
       zona
     ),
-    pie: [botonNuevo],
+    pie: [botonTupper, botonNuevo],
   };
 }

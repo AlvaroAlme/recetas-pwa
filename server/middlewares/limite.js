@@ -82,3 +82,10 @@ export const limiteInvitaciones = crearLimite({
   ventanaMs: UNA_HORA,
   clave: (req) => `usuario:${req.usuario.id}`,
 });
+/** Como mucho 3 avisos de prueba por hora y por persona (§9.5). Va detrás de exigirSesion. */
+export const limitePruebaPush = crearLimite({
+  maximo: 3,
+  ventanaMs: UNA_HORA,
+  clave: (req) => `usuario:${req.usuario.id}`,
+  mensaje: 'Ya has enviado 3 avisos de prueba esta hora. Espera un poco.',
+});

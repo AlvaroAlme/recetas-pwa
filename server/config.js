@@ -83,6 +83,41 @@ if (!baseDatos.startsWith('postgresql://') && !baseDatos.startsWith('postgres://
 }
 
 /**
+ * Claves VAPID de Web Push (D-11). Con la privada firmo cada envío para que
+ * el servicio de push (Apple, Google…) sepa que soy yo; la pública la usa el
+ * navegador al suscribirse. La privada es un SECRETO: nunca la imprimo.
+ * Son base64url: 65 bytes la pública (87 caracteres) y 32 la privada (43).
+ */
+const BASE64URL = /^[A-Za-z0-9_-]+$/;
+const vapidPublica = obligatoria('VAPID_PUBLICA');
+const vapidPrivada = obligatoria('VAPID_PRIVADA');
+if (!BASE64URL.test(vapidPublica) || vapidPublica.length !== 87) {
+  throw new Error('VAPID_PUBLICA no parece una clave pública VAPID (npx web-push generate-vapid-keys).');
+}
+if (!BASE64URL.test(vapidPrivada) || vapidPrivada.length !== 43) {
+  throw new Error('VAPID_PRIVADA no parece una clave privada VAPID (npx web-push generate-vapid-keys).');
+}
+
+/**
+ * Contacto que mando a los servicios de push por si mis envíos dan
+ * problemas. Tiene que ser una URL https:// o un mailto: (RFC 8292).
+ */
+const vapidSujeto = obligatoria('VAPID_SUJETO');
+if (!vapidSujeto.startsWith('https://') && !vapidSujeto.startsWith('mailto:')) {
+  throw new Error('VAPID_SUJETO debe empezar por https:// o mailto:.');
+}
+
+/**
+ * Secreto que manda cron-job.org en cada ping (Authorization: Bearer …).
+ * Sin él, cualquiera podría lanzar la revisión de avisos. Es un SECRETO.
+ * Pido 32 caracteres como mínimo: que no se pueda adivinar probando.
+ */
+const cronSecreto = obligatoria('CRON_SECRETO');
+if (cronSecreto.length < 32) {
+  throw new Error('CRON_SECRETO es demasiado corto (mínimo 32 caracteres).');
+}
+
+/**
  * Configuración ya comprobada y congelada: nadie la puede cambiar sin querer
  * desde otro archivo.
  *
@@ -92,7 +127,9 @@ if (!baseDatos.startsWith('postgresql://') && !baseDatos.startsWith('postgres://
  *   puerto: number,
  *   host: string,
  *   appOrigen: string,
- *   baseDatos: string
+ *   baseDatos: string,
+ *   vapid: Readonly<{ publica: string, privada: string, sujeto: string }>,
+ *   cronSecreto: string
  * }>}
  */
 export const config = Object.freeze({
@@ -105,4 +142,6 @@ export const config = Object.freeze({
   host: entorno === 'production' ? '0.0.0.0' : '127.0.0.1',
   appOrigen,
   baseDatos,
+  vapid: Object.freeze({ publica: vapidPublica, privada: vapidPrivada, sujeto: vapidSujeto }),
+  cronSecreto,
 });

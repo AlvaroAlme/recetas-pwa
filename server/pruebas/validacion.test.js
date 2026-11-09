@@ -1,9 +1,9 @@
 /**
-  * @file Pruebas de compartido/validacion.js: validarProducto(), validarRegistro() y validarLogin().
+  * @file Pruebas de compartido/validacion.js: validarProducto(), validarTupper(), validarRegistro() y validarLogin().
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarLogin, validarProducto, validarRegistro } from '../../compartido/validacion.js';
+import { validarLogin, validarProducto, validarRegistro, validarTupper } from '../../compartido/validacion.js';
 
 /** Un producto válido del que parten las pruebas. */
 const BUENO = {
@@ -105,5 +105,33 @@ describe('validarLogin()', () => {
   it('pide email y contraseña', () => {
     const resultado = validarLogin({ email: '', contrasena: '' });
     assert.deepEqual(resultado.errores, { email: 'Escribe tu email.', contrasena: 'Escribe tu contraseña.' });
+  });
+});
+describe('validarTupper()', () => {
+  const bueno = { nombre: 'Cocido', ubicacion: 'nevera', diasMaximos: 3 };
+
+  it('acepta un tupper válido, limpia el nombre e ignora lo que no conoce', () => {
+    assert.deepEqual(validarTupper({ ...bueno, nombre: '  Cocido ', fechaLimite: '2020-01-01', hogarId: 7 }), {
+      ok: true,
+      datos: bueno,
+    });
+  });
+
+  it('los días: enteros de 1 a 365', () => {
+    assert.equal(validarTupper({ ...bueno, diasMaximos: 1 }).ok, true);
+    assert.equal(validarTupper({ ...bueno, diasMaximos: 365 }).ok, true);
+    assert.equal(validarTupper({ ...bueno, diasMaximos: 0 }).ok, false);
+    assert.equal(validarTupper({ ...bueno, diasMaximos: 366 }).ok, false);
+    assert.equal(validarTupper({ ...bueno, diasMaximos: 2.5 }).ok, false);
+    assert.equal(validarTupper({ ...bueno, diasMaximos: '3' }).ok, false);
+  });
+
+  it('devuelve un error por cada campo que falla', () => {
+    const resultado = validarTupper({ nombre: ' ', ubicacion: 'trastero' });
+    assert.deepEqual(Object.keys(resultado.errores).sort(), ['diasMaximos', 'nombre', 'ubicacion']);
+  });
+
+  it('rechaza lo que no es un objeto', () => {
+    assert.equal(validarTupper(null).ok, false);
   });
 });
