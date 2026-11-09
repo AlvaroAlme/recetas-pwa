@@ -14,8 +14,7 @@ import { ErrorApi } from '../errores.js';
  * - Firefox: updates.push.services.mozilla.com (documentación de autopush).
  * - Edge en Windows: el dominio notify.windows.com; Microsoft avisa de que
  *   el subdominio cambia y no hay que mirarlo (learn.microsoft.com, WNS).
- * - Chrome: fcm.googleapis.com. [sin verificar] en una fuente oficial, pero
- *   es el que dan todos los navegadores Chromium.
+ * - Chrome: fcm.googleapis.com (developer.chrome.com/blog/web-push-interop-wins).
  * @param {string} host En minúsculas (URL ya lo pasa).
  * @returns {boolean}
  */

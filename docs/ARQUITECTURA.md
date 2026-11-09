@@ -466,7 +466,7 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación / TX |
 |---|---|---|---|---|
-| `PATCH /api/hogar` 🔑 | `{ nombre?, horaAvisoPlan?, zonaHoraria? }` | 200 `{ hogar }` | 400 | `validarHora()`; zona dentro de `Intl.supportedValuesOf('timeZone')`. Recalcula la agenda |
+| `PATCH /api/hogar` 🔑 | `{ nombre?, horaAvisoPlan?, zonaHoraria? }` | 200 `{ hogar }` | 400 | `validarHora()`; zona dentro de `Intl.supportedValuesOf('timeZone')`. Recalcula la agenda. **Fase 4:** solo `nombre` y `zonaHoraria`; `horaAvisoPlan` llega en la fase 7, con su columna |
 | `POST /api/hogar/invitaciones` 🔑 | — | 201 `{ codigo, caducaEn }` | 429 | Código aleatorio de 8 caracteres legibles; se guarda su SHA-256; caduca a las 48 h |
 | `POST /api/hogar/unirse` 🔑 | `{ codigo, confirmarBorrado? }` | 200 `{ hogar }` | 400, 404 (código no válido o caducado), 409 (ya usado), 409 `CONFIRMAR_BORRADO` | **TX** con `SELECT … FOR UPDATE` sobre la invitación. Marca `usada_en`. Si tu hogar actual se quedaría vacío y tiene datos, exige `confirmarBorrado: true` (P-01) |
 | `POST /api/hogar/salir` 🔑 | — | 200 `{ hogar }` | 409 si eres la única persona | **TX:** quita al miembro y le crea un hogar nuevo vacío |
@@ -810,7 +810,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 ### 9.8 Validación de entradas y SSRF
 - Toda entrada se valida en el servidor (§5.1), aunque el formulario ya lo haga.
 - **Archivos del ticket:** tipo declarado + firma real + tamaño, antes de enviarlos a Claude.
-- **SSRF** (*Server-Side Request Forgery*): el servidor hace peticiones al `endpoint` de cada suscripción. Si aceptara cualquier URL, un atacante podría hacer que el servidor llamara a direcciones internas. Por eso solo se aceptan endpoints HTTPS de servicios de push conocidos: `*.push.apple.com` (citado por [WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/)), `fcm.googleapis.com`, `updates.push.services.mozilla.com` y `*.notify.windows.com`. Comprobado el 2026-11-08: Mozilla documenta `updates.push.services.mozilla.com` ([autopush](https://autopush.readthedocs.io/)) y Microsoft el dominio `notify.windows.com`, cuyo subdominio cambia ([WNS](https://learn.microsoft.com/en-us/windows/apps/develop/notifications/push-notifications/wns-overview)). `fcm.googleapis.com` sigue **[sin verificar]** en fuente oficial. Implementado en `server/validacion/push.js` (también rechaza puerto y usuario en la URL).
+- **SSRF** (*Server-Side Request Forgery*): el servidor hace peticiones al `endpoint` de cada suscripción. Si aceptara cualquier URL, un atacante podría hacer que el servidor llamara a direcciones internas. Por eso solo se aceptan endpoints HTTPS de servicios de push conocidos: `*.push.apple.com` (citado por [WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/)), `fcm.googleapis.com`, `updates.push.services.mozilla.com` y `*.notify.windows.com`. Comprobado el 2026-11-08: Mozilla documenta `updates.push.services.mozilla.com` ([autopush](https://autopush.readthedocs.io/)) y Microsoft el dominio `notify.windows.com`, cuyo subdominio cambia ([WNS](https://learn.microsoft.com/en-us/windows/apps/develop/notifications/push-notifications/wns-overview)). `fcm.googleapis.com` lo cita Chrome ([blog de Chrome](https://developer.chrome.com/blog/web-push-interop-wins)). Implementado en `server/validacion/push.js` (también rechaza puerto y usuario en la URL).
 
 ### 9.9 Dependencias
 

@@ -47,32 +47,22 @@ Proyecto de portfolio de un estudiante de DAW.
 - Nunca subir `.env` ni secretos al repo.
 
 ## Estado actual
-**Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04) y
-3 (2026-11-08). El detalle de cada paso está en los commits (`git log`).
-En curso: fase 4 (tuppers y avisos Web Push, ARQUITECTURA §10).
+**Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
+3 (2026-11-08) y 4 (2026-11-09). El detalle de cada paso está en los
+commits (`git log`).
+Siguiente: fase 5 (escaneo de tickets con Claude, ARQUITECTURA §10).
 
-**Fase 4 (tuppers y avisos Web Push): en curso, sin aprobar.**
-Plan: 1 migración 003; 2 tuppers en el servidor; 3 pantallas de tuppers;
-4 push en el servidor; 5 push en el navegador y Ajustes; 6 programador
-(agenda, avisos, `/api/tareas/avisos`); 7 Bienvenida P-03 y
-`PATCH /api/hogar`; 8 Render, cron-job.org y pruebas en el iPhone.
-Hecho (2026-11-08/09): pasos 1 a 7, cada uno con su "ok", en el commit
-`6949b3d`. `web-push` en versión fija 3.6.7 (la 4.0.0 salió el
-2026-11-06). `VAPID_SUJETO` es la URL de Render (no un email). Claves
-VAPID y `CRON_SECRETO` de desarrollo en `.env` y en Bitwarden; las de
-producción, distintas, en Render y en la nota `vigia-produccion`.
-Probado en Chrome (localhost): activar avisos, aviso de prueba, aviso de
-un tupper y su toque. Paso 8: desplegado `app-v12` (2026-11-09; falló
-dos veces porque faltaban variables en Render: `config.js` no arranca
-sin ellas). En producción el ping da 401 sin secreto y 200 con él.
-Falta (sin confirmar en la sesión): Test run de cron-job.org cada 5 min;
-en el iPhone, aviso de prueba, tupper de 1 día que avisa en ≤ 5 min, el
-toque abre la ficha, "Marcar como consumido" y la ruta "Ajustes ›
-Notificaciones › Vigía"; Neon se suspende con el ping (panel de Neon);
-una suscripción caducada se borra sola (404/410). Después, el "ok" de la
-fase 4. Detalles: P-06 sin vistazo visual a 375/1440 en claro y oscuro;
-Ajustes sin "Cambiar nombre" de la casa (P-16); en §5.2 el PATCH lleva
-`horaAvisoPlan`, que llega en la fase 7 (apuntarlo).
+**Fase 4 (tuppers y avisos Web Push): aprobada.** Tuppers, Web Push
+(`web-push` 3.6.7 fija; la 4.0.0 salió el 2026-11-06), agenda en memoria
+(D-14) con `POST /api/tareas/avisos` cada 5 min desde cron-job.org,
+Bienvenida P-03 (D-46), `PATCH /api/hogar` (nombre y zona; la hora del
+plan, en la fase 7) y "Cambiar nombre" en Ajustes. `sw.js` en `app-v13`.
+Todo el "Hecho cuando" comprobado (iPhone, Chrome, Neon se suspende, la
+suscripción caducada se borra sola). Secretos: `VAPID_*` y
+`CRON_SECRETO` de desarrollo en `.env` y Bitwarden; los de producción,
+distintos, en Render y en la nota `vigia-produccion`. `config.js` no
+arranca si falta alguno: añadir las variables en Render ANTES del push.
+`VAPID_SUJETO` es la URL de Render (no un email).
 Para arrancar el servidor desde Claude hay un `.claude/launch.json`
 (ignorado por git).
 

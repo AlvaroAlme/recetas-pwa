@@ -1025,3 +1025,21 @@ input:focus-visible + .chip {
   gap: var(--espacio-s);
   align-items: flex-start;
 }
+
+/* ============ Ajustes: nombre de la casa con "Cambiar nombre" ============ */
+.nombre-casa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-s);
+}
+/* Igual de grande que antes, cuando iba justo debajo de "Tu casa". */
+.nombre-casa > .texto--fuerte {
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+}
+.nombre-casa > .formulario {
+  flex: 1;
+  margin-top: 0;
+}
