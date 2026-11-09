@@ -50,7 +50,27 @@ Proyecto de portfolio de un estudiante de DAW.
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
 3 (2026-11-08) y 4 (2026-11-09). El detalle de cada paso está en los
 commits (`git log`).
-Siguiente: fase 5 (escaneo de tickets con Claude, ARQUITECTURA §10).
+
+**Fase 5 (escaneo de tickets con Claude): en curso.** Plan: 1 verificar
+R-17 y R-08; 2 `004_ia.sql` y constantes; 3 portar `claude.js` y
+`ticket.js` con pruebas; 4 cuota (`cuotaIa.js`) y rutas de IA
+(`/api/ia/aviso-aceptado`, `/api/ia/ticket` con firma y tamaño del
+archivo, `/api/yo` con `cuotaIa`); 5 `POST /api/productos/lote`
+idempotente (P-06); 6 pantalla Ticket (input sin `capture`, revisión
+línea a línea); 7 `/privacidad` (P-18); 8 workspace de Anthropic con
+límite de gasto (preguntar antes), `ANTHROPIC_API_KEY` en `.env` y
+Render, desplegar e iPhone.
+Hecho (2026-11-09): pasos 1, 2 y 3. D-47: PDF ≤ 20 MB (25 no cabe en
+los 32 MB de la API en base64), `anthropic-version: 2023-06-01`, Claude
+espera 60 s (menos que los 75 s de `api.js`) y la cuota se devuelve con
+cualquier error reintentable. `004_ia.sql` aplicada en desarrollo (NO en
+producción: se aplica sola al desplegar). `ErrorClaude` hereda de
+`ErrorApi`; la key la pasa quien llama (así las pruebas no cargan
+`config.js`). `ticket.js` devuelve `ubicacionesPosibles` (camelCase); el
+tipo y el tamaño del archivo se validan en la ruta (paso 4).
+Pendiente de decidir en el paso 4: el límite del cuerpo (un PDF de
+20 MB son ~27 MB en base64; subir `express.json` solo en esa ruta o usar
+`FormData`) y si `server/log.js` (SEC-09) entra en esta fase.
 
 **Fase 4 (tuppers y avisos Web Push): aprobada.** Tuppers, Web Push
 (`web-push` 3.6.7 fija; la 4.0.0 salió el 2026-11-06), agenda en memoria
@@ -72,7 +92,6 @@ Para arrancar el servidor desde Claude hay un `.claude/launch.json`
 - `server/log.js` (SEC-09), límite de intentos en
   `/api/hogar/unirse`, `rutas/yo.js` en el árbol de ARQUITECTURA §6,
   Privacidad (P-18, fase 5).
-- La `clave` de idempotencia del lote (P-06) llega en la fase 5.
 - Probar desde la pantalla: Dani → "Salir de esta casa" y "Borrar cuenta".
 
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10

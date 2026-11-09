@@ -35,6 +35,15 @@ export const MAX_DIAS_TUPPER = 365;
 /** Productos que se pueden guardar de una vez desde un ticket. SEC-05. */
 export const MAX_PRODUCTOS_TICKET = 100;
 
+/** Llamadas a Claude al día por persona (D-15). */
+export const CUOTA_IA_DIARIA = 10;
+
+/** Tamaño máximo de la foto del ticket: el límite de la API por imagen. */
+export const MAX_BYTES_IMAGEN_TICKET = 5 * 1024 * 1024;
+
+/** Tamaño máximo del PDF del ticket: en base64 tiene que caber en 32 MB (D-47). */
+export const MAX_BYTES_PDF_TICKET = 20 * 1024 * 1024;
+
 /** Longitud de la contraseña: de 10 a 128 caracteres, sin más reglas (D-17). */
 export const MIN_LONGITUD_CONTRASENA = 10;
 export const MAX_LONGITUD_CONTRASENA = 128;
