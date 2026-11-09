@@ -49,53 +49,37 @@ Proyecto de portfolio de un estudiante de DAW.
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04) y
 3 (2026-11-08). El detalle de cada paso está en los commits (`git log`).
-Siguiente: fase 4 (tuppers y avisos Web Push, ARQUITECTURA §10).
+En curso: fase 4 (tuppers y avisos Web Push, ARQUITECTURA §10).
 
-**Fase 3 (PWA instalable, sin conexión y primer despliegue): aprobada.**
-Plan: 1 manifest e iconos; 2 `web/sw.js` (precaché con versión, primero la
-red en la API, §8.1); 3 sin conexión (`conexion.js`, franja, escrituras
-deshabilitadas, §8.2); 4 servidor para producción (migraciones al
-arrancar, `npm start`); 5 Render (preguntar antes de crear la cuenta) con
-un proyecto NUEVO de Neon para producción (D-44); 6 pruebas en el iPhone.
-La Bienvenida (P-03) se hace entera en la fase 4 (D-46, 2026-11-08).
-Hecho (2026-11-05): paso 1 (icono "A · Nevera", PNG 180/192/512, manifest,
-etiquetas en `index.html`) y paso 2 (`sw.js`: precaché `app-v2`, la API
-primero la red con copia en `api-v1` y `X-Desde-Cache`; `api.js` borra la
-copia al cambiar de cuenta o de casa y con el 401). Hecho (2026-11-06):
-paso 3 (`conexion.js`: franja "Sin conexión · datos de las HH:MM", botones
-con `data-escribe` deshabilitados con `aria-disabled` y el motivo,
-`crearSinConexion()` cuando no hay copia, y al volver la red comprueba
-`/api/salud` y repinta si no hay formulario; `sw.js` en `app-v5`).
-Hecho (2026-11-07): paso 4 (`index.js` migra antes de `listen` y no
-arranca si falla; cierre ordenado con `SIGTERM`; `npm start` con
-`--env-file-if-exists=.env`). Hecho (2026-11-07): identidad visual
-**Vigía** (D-45, sustituye a D-41): papel y verde pino, estados de
-caducidad ok/pronto/caducado, Bricolage Grotesque en títulos
-(`web/fuentes/`), icono "ojo-hoja"; todas las pantallas rediseñadas en
-CSS y revisadas (AA en claro y oscuro, 375 y 1440 px); `sw.js` en `app-v6`.
-Hecho (2026-11-08): paso 5 (proyecto Neon `vigia-produccion`, nota de
-Bitwarden `vigia-produccion`; Render `vigia-despensa`, Frankfurt, Free,
-`NODE_VERSION=22`, health check `/api/salud`; URL
-https://vigia-despensa.onrender.com; ojo: `APP_ORIGEN` con https, si no
-todo lo que guarda da 403) y paso 6 en el iPhone: instalación sin barra
-de Safari, `theme-color`, letra del sistema, sin zoom, teclado, cuenta,
-inventario, sin conexión y VoiceOver, todo bien. Arreglado: el aviso de
-éxito del inventario ya se quita al cambiar de ubicación (`app-v8`, sin
-desplegar). Desplegado `app-v8`: la app instalada se actualiza al
-cerrarla y abrirla (prueba 7 bien). El `SIGTERM` no llegaba a Node con
-`npm start` (npm → sh → node): en Render el Start Command es
-`node server/index.js` y ya salen "SIGTERM recibido" y "Servidor
-cerrado." en los logs. Hecho: "Despertando el servidor… puede tardar un
-minuto" en la franja si una petición tarda más de 3 s (`api.js` avisa con
-`avisarDespertando()` de `conexion.js`; sin conexión manda sobre el aviso)
-y tiempo máximo de 75 s (§8.3); `sw.js` en `app-v9`, sin desplegar.
-Falta: verlo en Render tras 15 min sin uso y el "ok" de la fase 3.
+**Fase 4 (tuppers y avisos Web Push): en curso, sin aprobar.**
+Plan: 1 migración 003; 2 tuppers en el servidor; 3 pantallas de tuppers;
+4 push en el servidor; 5 push en el navegador y Ajustes; 6 programador
+(agenda, avisos, `/api/tareas/avisos`); 7 Bienvenida P-03 y
+`PATCH /api/hogar`; 8 Render, cron-job.org y pruebas en el iPhone.
+Hecho (2026-11-08/09): pasos 1 a 7, cada uno con su "ok", en el commit
+`6949b3d`. `web-push` en versión fija 3.6.7 (la 4.0.0 salió el
+2026-11-06). `VAPID_SUJETO` es la URL de Render (no un email). Claves
+VAPID y `CRON_SECRETO` de desarrollo en `.env` y en Bitwarden; las de
+producción, distintas, en Render y en la nota `vigia-produccion`.
+Probado en Chrome (localhost): activar avisos, aviso de prueba, aviso de
+un tupper y su toque. Paso 8: desplegado `app-v12` (2026-11-09; falló
+dos veces porque faltaban variables en Render: `config.js` no arranca
+sin ellas). En producción el ping da 401 sin secreto y 200 con él.
+Falta (sin confirmar en la sesión): Test run de cron-job.org cada 5 min;
+en el iPhone, aviso de prueba, tupper de 1 día que avisa en ≤ 5 min, el
+toque abre la ficha, "Marcar como consumido" y la ruta "Ajustes ›
+Notificaciones › Vigía"; Neon se suspende con el ping (panel de Neon);
+una suscripción caducada se borra sola (404/410). Después, el "ok" de la
+fase 4. Detalles: P-06 sin vistazo visual a 375/1440 en claro y oscuro;
+Ajustes sin "Cambiar nombre" de la casa (P-16); en §5.2 el PATCH lleva
+`horaAvisoPlan`, que llega en la fase 7 (apuntarlo).
+Para arrancar el servidor desde Claude hay un `.claude/launch.json`
+(ignorado por git).
 
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
   en campos de 16 px, el teclado sobre el pie fijo, R-07 y R-16.
-- `PATCH /api/hogar` (nombre de la casa; va con la zona horaria y la hora
-  del plan), `server/log.js` (SEC-09), límite de intentos en
+- `server/log.js` (SEC-09), límite de intentos en
   `/api/hogar/unirse`, `rutas/yo.js` en el árbol de ARQUITECTURA §6,
   Privacidad (P-18, fase 5).
 - La `clave` de idempotencia del lote (P-06) llega en la fase 5.
