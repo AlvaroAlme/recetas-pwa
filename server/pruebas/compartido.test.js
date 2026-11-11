@@ -1,14 +1,15 @@
 /**
- * @file Pruebas de compartido/: normalizar() y ubicacionesPosibles().
+ * @file Pruebas de compartido/: normalizar(), ubicacionesPosibles() y
+ * formatearCantidad().
  *
  * Las lanzo con `npm test`. Si cambio el diccionario o la forma de comparar
  * nombres y rompo algo, estas pruebas me avisan.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { formatearCantidad } from '../../compartido/formato.js';
 import { normalizar } from '../../compartido/texto.js';
 import { ubicacionesPosibles } from '../../compartido/ubicaciones.js';
-import { formatearCantidad } from '../../compartido/formato.js';
 
 describe('normalizar', () => {
   it('pasa a minúsculas y quita los espacios de los extremos', () => {

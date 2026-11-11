@@ -1,5 +1,5 @@
 /**
-  * @file Pruebas de compartido/validacion.js: validarProducto(), validarTupper(), validarRegistro() y validarLogin().
+ * @file Pruebas de compartido/validacion.js: validarProducto(), validarTupper(), validarRegistro() y validarLogin().
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';

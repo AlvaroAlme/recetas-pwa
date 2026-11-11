@@ -49,7 +49,6 @@ iniciarRouter({
   noExiste: pantallaNoExiste,
 });
 
-
 // Los navegadores antiguos no tienen Service Worker: la app funciona igual, pero sin red no abre.
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch((error) => {

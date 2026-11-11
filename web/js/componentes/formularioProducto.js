@@ -7,15 +7,15 @@
  * la pantalla decide qué hacer (crear o editar).
  */
 import { UBICACIONES, UNIDADES } from '/compartido/constantes.js';
-import { mensajeDeError } from '../api.js';
-import { ETIQUETAS_UBICACION, listarUbicaciones, ubicacionesPosibles } from '/compartido/ubicaciones.js';
-import { validarProducto } from '/compartido/validacion.js';
 import { buscarAlimentos } from '/compartido/sugerencias.js';
 import { normalizar } from '/compartido/texto.js';
+import { ETIQUETAS_UBICACION, listarUbicaciones, ubicacionesPosibles } from '/compartido/ubicaciones.js';
+import { validarProducto } from '/compartido/validacion.js';
+import { mensajeDeError } from '../api.js';
 import { el } from '../dom.js';
 import {
-  crearAviso,
   crearAutocompletar,
+  crearAviso,
   crearCampo,
   crearSelector,
   elegirEnSelector,
@@ -59,7 +59,7 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
       oninput: alEscribirNombre,
     },
   });
-    crearAutocompletar(nombre, { buscar: buscarSugerencias, alElegir: alElegirSugerencia });
+  crearAutocompletar(nombre, { buscar: buscarSugerencias, alElegir: alElegirSugerencia });
 
   const cantidad = crearCampo({
     etiqueta: 'Cantidad',
@@ -80,7 +80,7 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
     opciones: UBICACIONES.map((valor) => ({ valor, etiqueta: ETIQUETAS_UBICACION[valor] })),
     seleccionado: inicial?.ubicacion ?? null,
     alCambiar: (valor) => {
-    ubicacionDeSugerencia = false;
+      ubicacionDeSugerencia = false;
       elegidaAMano = valor;
       ponerErrorCampo(ubicacion, null);
       actualizarUbicacion();
@@ -138,7 +138,7 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
     }
   }
 
-    /**
+  /**
    * Si cambio el nombre después de elegir algo del historial, la ubicación
    * de esa sugerencia ya no vale: la olvido y vuelve a mandar la regla.
    */
@@ -150,7 +150,7 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
     actualizarUbicacion();
   }
 
-    /**
+  /**
    * Primero lo que ya ha tenido la casa (servidor), luego la lista fija, sin
    * repetir nombres. Si el servidor falla (sin red…), solo la lista fija.
    * @param {string} texto

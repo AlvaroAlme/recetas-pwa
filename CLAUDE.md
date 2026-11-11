@@ -118,12 +118,17 @@ arranca si falta alguno: añadir las variables en Render ANTES del push.
 Para arrancar el servidor desde Claude hay un `.claude/launch.json`
 (ignorado por git).
 
-**Pendiente de otras fases:**
-- Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
-  en campos de 16 px, el teclado sobre el pie fijo, R-07 y R-16.
-- `rutas/yo.js` en el árbol de ARQUITECTURA §6. (Hecho el 2026-11-12:
-  límite de `/api/hogar/unirse`, 10 intentos por hora y persona.)
-- Probar desde la pantalla: Dani → "Salir de esta casa" y "Borrar cuenta".
+**Pendiente de otras fases:** nada (todo hecho el 2026-11-12):
+- Límite de `/api/hogar/unirse`: 10 intentos por hora y persona.
+- `rutas/yo.js` e `idPeticion.js` en el árbol de ARQUITECTURA §6.
+- Probado desde la pantalla con Dani: "Salir de esta casa" y "Borrar
+  cuenta" siendo miembro (la casa sigue). Con una cuenta de usar y
+  tirar, "Borrar cuenta" siendo la única: se borra la casa con sus
+  productos y tuppers. Dani se volvió a crear y está en "Casa de Bea".
+- iPhone (fase 3): el texto crece con el tamaño del sistema
+  (`-apple-system-body`), sin zoom en los campos, el teclado no tapa el
+  pie, R-07 y R-16. Quitados sus [sin verificar] de los documentos.
+- Detalles de estilo: todos corregidos; `sw.js` en `app-v18`.
 
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10
 ("Versión 2"): V2-01 consejos de cocina con IA, V2-02 productos de temporada.
@@ -139,17 +144,6 @@ Crear cuenta, Entrar y Borrar cuenta); `sw.js` en `app-v7`. Probado en
 el iPhone (2026-11-08) tras cerrar y abrir la app: el SW viejo seguía
 sirviendo `app-v6`. Mejora propuesta: recargar sola al llegar una versión
 nueva del SW (`app.js`).
-
-**Detalles de estilo pendientes:** `@file` de
-`server/pruebas/compartido.test.js` sin formatearCantidad(); 4 espacios
-delante del `import` de `compartido/formato.js`; `<body>` con 6 espacios en
-`index.html`; `leerBusqueda` fuera de orden en el import de
-`rutas/productos.js`; en `formularioProducto.js`, sangrado de las líneas 71
-y 92 y `crearAutocompletar` antes que `crearAviso`; en
-`pantallas/producto.js`, el import de `/compartido/ubicaciones.js` junto a
-los de `/compartido/`; en `origen.js`, un comentario con 4 espacios; en
-`server/pruebas/validacion.test.js`, el `@file` con 2 espacios; en
-`web/sw.js`, el bloque `if (url.pathname.startsWith('/api/'))` sin sangrar; en `app.js`, dos líneas en blanco antes del registro del SW.
 
 **Cuentas de prueba** (base de datos de DESARROLLO; nunca en producción,
 porque este archivo es público):

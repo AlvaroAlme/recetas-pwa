@@ -71,7 +71,7 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 | R-04 | **Declarative Web Push** (iOS/iPadOS 18.4+): JSON con `"web_push": 8030`, un objeto `notification` con `title` obligatorio y la URL `navigate`. Se puede suscribir con `window.pushManager` sin Service Worker. Si hay Service Worker se dispara `push` igualmente, y si no muestra su propio aviso a tiempo **se usa el declarativo como respaldo** | [WebKit: Meet Declarative Web Push](https://webkit.org/blog/16535/meet-declarative-web-push/) | D-13: un único formato de mensaje. Entre iOS 16.4 y 18.3 lo muestra el Service Worker. Comprobado el 2026-11-08 en el blog (el *explainer* es un borrador anterior): `navigate` y `app_badge` van **dentro** de `notification`; `title` y `navigate` son obligatorios. `tag` no se cita, pero es de `NotificationOptions`. Con SW, iOS lanza `push` y usa el declarativo solo si el SW no muestra su aviso |
 | R-05 | La API de Badging (`setAppBadge`) existe en las web apps de iOS | [WebKit 13878](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/) | No se usa en la v1 (la app Expo tampoco ponía globo: `shouldSetBadge: false`) |
 | R-06 | Una web app de la pantalla de inicio tiene las mismas cuotas de almacenamiento que el navegador. Si no se usa en un tiempo, sus datos **pueden borrarse**; `navigator.storage.persist()` se concede según heurísticas, como estar instalada | [WebKit: Updates to Storage Policy](https://webkit.org/blog/14403/updates-to-storage-policy/) | La caché local es **solo una copia**: la fuente de verdad es el servidor. Si iOS la borra no se pierde nada. Se llama a `persist()` como mejora |
-| R-07 | Unión Europea: Apple anunció que quitaría las web apps de la pantalla de inicio en iOS 17.4, pero **se echó atrás** y las mantiene | Prensa de marzo de 2024: [9to5Mac](https://9to5mac.com/2024/02/08/ios-17-4-web-app-eu/), [iMore](https://imore.com/ios/apple-backtracks-ios-174-web-app-changes-in-eu-just-weeks-after-citing-security-and-privacy-concerns). **[sin verificar en fuente oficial actual]**: la [página de Apple sobre la DMA](https://developer.apple.com/support/dma-and-apps-in-the-eu/) ya no lo menciona | Se comprueba en la fase 3 instalándola en tu iPhone (estás en España). Si fallara, avisaría antes de seguir |
+| R-07 | Unión Europea: Apple anunció que quitaría las web apps de la pantalla de inicio en iOS 17.4, pero **se echó atrás** y las mantiene | Prensa de marzo de 2024: [9to5Mac](https://9to5mac.com/2024/02/08/ios-17-4-web-app-eu/), [iMore](https://imore.com/ios/apple-backtracks-ios-174-web-app-changes-in-eu-just-weeks-after-citing-security-and-privacy-concerns). **[sin verificar en fuente oficial actual]**: la [página de Apple sobre la DMA](https://developer.apple.com/support/dma-and-apps-in-the-eu/) ya no lo menciona | Comprobado: la app está instalada en la pantalla de inicio de mi iPhone, en España, desde la fase 3 |
 | R-08 | Cámara: `<input type="file" accept="image/*" capture="environment">` abre la cámara trasera en móviles | Verificado en MDN (2026-11-09): `capture` no funciona en todos los navegadores y, si funciona, abre solo la cámara. **No se usa**; en iOS se comprueba el menú del input en el paso 6 | El ticket se elige con un `<input type="file">` de toda la vida: cámara, galería o archivo, sin librerías |
 | R-09 | **Render gratis:** el servicio se duerme tras 15 min sin tráfico y tarda **unos 50 segundos en despertar**; 750 h/mes por workspace | [Render: Free instances](https://render.com/docs/free) | D-07: el ping cada 5 min lo mantiene despierto. Un mes de 31 días son 744 h (< 750), pero **solo cabe un servicio gratuito** en el workspace. Si aun así está dormido, el frontend muestra "Despertando el servidor…" |
 | R-10 | **Render gratis:** el Postgres caduca a los 30 días | [Render: Free instances](https://render.com/docs/free) | Descartado como base de datos (D-06) |
@@ -80,7 +80,7 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 | R-13 | **Vercel Hobby:** cron una vez al día con ±59 min. **GitHub Actions:** cada 5 min como mínimo, en UTC, con retrasos en hora punta | [Vercel Cron](https://vercel.com/docs/cron-jobs/usage-and-pricing) · [GitHub Actions schedule](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule) | Descartados como programador (D-07) |
 | R-14 | **Supabase gratis:** el proyecto se pausa tras 1 semana sin actividad | [Supabase: Pricing](https://supabase.com/pricing) | Descartado (D-06) |
 | R-15 | **PostgreSQL:** los `CHECK` no admiten subconsultas ni miran otras filas. `ON DELETE SET NULL (columna)` pone a NULL solo las columnas indicadas de una clave foránea compuesta | [PostgreSQL: CREATE TABLE](https://www.postgresql.org/docs/current/sql-createtable.html) (**desde PostgreSQL 15**, verificado el 2026-10-27 en las [notas de la versión 15](https://www.postgresql.org/docs/release/15.0/); Neon admite las versiones 14 a 18 según su [política de versiones](https://neon.com/docs/postgresql/postgres-version-policy)) | Las reglas entre tablas (que la receta sea del mismo hogar) se resuelven con una **FK compuesta** (§4.1). Ninguna regla de negocio va en un CHECK que no pueda funcionar |
-| R-16 | Web Push exige un **contexto seguro**: HTTPS, o `http://localhost` en desarrollo | **[sin verificar]** en MDN (Secure contexts): se comprueba en la fase 3 | En el PC se desarrolla en `http://localhost`. El iPhone se prueba **contra el despliegue HTTPS de Render**, así que no hace falta abrir el firewall (SEC-01) |
+| R-16 | Web Push exige un **contexto seguro**: HTTPS, o `http://localhost` en desarrollo | Comprobado en la fase 4: los avisos llegan al iPhone con la app de Render (HTTPS) | En el PC se desarrolla en `http://localhost`. El iPhone se prueba **contra el despliegue HTTPS de Render**, así que no hace falta abrir el firewall (SEC-01) |
 | R-17 | **API de Claude:** la misma petición que en Expo (`output_config.format` con `json_schema`, beta `server-side-fallback-2026-07-01`, `stop_reason`) | Código de `lib/claude.ts`. Verificado (2026-11-09) contra la documentación actual: `fallbacks: 'default'` con `server-side-fallback-2026-07-01` es la forma válida en `claude-sonnet-5-5`; Sonnet 5.5 añade bloques `thinking` (vacíos), que el filtro `type === 'text'` ya descarta | Se porta tal cual a `server/servicios/claude.js` |
 
 ---
@@ -609,6 +609,7 @@ recetas-nevera-pwa/
 │   │   └── migrar.js          §4.3
 │   ├── migraciones/           001_…sql, 002_…sql …
 │   ├── middlewares/
+│   │   ├── idPeticion.js      req.id de 8 caracteres y cabecera X-Id-Peticion (SEC-09)
 │   │   ├── sesion.js          Lee la cookie, busca la sesión y pone req.usuario y req.hogarId
 │   │   ├── exigirSesion.js    401 si no hay sesión
 │   │   ├── origen.js          En POST, PUT, PATCH y DELETE exige Origin == APP_ORIGEN (CSRF)
@@ -616,8 +617,8 @@ recetas-nevera-pwa/
 │   │   └── errores.js         Convierte los errores al formato §5.1; nunca envía trazas
 │   ├── validacion/            Validación de lo que NO comparte el formulario (parámetros de URL, ids…). Los datos de productos, tuppers, etc. se validan con compartido/validacion.js (D-40)
 │   ├── rutas/                 Solo HTTP: leen req, validan, llaman al servicio y responden
-│   │   └── auth.js hogar.js productos.js tuppers.js recetas.js sugerencias.js
-│   │       cocinar.js plan.js ia.js push.js tareas.js
+│   │   └── auth.js yo.js hogar.js productos.js tuppers.js recetas.js
+│   │       sugerencias.js cocinar.js plan.js ia.js push.js tareas.js
 │   ├── servicios/             Lógica + SQL. No saben nada de HTTP
 │   │   ├── contrasenas.js     scrypt + timingSafeEqual
 │   │   ├── usuarios.js  sesiones.js  hogares.js  invitaciones.js
@@ -661,7 +662,7 @@ recetas-nevera-pwa/
 
 ### 7.1 Común: alta del dispositivo y suscripción
 
-1. **Instalación.** En el iPhone, la PWA tiene que estar en la pantalla de inicio (R-01). `avisos.js` lo detecta con `matchMedia('(display-mode: standalone)')` (**[sin verificar]** en iOS: se comprueba en la fase 3). Si no está instalada, Ajustes explica cómo hacerlo en lugar de mostrar el botón.
+1. **Instalación.** En el iPhone, la PWA tiene que estar en la pantalla de inicio (R-01). `avisos.js` lo detecta con `matchMedia('(display-mode: standalone)')` (comprobado en el iPhone en la fase 4). Si no está instalada, Ajustes explica cómo hacerlo en lugar de mostrar el botón.
 2. **Comprobación de capacidad** (por función, no por navegador, como recomienda WebKit): `'serviceWorker' in navigator && 'PushManager' in window`.
 3. **Permiso**, dentro del clic en "Activar avisos en este dispositivo" (R-02): `Notification.requestPermission()`.
 4. **Suscripción:** `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })`, con la clave pública de `GET /api/push/clave-publica`.

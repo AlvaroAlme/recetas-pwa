@@ -20,7 +20,7 @@ export function comprobarOrigen(req, res, next) {
     throw new ErrorApi(403, 'PROHIBIDO', 'Esta petición no viene de la app.');
   }
 
-    // ¿Lleva cuerpo DE VERDAD? Un POST vacío (el logout) llega con
+  // ¿Lleva cuerpo DE VERDAD? Un POST vacío (el logout) llega con
   // Content-Length: 0, y eso no es "mandar datos". Transfer-Encoding es
   // cuando el cuerpo llega por trozos, sin decir antes cuánto mide.
   const tieneCuerpo = Number(req.get('Content-Length') ?? 0) > 0 || req.get('Transfer-Encoding') !== undefined;

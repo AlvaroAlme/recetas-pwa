@@ -360,7 +360,7 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
   - contraseña: `type="password"`, con `autocomplete="current-password"` o `"new-password"` para que funcione el llavero de iCloud;
   - fecha: `type="date"` + "Quitar fecha" (D-32);
   - hora: `type="time"`, en Ajustes.
-- **Medidas:** unos 58 px de alto (espacio para la etiqueta subida y el texto), borde de 1 px `borde-control`, radio `--radio-s`. **Tamaño de letra ≥ 16 px** dentro del campo (`--texto-cuerpo`): si es menor, Safari hace zoom al enfocarlo **[sin verificar]** (fase 1).
+- **Medidas:** unos 58 px de alto (espacio para la etiqueta subida y el texto), borde de 1 px `borde-control`, radio `--radio-s`. **Tamaño de letra ≥ 16 px** dentro del campo (`--texto-cuerpo`): si es menor, Safari hace zoom al enfocarlo (comprobado en el iPhone el 2026-11-12: sin zoom).
 - **Error:** se rellena y muestra `.campo__error` ("✗ Debe ser un número mayor que 0."), se pone `aria-invalid="true"`, y `aria-describedby` apunta al error (en lugar de a la ayuda, que se oculta como en Expo). El borde pasa a `peligro` **y además** aparece el texto con "✗": la información no depende solo del color.
 - **Al pulsar Guardar con errores:** el foco va al **primer campo con error** (el lector de pantallas lo lee con su error). No se anuncian los errores mientras se escribe, para no interrumpir.
 - **Deshabilitado:** `disabled` (con el campo tenue).
@@ -967,7 +967,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
   - la navegación inferior lleva `padding-bottom: env(safe-area-inset-bottom, 0px)`;
   - en las páginas secundarias, el pie lleva `padding-bottom: max(var(--espacio-l), env(safe-area-inset-bottom))`, como `Math.max(insets.bottom, ESPACIO.l)`.
 - **Lados (iPhone en horizontal):** `padding-inline` con `env(safe-area-inset-left/right)` en la cabecera, la navegación y el pie.
-- **El teclado del iPhone** sobre un pie *sticky*: **[sin verificar]** cómo se comporta (fase 1). Plan B: ocultar el pie mientras haya un campo enfocado y mostrar el botón al final del formulario.
+- **El teclado del iPhone** sobre un pie *sticky*: comprobado en el iPhone (fases 5 y 3, 2026-11-11/12): no tapa los campos, así que no hace falta el plan B. Plan B, por si cambia: ocultar el pie mientras haya un campo enfocado y mostrar el botón al final del formulario.
 
 ---
 

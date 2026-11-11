@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v17';
+const VERSION = 'app-v18';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -79,12 +79,12 @@ self.addEventListener('fetch', (evento) => {
   // Solo me ocupo de las lecturas (GET) a mi propio servidor.
   if (peticion.method !== 'GET' || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) {
-  if (SIN_COPIA.includes(url.pathname)) return;
-  const red = pedirYGuardar(peticion);
-  // Aunque conteste con la copia, sigo vivo hasta guardar lo que llegue de la red.
-  evento.waitUntil(red.catch(() => {}));
-  evento.respondWith(primeroLaRed(peticion, red));
-  return;
+    if (SIN_COPIA.includes(url.pathname)) return;
+    const red = pedirYGuardar(peticion);
+    // Aunque conteste con la copia, sigo vivo hasta guardar lo que llegue de la red.
+    evento.waitUntil(red.catch(() => {}));
+    evento.respondWith(primeroLaRed(peticion, red));
+    return;
   }
 
   // Cualquier URL de la app (/ajustes, /producto/3…) es la misma index.html:

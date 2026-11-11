@@ -4,12 +4,12 @@
  * Al editar, también se mueve y se borra.
  */
 import { UBICACIONES } from '/compartido/constantes.js';
+import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
 import { api, mensajeDeError } from '../api.js';
 import { crearFormularioProducto } from '../componentes/formularioProducto.js';
 import { confirmar, crearAviso, crearCarga, crearSinConexion, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
-import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
 
 /**
  * Cómo pide el formulario el historial de nombres: él no llama a la API.
