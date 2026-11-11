@@ -118,6 +118,19 @@ if (cronSecreto.length < 32) {
 }
 
 /**
+ * API key de Claude (D-05). Es un SECRETO: solo vive en el servidor y nunca
+ * la imprimo. En Render es obligatoria; en mi PC puede faltar hasta que cree
+ * el workspace (fase 5, paso 8), y mientras tanto leer un ticket da 503.
+ * @type {string | null}
+ */
+const anthropicApiKey = entorno === 'production'
+  ? obligatoria('ANTHROPIC_API_KEY')
+  : process.env.ANTHROPIC_API_KEY?.trim() || null;
+if (anthropicApiKey !== null && !anthropicApiKey.startsWith('sk-ant-')) {
+  throw new Error('ANTHROPIC_API_KEY no parece una key de Anthropic (empieza por sk-ant-).');
+}
+
+/**
  * Configuración ya comprobada y congelada: nadie la puede cambiar sin querer
  * desde otro archivo.
  *
@@ -129,7 +142,8 @@ if (cronSecreto.length < 32) {
  *   appOrigen: string,
  *   baseDatos: string,
  *   vapid: Readonly<{ publica: string, privada: string, sujeto: string }>,
- *   cronSecreto: string
+ *   cronSecreto: string,
+ *   anthropicApiKey: string | null
  * }>}
  */
 export const config = Object.freeze({
@@ -144,4 +158,5 @@ export const config = Object.freeze({
   baseDatos,
   vapid: Object.freeze({ publica: vapidPublica, privada: vapidPrivada, sujeto: vapidSujeto }),
   cronSecreto,
+  anthropicApiKey,
 });

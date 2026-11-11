@@ -17,6 +17,7 @@ import { manejarErrores, rutaNoEncontrada } from './middlewares/errores.js';
 import { sesion } from './middlewares/sesion.js';
 import { rutasAuth } from './rutas/auth.js';
 import { rutasHogar } from './rutas/hogar.js';
+import { rutasIa } from './rutas/ia.js';
 import { rutasProductos } from './rutas/productos.js';
 import { rutasPush } from './rutas/push.js';
 import { rutasTareas } from './rutas/tareas.js';
@@ -64,7 +65,13 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '100kb' }));
+// El JSON normal, como mucho 100 KB (§9). El ticket trae su propio límite,
+// más grande, en rutas/ia.js: aquí me lo salto para no cortarlo antes de tiempo.
+const jsonNormal = express.json({ limit: '100kb' });
+app.use((req, res, next) => {
+  if (req.path === '/api/ia/ticket') return next();
+  jsonNormal(req, res, next);
+});
 
 app.get('/api/salud', (req, res) => {
   res.json({ ok: true });
@@ -100,6 +107,9 @@ app.use('/api/hogar', exigirSesion, rutasHogar);
 
 // Quién soy y borrar mi cuenta.
 app.use('/api/yo', exigirSesion, rutasYo);
+
+// Escaneo de tickets con Claude (fase 5): solo con sesión.
+app.use('/api/ia', exigirSesion, rutasIa);
 
 // Cualquier otra /api/... que no exista: 404 en JSON. Va DESPUÉS de todas
 // las rutas de la API y ANTES de los archivos estáticos.

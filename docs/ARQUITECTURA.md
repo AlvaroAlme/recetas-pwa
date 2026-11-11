@@ -439,7 +439,7 @@ Nada sensible va a `localStorage`.
   - números finitos y dentro de rango;
   - ids enteros positivos;
   - fechas `AAAA-MM-DD` que existan, comprobadas con la misma idea que `textoAIso()`.
-- **Tamaño del cuerpo:** 100 KB por defecto. 34 MB **solo** en `POST /api/ia/ticket`, porque un PDF de 25 MB ocupa unos 33,4 MB en base64.
+- **Tamaño del cuerpo:** 100 KB por defecto. unos 27 MB **solo** en `POST /api/ia/ticket`, porque un PDF de 20 MB (D-47) ocupa unos 27 MB en base64. El límite se calcula a partir de `MAX_BYTES_PDF_TICKET` (`rutas/ia.js`) y el parser de 100 KB se salta esa ruta (`app.js`), así que el cuerpo grande solo se lee con sesión y con el aviso aceptado.
 
 ### 5.2 Endpoints
 
@@ -499,7 +499,7 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación |
 |---|---|---|---|---|
 | `POST /api/ia/aviso-aceptado` 🔑 | — | 204 | — | SEC-04: guarda `aviso_ia_aceptado_en` |
-| `POST /api/ia/ticket` 🔑 | `{ archivo: { base64, mimeType } }` | 200 `{ productos: ProductoTicket[] }` | 403 `AVISO_IA_PENDIENTE`, 413, 415, 422 `NO_ES_TICKET` / `SIN_ALIMENTOS` / `DEMASIADOS_PRODUCTOS`, 429 `CUOTA_IA`, 502, 504 | Tipo permitido **y firma del archivo** (los primeros bytes de PDF, JPEG, PNG, GIF o WebP); imagen ≤ 5 MB, PDF ≤ 20 MB (D-47). Prompt y esquema **tal cual**. `validarRespuestaTicket()` portado. El archivo **no se guarda ni se registra** |
+| `POST /api/ia/ticket` 🔑 | `{ archivo: { base64, mimeType } }` | 200 `{ productos: ProductoTicket[] }` | 403 `AVISO_IA_PENDIENTE`, 413, 415, 422 `NO_ES_TICKET` / `SIN_ALIMENTOS` / `DEMASIADOS_PRODUCTOS`, 429 `CUOTA_IA`, 502, 503 `IA_NO_CONFIGURADA`, 504 | Sin `ANTHROPIC_API_KEY` (solo puede faltar en desarrollo) da 503 tras validar el archivo y sin gastar cuota. Tipo permitido **y firma del archivo** (los primeros bytes de PDF, JPEG, PNG, GIF o WebP); imagen ≤ 5 MB, PDF ≤ 20 MB (D-47). Prompt y esquema **tal cual**. `validarRespuestaTicket()` portado. El archivo **no se guarda ni se registra** |
 | `POST /api/ia/recetas` 🔑 | `{}` | 200 `{ sugerencias: [{ id, receta }] }` | 422 `INVENTARIO_VACIO`, 429, 502, 504 | El servidor lee el inventario del hogar (no se fía del cliente), usa `describirInventario()` y valida con `validarRecetas()`. **TX:** borra las sugerencias anteriores del hogar e inserta las nuevas (D-31) |
 
 **Cuota atómica en una sola sentencia:**
@@ -828,7 +828,7 @@ El **frontend no tiene dependencias**. Las pruebas usan `node:test` y las variab
 | Variable | Contenido |
 |---|---|
 | `DATABASE_URL` | Cadena de conexión de Neon (con `sslmode=require`) |
-| `ANTHROPIC_API_KEY` | Key del workspace de esta app, con límite de gasto |
+| `ANTHROPIC_API_KEY` | Key del workspace de esta app, con límite de gasto. Obligatoria en producción; en desarrollo puede faltar (leer un ticket da 503) |
 | `VAPID_PUBLICA` / `VAPID_PRIVADA` / `VAPID_SUJETO` | Claves VAPID (`npx web-push generate-vapid-keys`) y `mailto:` de contacto |
 | `CRON_SECRETO` | Cadena aleatoria larga, compartida solo con cron-job.org |
 | `APP_ORIGEN` | `http://localhost:3000` en desarrollo y la URL de Render en producción |
@@ -836,7 +836,7 @@ El **frontend no tiene dependencias**. Las pruebas usan `node:test` y las variab
 
 - En el PC van en `.env`, que está ignorado por git. En Render, en el panel *Environment*.
 - **Copia de los secretos de desarrollo en Bitwarden** (D-34): una nota segura `recetas-pwa · .env desarrollo` con el `.env` completo, que se actualiza cada vez que se añade un secreto. Sirve para montar el proyecto en otro ordenador (`git clone` → `npm install` → pegar la nota en `.env`). Los secretos de producción viven en Render.
-- `config.js` **no arranca** si falta alguna variable y nunca imprime sus valores.
+- `config.js` **no arranca** si falta alguna variable (salvo `ANTHROPIC_API_KEY` en desarrollo) y nunca imprime sus valores.
 - Si una variable se filtra: se rota (key nueva en la consola, claves VAPID nuevas, que obligan a volver a suscribir los dispositivos, o secreto nuevo en cron-job.org).
 
 ---
