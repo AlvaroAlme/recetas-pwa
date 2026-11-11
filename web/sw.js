@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v15';
+const VERSION = 'app-v16';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -44,6 +44,7 @@ const ARCHIVOS = [
   '/js/pantallas/invitar.js',
   '/js/pantallas/noExiste.js',
   '/js/pantallas/producto.js',
+  '/js/pantallas/privacidad.js',
   '/js/pantallas/registro.js',
   '/js/pantallas/ticket.js',
   '/js/pantallas/tupper.js',

@@ -100,7 +100,16 @@ export function pantallaRegistro({ consulta }) {
     contenido: el(
       'div',
       { class: 'acceso' },
-      el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, nombre, email, contrasena, boton),
+      el(
+        'form',
+        { class: 'formulario', novalidate: true, onsubmit: alEnviar },
+        aviso,
+        nombre,
+        email,
+        contrasena,
+        el('p', { class: 'tono--tenue' }, 'Al crearla aceptas la ', el('a', { href: '/privacidad' }, 'política de privacidad'), '.'),
+        boton
+      ),
       el(
         'p',
         { class: 'acceso__pie' },

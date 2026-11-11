@@ -227,7 +227,8 @@ export function pantallaAjustes() {
         'div',
         { class: 'seccion__acciones' },
         botonCerrar,
-        el('a', { class: 'boton boton--fantasma', href: '/cuenta/borrar' }, 'Borrar cuenta')
+        el('a', { class: 'boton boton--fantasma', href: '/cuenta/borrar' }, 'Borrar cuenta'),
+        el('a', { class: 'boton boton--fantasma', href: '/privacidad' }, 'Privacidad')
       )
     );
   }

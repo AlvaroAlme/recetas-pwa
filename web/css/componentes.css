@@ -1071,3 +1071,18 @@ input:focus-visible + .chip {
   text-align: left;
   cursor: pointer;
 }
+
+/* ============ Privacidad (P-18) ============ */
+.privacidad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+}
+.privacidad__apartado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+}
+.privacidad ul {
+  padding-left: 1.25em;
+}

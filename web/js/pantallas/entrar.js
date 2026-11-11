@@ -88,7 +88,8 @@ export function pantallaEntrar({ consulta }) {
         { class: 'acceso__pie' },
         '¿No tienes cuenta? ',
         el('a', { href: `/registro?volver=${encodeURIComponent(volver)}` }, 'Créala')
-      )
+      ),
+      el('p', { class: 'acceso__pie' }, el('a', { href: '/privacidad' }, 'Privacidad'))
     ),
   };
 }
