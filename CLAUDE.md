@@ -48,23 +48,17 @@ Proyecto de portfolio de un estudiante de DAW.
 
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
-3 (2026-11-08) y 4 (2026-11-09). El detalle de cada paso está en los
-commits (`git log`).
+3 (2026-11-08), 4 (2026-11-09) y 5 (2026-11-12). El detalle de cada paso
+está en los commits (`git log`).
 
-**Fase 5 (escaneo de tickets con Claude): en curso.** Plan: 1 verificar
-R-17 y R-08; 2 `004_ia.sql` y constantes; 3 portar `claude.js` y
-`ticket.js` con pruebas; 4 cuota (`cuotaIa.js`) y rutas de IA
-(`/api/ia/aviso-aceptado`, `/api/ia/ticket` con firma y tamaño del
-archivo, `/api/yo` con `cuotaIa`); 5 `POST /api/productos/lote`
-idempotente (P-06); 6 pantalla Ticket (input sin `capture`, revisión
-línea a línea); 7 `/privacidad` (P-18); 8 workspace de Anthropic con
-límite de gasto (preguntar antes), `ANTHROPIC_API_KEY` en `.env` y
-Render, desplegar e iPhone.
-Hecho: los 8 pasos (1-3 el 2026-11-09; 4-8 el 2026-11-11), desplegado
-en Render con `app-v16` y probado en el iPhone. Todo el "Hecho cuando"
-comprobado (ticket real, `NO_ES_TICKET`, 429 en la llamada 11, la key
-no llega al navegador, pruebas en el límite). La fase sigue abierta
-hasta terminar lo pendiente que elegí (ver abajo); falta mi "ok".
+**Siguiente: fase 6 (recetas con IA y "La he cocinado").** Falta mi "ok"
+para empezarla. Antes de proponer nada, leer ARQUITECTURA §10 (fase 6).
+
+**Fase 5 (escaneo de tickets con Claude): aprobada.** Los 8 pasos
+(2026-11-09 a 2026-11-11), desplegada en Render (`app-v18`) y probada en
+el iPhone; todo el "Hecho cuando" comprobado (ticket real,
+`NO_ES_TICKET`, 429 en la llamada 11, la key no llega al navegador,
+pruebas en el límite). Lo que conviene recordar:
 - D-47: PDF ≤ 20 MB, `anthropic-version: 2023-06-01`, Claude espera
   60 s (menos que los 75 s de `api.js`) y la cuota se devuelve con
   cualquier error reintentable.
@@ -86,14 +80,13 @@ hasta terminar lo pendiente que elegí (ver abajo); falta mi "ok".
   GitHub. Render y Neon, los dos en Frankfurt (D-36).
 - Probar la IA en desarrollo gasta consultas de Ana y céntimos del
   workspace: al acabar, `aviso_ia_aceptado_en = NULL` y borrar `uso_ia`.
+- SEC-09: `server/log.js` con `logError(que, error, idPeticion)` (en
+  producción una línea sin traza; lo configura `index.js`, así
+  `claude.js` y las pruebas no cargan `config.js`), el middleware
+  `idPeticion` (cabecera `X-Id-Peticion`, el mismo id que en el log del
+  500) y `web/js/log.js`, que solo escribe en `localhost`.
 
-Pendiente para cerrar la fase 5 (elegido el 2026-11-11):
-- ✅ SEC-09 hecho (2026-11-11): `server/log.js` con `logError(que,
-  error, idPeticion)` (en producción una línea sin traza; lo configura
-  `index.js`, así `claude.js` y las pruebas no cargan `config.js`), el
-  middleware `idPeticion` (cabecera `X-Id-Peticion`, el mismo id que en
-  el log del 500) y `web/js/log.js`, que solo escribe en `localhost`.
-  `sw.js` en `app-v17`. Desplegado el 2026-11-11.
+**Pendiente de otras fases:**
 - A veces la PRIMERA petición tras un rato (Chrome en el PC y el iPhone en
   producción) da "No hay conexión…" y la segunda funciona. No se
   reproduce (2026-11-11): Neon despertando, el pool, IPv6 y el SW
@@ -118,17 +111,12 @@ arranca si falta alguno: añadir las variables en Render ANTES del push.
 Para arrancar el servidor desde Claude hay un `.claude/launch.json`
 (ignorado por git).
 
-**Pendiente de otras fases:** nada (todo hecho el 2026-11-12):
-- Límite de `/api/hogar/unirse`: 10 intentos por hora y persona.
-- `rutas/yo.js` e `idPeticion.js` en el árbol de ARQUITECTURA §6.
-- Probado desde la pantalla con Dani: "Salir de esta casa" y "Borrar
-  cuenta" siendo miembro (la casa sigue). Con una cuenta de usar y
-  tirar, "Borrar cuenta" siendo la única: se borra la casa con sus
-  productos y tuppers. Dani se volvió a crear y está en "Casa de Bea".
-- iPhone (fase 3): el texto crece con el tamaño del sistema
-  (`-apple-system-body`), sin zoom en los campos, el teclado no tapa el
-  pie, R-07 y R-16. Quitados sus [sin verificar] de los documentos.
-- Detalles de estilo: todos corregidos; `sw.js` en `app-v18`.
+**Hecho el 2026-11-12 (pendientes de fases anteriores):** límite de
+`/api/hogar/unirse` (10 intentos por hora y persona); el árbol de
+ARQUITECTURA §6; "Salir de esta casa" y "Borrar cuenta" probados desde
+la pantalla (miembro y única persona); en el iPhone, el texto con el
+tamaño del sistema, sin zoom en los campos, el teclado y R-07/R-16; y
+todos los detalles de estilo (`sw.js` en `app-v18`).
 
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10
 ("Versión 2"): V2-01 consejos de cocina con IA, V2-02 productos de temporada.
