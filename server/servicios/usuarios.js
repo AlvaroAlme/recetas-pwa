@@ -120,3 +120,28 @@ export async function borrarCuenta(usuarioId, hogarId, contrasena) {
   });
   return true;
 }
+
+/**
+ * Marco que la persona ha aceptado el aviso de privacidad de la IA (SEC-04).
+ * Si ya lo había aceptado, dejo la fecha de la primera vez.
+ * @param {number} usuarioId
+ */
+export async function aceptarAvisoIa(usuarioId) {
+  await pool.query(
+    'UPDATE usuarios SET aviso_ia_aceptado_en = COALESCE(aviso_ia_aceptado_en, now()) WHERE id = $1',
+    [usuarioId]
+  );
+}
+
+/**
+ * ¿Ha aceptado ya el aviso de privacidad de la IA?
+ * @param {number} usuarioId
+ * @returns {Promise<boolean>}
+ */
+export async function haAceptadoAvisoIa(usuarioId) {
+  const { rows } = await pool.query(
+    'SELECT aviso_ia_aceptado_en IS NOT NULL AS aceptado FROM usuarios WHERE id = $1',
+    [usuarioId]
+  );
+  return rows[0]?.aceptado === true;
+}
