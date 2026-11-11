@@ -8,6 +8,7 @@
  * recalcula al arrancar.
  */
 import { pool } from './bd/pool.js';
+import { logError } from './log.js';
 
 /** Instante (ms) del próximo aviso, o null si no hay nada pendiente. */
 let proximaRevision = null;
@@ -32,7 +33,7 @@ export async function recalcular() {
     );
     proximaRevision = rows[0].proximo ? rows[0].proximo.getTime() : null;
   } catch (error) {
-    console.error('No se ha podido recalcular la agenda:', error.message);
+    logError('No se ha podido recalcular la agenda', error);
     proximaRevision = Date.now();
   }
 }

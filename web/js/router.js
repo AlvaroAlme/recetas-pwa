@@ -10,6 +10,7 @@
  * (o promete) lo que va en el esqueleto de index.html: una Vista.
  */
 import { el } from './dom.js';
+import { logError } from './log.js';
 
 /**
  * @typedef {Object} Vista
@@ -122,7 +123,7 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
   try {
     vista = await ruta.pantalla({ parametros, consulta });
   } catch (error) {
-    console.error('Error al pintar la pantalla:', error);
+    logError('Error al pintar la pantalla', error);
     vista = {
       titulo: 'Algo ha fallado',
       contenido: el('p', {}, 'No se ha podido abrir esta pantalla. Recarga la página.'),

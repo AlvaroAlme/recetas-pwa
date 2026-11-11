@@ -4,6 +4,7 @@
  * (enseñaría rutas de archivos de mi PC): solo la apunto en la consola.
  */
 import { ErrorApi } from '../errores.js';
+import { logError } from '../log.js';
 
 /**
  * Para cualquier /api/... que no exista: 404 en JSON (y no la página de Express).
@@ -45,9 +46,10 @@ export function manejarErrores(error, req, res, next) {
     });
   }
 
-  // Cualquier otra cosa es un fallo mío: lo apunto (solo el mensaje, nunca
-  // datos ni cabeceras, SEC-09) y contesto algo genérico.
-  console.error('Error inesperado:', error.message);
+  // Cualquier otra cosa es un fallo mío: lo apunto con el id de la petición
+  // (en producción, solo el mensaje; nunca datos ni cabeceras, SEC-09) y
+  // contesto algo genérico. El id va también en la cabecera X-Id-Peticion.
+  logError('Error inesperado', error, req.id);
   return res.status(500).json({
     error: { codigo: 'INTERNO', mensaje: 'Algo ha fallado en el servidor.', reintentable: true },
   });

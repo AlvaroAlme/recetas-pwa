@@ -8,6 +8,7 @@
  */
 import pg from 'pg';
 import { config } from '../config.js';
+import { logError } from '../log.js';
 
 /**
  * El grupo de conexiones del servidor.
@@ -29,5 +30,5 @@ export const pool = new pg.Pool({
 // Neon se ha dormido), pg lanza este evento. Si no lo escucho, Node para el
 // servidor entero. Solo lo apunto: la próxima consulta abrirá otra conexión.
 pool.on('error', (error) => {
-  console.error('Se ha caído una conexión libre de la base de datos:', error.message);
+  logError('Se ha caído una conexión libre de la base de datos', error);
 });

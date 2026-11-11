@@ -4,6 +4,7 @@
  */
 import { escucharInstalacion } from './avisos.js';
 import { iniciarConexion } from './conexion.js';
+import { logError } from './log.js';
 import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
@@ -52,6 +53,6 @@ iniciarRouter({
 // Los navegadores antiguos no tienen Service Worker: la app funciona igual, pero sin red no abre.
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch((error) => {
-    console.error('No se ha podido registrar el Service Worker:', error);
+    logError('No se ha podido registrar el Service Worker', error);
   });
 }

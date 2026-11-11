@@ -60,17 +60,49 @@ idempotente (P-06); 6 pantalla Ticket (input sin `capture`, revisión
 línea a línea); 7 `/privacidad` (P-18); 8 workspace de Anthropic con
 límite de gasto (preguntar antes), `ANTHROPIC_API_KEY` en `.env` y
 Render, desplegar e iPhone.
-Hecho (2026-11-09): pasos 1, 2 y 3. D-47: PDF ≤ 20 MB (25 no cabe en
-los 32 MB de la API en base64), `anthropic-version: 2023-06-01`, Claude
-espera 60 s (menos que los 75 s de `api.js`) y la cuota se devuelve con
-cualquier error reintentable. `004_ia.sql` aplicada en desarrollo (NO en
-producción: se aplica sola al desplegar). `ErrorClaude` hereda de
-`ErrorApi`; la key la pasa quien llama (así las pruebas no cargan
-`config.js`). `ticket.js` devuelve `ubicacionesPosibles` (camelCase); el
-tipo y el tamaño del archivo se validan en la ruta (paso 4).
-Pendiente de decidir en el paso 4: el límite del cuerpo (un PDF de
-20 MB son ~27 MB en base64; subir `express.json` solo en esa ruta o usar
-`FormData`) y si `server/log.js` (SEC-09) entra en esta fase.
+Hecho: los 8 pasos (1-3 el 2026-11-09; 4-8 el 2026-11-11), desplegado
+en Render con `app-v16` y probado en el iPhone. Todo el "Hecho cuando"
+comprobado (ticket real, `NO_ES_TICKET`, 429 en la llamada 11, la key
+no llega al navegador, pruebas en el límite). La fase sigue abierta
+hasta terminar lo pendiente que elegí (ver abajo); falta mi "ok".
+- D-47: PDF ≤ 20 MB, `anthropic-version: 2023-06-01`, Claude espera
+  60 s (menos que los 75 s de `api.js`) y la cuota se devuelve con
+  cualquier error reintentable.
+- Cuerpo del ticket: el `express.json` de 100 KB se salta
+  `/api/ia/ticket`, que lee el suyo (~27 MB, calculado de
+  `MAX_BYTES_PDF_TICKET`) solo con sesión y con el aviso aceptado.
+- `ANTHROPIC_API_KEY`: obligatoria solo en producción; sin ella, en
+  desarrollo `/api/ia/ticket` da 503 `IA_NO_CONFIGURADA` sin gastar
+  cuota. Workspace `vigia` (con límite de gasto) y dos keys:
+  `vigia-desarrollo` (`.env` y Bitwarden) y `vigia-produccion` (Render
+  y nota `vigia-produccion`).
+- Idempotencia (P-06): `conClave()` en `servicios/operaciones.js`
+  reserva la clave LO PRIMERO (`ON CONFLICT DO NOTHING`); la usará
+  también `/api/cocinar` (fase 6). Las claves de más de 7 días se borran
+  en la tarea de avisos.
+- Pantalla Ticket: `archivoTicket.js` (canvas 2000 px, JPEG 0,8),
+  `pantallas/ticket.js` y `componentes/lineaTicket.js`; un solo botón
+  sin `capture` (R-08). `/privacidad` pública, contacto = mi perfil de
+  GitHub. Render y Neon, los dos en Frankfurt (D-36).
+- Probar la IA en desarrollo gasta consultas de Ana y céntimos del
+  workspace: al acabar, `aviso_ia_aceptado_en = NULL` y borrar `uso_ia`.
+
+Pendiente para cerrar la fase 5 (elegido el 2026-11-11):
+- ✅ SEC-09 hecho (2026-11-11): `server/log.js` con `logError(que,
+  error, idPeticion)` (en producción una línea sin traza; lo configura
+  `index.js`, así `claude.js` y las pruebas no cargan `config.js`), el
+  middleware `idPeticion` (cabecera `X-Id-Peticion`, el mismo id que en
+  el log del 500) y `web/js/log.js`, que solo escribe en `localhost`.
+  `sw.js` en `app-v17`. Falta desplegarlo.
+- A veces la PRIMERA petición tras un rato (Chrome en el PC y el iPhone en
+  producción) da "No hay conexión…" y la segunda funciona. No se
+  reproduce (2026-11-11): Neon despertando, el pool, IPv6 y el SW
+  (solo toca los GET) descartados. La próxima vez, recoger pruebas: en
+  Chrome, F12 › Network, el *Status* de la petición que falla
+  (`net::ERR_…`) y la terminal de `npm.cmd run dev`; en el iPhone, la
+  hora y qué hacía (¿volvía a la app?) para mirar los Logs de Render.
+  Si es una conexión reutilizada muerta, la idea es reintentar una vez
+  en `api.js` (seguro en GET, `/lote` y `/cocinar`).
 
 **Fase 4 (tuppers y avisos Web Push): aprobada.** Tuppers, Web Push
 (`web-push` 3.6.7 fija; la 4.0.0 salió el 2026-11-06), agenda en memoria
@@ -89,9 +121,8 @@ Para arrancar el servidor desde Claude hay un `.claude/launch.json`
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
   en campos de 16 px, el teclado sobre el pie fijo, R-07 y R-16.
-- `server/log.js` (SEC-09), límite de intentos en
-  `/api/hogar/unirse`, `rutas/yo.js` en el árbol de ARQUITECTURA §6,
-  Privacidad (P-18, fase 5).
+- Límite de intentos en `/api/hogar/unirse`, `rutas/yo.js` en el árbol
+  de ARQUITECTURA §6.
 - Probar desde la pantalla: Dani → "Salir de esta casa" y "Borrar cuenta".
 
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10

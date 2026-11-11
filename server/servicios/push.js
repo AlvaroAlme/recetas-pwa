@@ -10,6 +10,7 @@
 import webpush from 'web-push';
 import { pool } from '../bd/pool.js';
 import { config } from '../config.js';
+import { logError } from '../log.js';
 
 webpush.setVapidDetails(config.vapid.sujeto, config.vapid.publica, config.vapid.privada);
 
@@ -88,7 +89,7 @@ export async function enviarA(suscripciones, mensaje) {
         await pool.query('DELETE FROM suscripciones_push WHERE endpoint = $1', [endpoint]);
       } else {
         // Solo el código: el endpoint identifica al dispositivo y no va al log (SEC-09).
-        console.error('No se ha podido enviar un aviso:', error.statusCode ?? error.message);
+        logError('No se ha podido enviar un aviso', error.statusCode ?? error);
       }
     }
   }

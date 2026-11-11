@@ -14,6 +14,7 @@ import * as agenda from './agenda.js';
 import { enviarPendientes } from './servicios/avisos.js';
 import { migrar } from './bd/migrar.js';
 import { pool } from './bd/pool.js';
+import { configurarLog, logError } from './log.js';
 
 /**
  * Arranco en orden: primero el esquema de la base de datos y luego escucho.
@@ -21,11 +22,13 @@ import { pool } from './bd/pool.js';
  * un esquema a medias (§4.3).
  */
 async function arrancar() {
+  // Lo primero: así los errores de las migraciones ya salen como toca (SEC-09).
+  configurarLog({ esProduccion: config.esProduccion });
   try {
     const aplicadas = await migrar();
     if (aplicadas.length > 0) console.log(`Migraciones aplicadas: ${aplicadas.join(', ')}`);
   } catch (error) {
-    console.error(`No se han podido aplicar las migraciones: ${error.message}`);
+    logError('No se han podido aplicar las migraciones', error);
     process.exitCode = 1;
     await pool.end();
     return;
@@ -37,7 +40,7 @@ async function arrancar() {
     const enviados = await enviarPendientes();
     if (enviados > 0) console.log(`Avisos atrasados enviados: ${enviados}`);
   } catch (error) {
-    console.error('No se han podido enviar los avisos atrasados:', error.message);
+    logError('No se han podido enviar los avisos atrasados', error);
   }
   await agenda.recalcular();
 
@@ -47,7 +50,7 @@ async function arrancar() {
       if (error.code === 'EADDRINUSE') {
         console.error(`El puerto ${config.puerto} ya está en uso. ¿Tienes otro servidor abierto?`);
       } else {
-        console.error('No se ha podido arrancar el servidor:', error.message);
+        logError('No se ha podido arrancar el servidor', error);
       }
       process.exitCode = 1;
       await pool.end();

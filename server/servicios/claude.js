@@ -7,6 +7,7 @@
  * importa config.js y las pruebas pueden cargarlo sin el .env.
  */
 import { ErrorApi } from '../errores.js';
+import { logError } from '../log.js';
 
 /** Modelo de Claude que usa la app. Lo cambio aquí si quiero probar otro. */
 export const MODELO_CLAUDE = 'claude-sonnet-5-5';
@@ -48,7 +49,7 @@ function errorDesdeRespuesta(estado) {
   if (estado === 429 || estado >= 500) {
     return new ErrorClaude(502, 'IA_SATURADA', 'El servicio de IA está saturado. Inténtalo en unos segundos.', true);
   }
-  console.error(`Claude ha respondido ${estado}: revisa la key, el saldo o el modelo.`);
+  logError('Claude ha respondido con un error (revisa la key, el saldo o el modelo)', estado);
   return new ErrorClaude(502, 'IA_NO_DISPONIBLE', 'La lectura con IA no está disponible ahora. Inténtalo más tarde.', false);
 }
 

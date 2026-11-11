@@ -12,6 +12,7 @@ import helmet from 'helmet';
 import { comprobarOrigen } from './middlewares/origen.js';
 import { config } from './config.js';
 import { exigirSesion } from './middlewares/exigirSesion.js';
+import { idPeticion } from './middlewares/idPeticion.js';
 import { limiteGeneral } from './middlewares/limite.js';
 import { manejarErrores, rutaNoEncontrada } from './middlewares/errores.js';
 import { sesion } from './middlewares/sesion.js';
@@ -30,6 +31,10 @@ const app = express();
 const CARPETA_WEB = path.join(import.meta.dirname, '..', 'web');
 
 app.disable('x-powered-by');
+
+// Lo primero: así todas las peticiones tienen su id, también las que fallan
+// antes de llegar a las rutas (SEC-09).
+app.use(idPeticion);
 
 // En Render hay un proxy delante: sin esto, req.ip sería siempre la del
 // proxy y el límite contaría a todo el mundo como una sola IP (§9.5). En mi
