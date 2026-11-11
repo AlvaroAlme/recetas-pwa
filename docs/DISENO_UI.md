@@ -672,9 +672,9 @@ ELEGIR                              REVISAR
 │  Te quedan 9 de 10 consultas  │   │ │ Producto [Pechuga pollo] │ │
 │  de IA hoy.                   │   │ │ Cantidad [0,5]           │ │
 │                               │   │ │ ( g )(●kg)( ml )( l )(ud)│ │
-│  [  Hacer foto al ticket  ]   │   │ │ ¿Dónde lo guardas? Puede │ │
-│  [ Elegir de la galería  ]°   │   │ │ ir en Nevera o Congelador│ │
-│  [Subir archivo (PDF/imagen)]°│   │ │ (*Nev.)( Desp.)(*Cong.)  │ │
+│                               │   │ │ ¿Dónde lo guardas? Puede │ │
+│                               │   │ │ ir en Nevera o Congelador│ │
+│                               │   │ │ (*Nev.)( Desp.)(*Cong.)  │ │
 │                               │   │ │ ! Elige dónde lo guardas.│ │
 │                               │   │ │ ‹Eliminar›  [✓ Confirmar]│ │
 │                               │   │ └──────────────────────────┘ │
@@ -682,11 +682,11 @@ ELEGIR                              REVISAR
 │                               │   │ │✓ Leche · 6 l · Despensa  │ │
 │                               │   │ │  Toca para editar        │ │
 │                               │   │ └──────────────────────────┘ │
-│                               │   │──────────────────────────────│
-│                               │   │ [ Faltan 1 por confirmar ]   │
+│───────────────────────────────│   │──────────────────────────────│
+│  [   Elegir el ticket    ]    │   │ [ Faltan 1 por confirmar ]   │
 └──────────────────────────────┘   └──────────────────────────────┘
 ```
-La primera vez, antes de "Elegir", aparece el **aviso de privacidad** (SEC-04, §7.1).
+La primera vez, antes de "Elegir", aparece el **aviso de privacidad** (SEC-04, §7.1) y el pie dice `[Entendido, continuar]`. Un **solo botón** con un `<input type="file">` sin `capture` (R-08): el menú del sistema ofrece cámara, fotos y archivo.
 
 #### P-09 · Recetas — `/recetas` · E-1
 ```
@@ -976,14 +976,12 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 ### 7.1 Escanear ticket → revisar → guardar
 1. **Inventario** → "🧾 Ticket" en la cabecera → `/ticket`.
 2. **Primera vez** (`avisoIaAceptado = false`): tarjeta *info* "Antes de escanear" con "La foto o el PDF del ticket se envía a Anthropic (Claude) para leer los productos. No la guardamos. Te recomendamos recortar la foto para que solo salga la lista de productos." + `‹Política de privacidad›` + `[Entendido, continuar]` → `POST /api/ia/aviso-aceptado`. Sin aceptar no se ven los botones.
-3. **Elegir:** muestra "Te quedan N de 10 consultas de IA hoy". Si es 0, los botones quedan deshabilitados con el motivo "Has usado tus 10 consultas de hoy. Vuelve mañana."
-   - "Hacer foto al ticket" → `<input type="file" accept="image/*" capture="environment">`;
-   - "Elegir de la galería" → `accept="image/*"`;
-   - "Subir archivo (PDF o imagen)" → `accept="application/pdf,image/*"`.
+3. **Elegir:** muestra "Te quedan N de 10 consultas de IA hoy". Si es 0, el botón queda deshabilitado con el motivo "Has usado tus 10 consultas de hoy. Vuelve mañana."
+   - Un solo botón, "Elegir el ticket", que abre un `<input type="file" accept="image/*,application/pdf">` **sin `capture`** (R-08: `capture` no funciona en todos los navegadores y, si funciona, solo abre la cámara). En iOS el propio menú del sistema ofrece hacer una foto, la fototeca o un archivo.
 
-   **[sin verificar]** qué menú ofrece iOS en cada caso (fase 5); si los dos últimos se comportan igual, se unen en uno.
-4. **Preparar:** si es una foto, se reduce en el navegador con `<canvas>` (lado mayor 2000 px, JPEG al 0,8 **[sin verificar]** que se lea bien: fase 5) para no pasar de los 5 MB. Si es un PDF de más de 25 MB → "El PDF es demasiado grande (máximo 25 MB)." sin llamar al servidor.
-5. **Leyendo:** `EstadoCarga` a pantalla completa "Leyendo el ticket…" / "Puede tardar unos segundos." Hasta 120 s.
+   **[sin verificar]** el menú exacto de iOS: se comprueba en el iPhone (fase 5, paso 6).
+4. **Preparar** (`web/js/archivoTicket.js`): si es una foto, se reduce en el navegador con `<canvas>` (lado mayor 2000 px, JPEG al 0,8 **[sin verificar]** que Claude la lea bien: se comprueba en el iPhone) para no pasar de los 5 MB. Si es un PDF de más de 20 MB (D-47) → "El PDF es demasiado grande (máximo 20 MB)." sin llamar al servidor.
+5. **Leyendo:** `EstadoCarga` a pantalla completa "Leyendo el ticket…" / "Puede tardar unos segundos." Claude espera como mucho 60 s y `api.js` 75 s (D-47): si se pasa, error reintentable.
 6. **Error** (en la misma pantalla de elegir): `Aviso` "No se ha podido leer el ticket" + el mensaje del servidor (los de `ticket.ts`/`claude.ts`) + `[Reintentar con el mismo ticket]` si es reintentable. El archivo se guarda en memoria para reintentar sin repetir la foto.
 7. **Revisar:** una `LineaTicket` por producto. La ubicación viene del diccionario si la conoce y si no de Claude; **solo se propone si hay una**; con varias, la línea pregunta (§7.2). Cualquier cambio desconfirma la línea. El pie dice "Faltan N por confirmar" (deshabilitado con el motivo) → "Guardar N productos".
 8. **Guardando:** botón "Guardando…" → `POST /api/productos/lote` con su `clave`.

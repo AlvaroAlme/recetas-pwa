@@ -14,6 +14,7 @@ import { pantallaInvitar } from './pantallas/invitar.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
 import { pantallaProducto } from './pantallas/producto.js';
 import { pantallaRegistro } from './pantallas/registro.js';
+import { pantallaTicket } from './pantallas/ticket.js';
 import { pantallaTupper } from './pantallas/tupper.js';
 import { pantallaUnirse } from './pantallas/unirse.js';
 
@@ -40,6 +41,7 @@ iniciarRouter({
     { patron: '/producto/:id', pantalla: pantallaProducto, validar: ({ id }) => ES_ID.test(id) },
     { patron: '/tupper/nuevo', pantalla: pantallaTupper },
     { patron: '/tupper/:id', pantalla: pantallaTupper, validar: ({ id }) => ES_ID.test(id) },
+    { patron: '/ticket', pantalla: pantallaTicket },
   ],
   noExiste: pantallaNoExiste,
 });

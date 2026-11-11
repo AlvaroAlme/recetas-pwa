@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v13';
+const VERSION = 'app-v15';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -27,11 +27,13 @@ const ARCHIVOS = [
   '/css/componentes.css',
   '/js/app.js',
   '/js/api.js',
+  '/js/archivoTicket.js',
   '/js/avisos.js',
   '/js/conexion.js',
   '/js/dom.js',
   '/js/router.js',
   '/js/componentes/formularioProducto.js',
+  '/js/componentes/lineaTicket.js',
   '/js/componentes/panelAvisos.js',
   '/js/componentes/ui/index.js',
   '/js/pantallas/ajustes.js',
@@ -43,6 +45,7 @@ const ARCHIVOS = [
   '/js/pantallas/noExiste.js',
   '/js/pantallas/producto.js',
   '/js/pantallas/registro.js',
+  '/js/pantallas/ticket.js',
   '/js/pantallas/tupper.js',
   '/js/pantallas/unirse.js',
   '/compartido/constantes.js',

@@ -155,6 +155,7 @@ export function pantallaInventario({ consulta }) {
 
   return {
     titulo: 'Inventario',
+    accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: '/ticket' }, 'Ticket'),
     contenido: el(
       'div',
       { class: 'inventario' },

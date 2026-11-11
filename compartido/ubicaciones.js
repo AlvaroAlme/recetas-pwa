@@ -19,6 +19,16 @@ export const ETIQUETAS_UBICACION = Object.freeze({
   congelador: 'Congelador',
 });
 
+/**
+ * Une las ubicaciones en una frase: ['nevera', 'congelador'] → "Nevera o Congelador".
+ * @param {readonly string[]} ubicaciones
+ * @returns {string}
+ */
+export function listarUbicaciones(ubicaciones) {
+  const nombres = ubicaciones.map((ubicacion) => ETIQUETAS_UBICACION[ubicacion]);
+  return nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} o ${nombres.at(-1)}` : nombres[0];
+}
+
 // Combinaciones que se repiten mucho en el diccionario.
 const NEVERA_O_CONGELADOR = Object.freeze(['nevera', 'congelador']);
 const DESPENSA_O_NEVERA = Object.freeze(['despensa', 'nevera']);

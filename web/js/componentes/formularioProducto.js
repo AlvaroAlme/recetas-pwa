@@ -8,7 +8,7 @@
  */
 import { UBICACIONES, UNIDADES } from '/compartido/constantes.js';
 import { mensajeDeError } from '../api.js';
-import { ETIQUETAS_UBICACION, ubicacionesPosibles } from '/compartido/ubicaciones.js';
+import { ETIQUETAS_UBICACION, listarUbicaciones, ubicacionesPosibles } from '/compartido/ubicaciones.js';
 import { validarProducto } from '/compartido/validacion.js';
 import { buscarAlimentos } from '/compartido/sugerencias.js';
 import { normalizar } from '/compartido/texto.js';
@@ -24,16 +24,6 @@ import {
   ponerErrorCampo,
   recomendarEnSelector,
 } from './ui/index.js';
-
-/**
- * Une las ubicaciones en una frase: ['nevera', 'congelador'] → "Nevera o Congelador".
- * @param {readonly string[]} ubicaciones
- * @returns {string}
- */
-function listarUbicaciones(ubicaciones) {
-  const nombres = ubicaciones.map((ubicacion) => ETIQUETAS_UBICACION[ubicacion]);
-  return nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} o ${nombres.at(-1)}` : nombres[0];
-}
 
 /**
  * @param {{
