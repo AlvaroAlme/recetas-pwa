@@ -82,6 +82,18 @@ export const limiteInvitaciones = crearLimite({
   ventanaMs: UNA_HORA,
   clave: (req) => `usuario:${req.usuario.id}`,
 });
+
+/**
+ * Como mucho 10 intentos de unirse a una casa por hora y por persona (§9.5):
+ * que nadie pueda ir probando códigos. Va detrás de exigirSesion.
+ */
+export const limiteUnirse = crearLimite({
+  maximo: 10,
+  ventanaMs: UNA_HORA,
+  clave: (req) => `usuario:${req.usuario.id}`,
+  mensaje: 'Has probado demasiados códigos. Espera un rato y vuelve a intentarlo.',
+});
+
 /** Como mucho 3 avisos de prueba por hora y por persona (§9.5). Va detrás de exigirSesion. */
 export const limitePruebaPush = crearLimite({
   maximo: 3,

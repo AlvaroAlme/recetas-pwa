@@ -93,7 +93,7 @@ Pendiente para cerrar la fase 5 (elegido el 2026-11-11):
   `index.js`, así `claude.js` y las pruebas no cargan `config.js`), el
   middleware `idPeticion` (cabecera `X-Id-Peticion`, el mismo id que en
   el log del 500) y `web/js/log.js`, que solo escribe en `localhost`.
-  `sw.js` en `app-v17`. Falta desplegarlo.
+  `sw.js` en `app-v17`. Desplegado el 2026-11-11.
 - A veces la PRIMERA petición tras un rato (Chrome en el PC y el iPhone en
   producción) da "No hay conexión…" y la segunda funciona. No se
   reproduce (2026-11-11): Neon despertando, el pool, IPv6 y el SW
@@ -121,8 +121,8 @@ Para arrancar el servidor desde Claude hay un `.claude/launch.json`
 **Pendiente de otras fases:**
 - Comprobar en el iPhone (fase 3): `-apple-system-body` = 17 px, sin zoom
   en campos de 16 px, el teclado sobre el pie fijo, R-07 y R-16.
-- Límite de intentos en `/api/hogar/unirse`, `rutas/yo.js` en el árbol
-  de ARQUITECTURA §6.
+- `rutas/yo.js` en el árbol de ARQUITECTURA §6. (Hecho el 2026-11-12:
+  límite de `/api/hogar/unirse`, 10 intentos por hora y persona.)
 - Probar desde la pantalla: Dani → "Salir de esta casa" y "Borrar cuenta".
 
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10

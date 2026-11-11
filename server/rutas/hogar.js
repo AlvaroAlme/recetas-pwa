@@ -4,7 +4,7 @@
  */
 import { Router } from 'express';
 import * as agenda from '../agenda.js';
-import { limiteInvitaciones } from '../middlewares/limite.js';
+import { limiteInvitaciones, limiteUnirse } from '../middlewares/limite.js';
 import { ErrorApi } from '../errores.js';
 import { leerCambiosHogar, leerUnirse } from '../validacion/hogar.js';
 import * as hogares from '../servicios/hogares.js';
@@ -39,7 +39,7 @@ const ERRORES_UNIRSE = {
 };
 
 // POST /api/hogar/unirse: { codigo, confirmarBorrado? }.
-rutasHogar.post('/unirse', async (req, res) => {
+rutasHogar.post('/unirse', limiteUnirse, async (req, res) => {
   const { codigo, confirmarBorrado } = leerUnirse(req.body);
   const resultado = await hogares.unirse(req.usuario.id, req.hogarId, codigo, confirmarBorrado);
   if (!resultado.ok) {

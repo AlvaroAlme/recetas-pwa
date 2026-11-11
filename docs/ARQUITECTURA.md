@@ -801,6 +801,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
   - `login`: 10 / 15 min por IP y 5 / 15 min por email;
   - `registro`: 5 / hora por IP;
   - invitaciones y `push/prueba`: 3 / hora.
+  - `hogar/unirse`: 10 / hora por persona (contando todos los intentos).
 - `app.set('trust proxy', 1)`: Render pone un proxy delante, y sin esto **todas** las peticiones parecerían venir de la misma IP.
 - **IA:** cuota diaria en la base de datos (atómica, §5.2) y una petición a la vez por persona.
 - **Tarea de avisos:** protegida por `CRON_SECRETO`.
