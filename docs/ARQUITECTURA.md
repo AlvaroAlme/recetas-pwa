@@ -530,20 +530,28 @@ La llamada se cuenta **antes** de llamar a Claude. Si Claude falla con un error 
 
 ```sql
 BEGIN;
+-- 0. Reserva la clave LO PRIMERO (conClave() de servicios/operaciones.js).
+--    Si otra petición con la misma clave está a medias, esta espera a que
+--    termine; 0 filas = ya hecha → devuelve la respuesta guardada sin aplicar nada.
+INSERT INTO operaciones (clave, usuario_id, respuesta) VALUES ($1, $2, '{}')
+ON CONFLICT (clave) DO NOTHING RETURNING clave;
 -- 1. Bloquea las filas que se van a tocar. ORDER BY id siempre en el mismo
 --    orden: dos transacciones simultáneas nunca se esperan en círculo (deadlock).
 SELECT id, nombre, cantidad FROM productos
  WHERE hogar_id = $1 AND id = ANY($2::bigint[]) AND NOT agotado
  ORDER BY id FOR UPDATE;
--- 2. En JS: ¿están todos? ¿cantidad ≤ disponible? Si no → ROLLBACK + 409.
+-- 2. En JS: ¿están todos? ¿cantidad ≤ disponible? Si no → ROLLBACK + 409
+--    (el ROLLBACK libera también la clave y se puede reintentar).
 -- 3. Por cada descuento (restante = redondear(cantidad - descuento)):
 UPDATE productos SET cantidad = $1, agotado = ($1 = 0) WHERE id = $2;
 -- 4. Tuppers del hogar:
 UPDATE tuppers SET consumido = true WHERE hogar_id = $1 AND id = ANY($2::bigint[]);
 -- 5. Respuesta guardada para la idempotencia:
-INSERT INTO operaciones (clave, usuario_id, respuesta) VALUES ($1, $2, $3);
+UPDATE operaciones SET respuesta = $2 WHERE clave = $1;
 COMMIT;
 ```
+
+Si la clave se reservara al final (con un `INSERT` en el paso 5), dos peticiones simultáneas con la misma clave pasarían las dos por los pasos 1 a 4 y la segunda acabaría en un 500. `POST /api/productos/lote` usa la misma `conClave()` (fase 5, paso 5); una clave de otra persona da 409 `CLAVE_USADA`.
 
 #### Planificador
 

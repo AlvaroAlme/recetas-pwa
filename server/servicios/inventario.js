@@ -10,6 +10,7 @@
  */
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
+import { conClave } from './operaciones.js';
 
 /**
  * Un producto tal como lo devuelve la API.
@@ -155,23 +156,27 @@ export async function borrarProducto(hogarId, id) {
 
 /**
  * Crea varios productos a la vez (guardar el ticket). Van todos en una
- * transacción: si uno falla, no se guarda ninguno. Prefiero eso a un ticket
- * guardado a medias que luego no sé qué le falta.
+ * transacción: si uno falla, no se guarda ninguno. Y con la clave (P-06):
+ * si el móvil repite la petición, no los guardo dos veces.
  * @param {number} hogarId
+ * @param {number} usuarioId
+ * @param {string} clave
  * @param {DatosProducto[]} lista Ya validados, uno a uno.
- * @returns {Promise<number>} Cuántos he creado.
+ * @returns {Promise<{ creados: number }>}
  */
-export async function crearProductos(hogarId, lista) {
-  return conTransaccion(async (cliente) => {
-    for (const datos of lista) {
-      await cliente.query(
-        `INSERT INTO productos (hogar_id, nombre, cantidad, unidad, ubicacion, fecha_caducidad)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
-      );
-    }
-    return lista.length;
-  });
+export async function crearProductos(hogarId, usuarioId, clave, lista) {
+  return conTransaccion((cliente) =>
+    conClave(cliente, clave, usuarioId, async () => {
+      for (const datos of lista) {
+        await cliente.query(
+          `INSERT INTO productos (hogar_id, nombre, cantidad, unidad, ubicacion, fecha_caducidad)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
+        );
+      }
+      return { creados: lista.length };
+    })
+  );
 }
 
 /**

@@ -8,6 +8,7 @@ import * as agenda from '../agenda.js';
 import { config } from '../config.js';
 import { ErrorApi } from '../errores.js';
 import { enviarPendientes } from '../servicios/avisos.js';
+import * as operaciones from '../servicios/operaciones.js';
 import { coincideSecreto } from '../validacion/tareas.js';
 
 export const rutasTareas = Router();
@@ -22,6 +23,7 @@ rutasTareas.post('/avisos', async (req, res) => {
     return;
   }
   const enviados = await enviarPendientes();
+  await operaciones.borrarAntiguas();
   await agenda.recalcular();
   res.json({ revisado: true, enviados });
 });

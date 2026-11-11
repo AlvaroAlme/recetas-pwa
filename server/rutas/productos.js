@@ -48,9 +48,9 @@ rutasProductos.get('/nombres', async (req, res) => {
 // POST /api/productos/lote: guardar el ticket. Va antes que las rutas con
 // :id para que nadie lea "lote" como si fuera un id.
 rutasProductos.post('/lote', async (req, res) => {
-  const lista = leerLote(req.body);
-  const creados = await inventario.crearProductos(req.hogarId, lista);
-  res.status(201).json({ creados });
+  const { clave, lista } = leerLote(req.body);
+  const respuesta = await inventario.crearProductos(req.hogarId, req.usuario.id, clave, lista);
+  res.status(201).json(respuesta);
 });
 
 // GET /api/productos/2

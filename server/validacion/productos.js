@@ -61,16 +61,23 @@ export function leerProducto(cuerpo) {
   return resultado.datos;
 }
 
+// Un UUID: 8-4-4-4-12 caracteres hexadecimales (lo que da crypto.randomUUID()).
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
- * Comprueba el lote del ticket: { productos: [...] }, entre 1 y 100.
- * Valido TODOS antes de guardar nada, y los errores van con la posición
- * del producto ("productos.2.cantidad") para marcar la línea que falla.
- * La `clave` de idempotencia (P-06) llega en la fase 5.
+ * Comprueba el lote del ticket: { clave, productos: [...] }, entre 1 y 100.
+ * La `clave` es el UUID de idempotencia (P-06). Valido TODOS los productos
+ * antes de guardar nada, y los errores van con la posición del producto
+ * ("productos.2.cantidad") para marcar la línea que falla.
  * @param {unknown} cuerpo
- * @returns {import('../../compartido/validacion.js').DatosProducto[]}
+ * @returns {{ clave: string, lista: import('../../compartido/validacion.js').DatosProducto[] }}
  * @throws {ErrorApi} 400 VALIDACION
  */
 export function leerLote(cuerpo) {
+  const clave = cuerpo?.clave;
+  if (typeof clave !== 'string' || !UUID.test(clave)) {
+    throw new ErrorApi(400, 'VALIDACION', 'Falta la clave de la operación. Vuelve a abrir la pantalla.');
+  }
   const productos = cuerpo?.productos;
   if (!Array.isArray(productos) || productos.length === 0) {
     throw new ErrorApi(400, 'VALIDACION', REVISA_CAMPOS, {
@@ -100,7 +107,7 @@ export function leerLote(cuerpo) {
   if (Object.keys(campos).length > 0) {
     throw new ErrorApi(400, 'VALIDACION', REVISA_CAMPOS, { campos });
   }
-  return lista;
+  return { clave, lista };
 }
 
 /**
