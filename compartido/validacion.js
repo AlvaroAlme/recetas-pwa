@@ -11,11 +11,16 @@ import {
   LONGITUD_CODIGO,
   MAX_CANTIDAD,
   MAX_DIAS_TUPPER,
+  MAX_INGREDIENTES_RECETA,
   MAX_LONGITUD_CONTRASENA,
   MAX_LONGITUD_EMAIL,
   MAX_LONGITUD_NOMBRE,
+  MAX_LONGITUD_PASO,
   MIN_DIAS_TUPPER,
   MIN_LONGITUD_CONTRASENA,
+  MAX_PASOS_RECETA,
+  MAX_RACIONES,
+  MIN_RACIONES,
   UBICACIONES,
   UNIDADES,
 } from './constantes.js';
@@ -47,6 +52,19 @@ function esObjeto(valor) {
  */
 
 /**
+ * Redondeo la cantidad a 3 decimales (los que guarda la base de datos) y
+ * compruebo que vale. Redondeo antes: 0.0001 se quedaría en 0.
+ * @param {unknown} cantidad
+ * @returns {{ valor: number } | { error: string }}
+ */
+function leerCantidad(cantidad) {
+  const valor = typeof cantidad === 'number' ? Math.round(cantidad * 1000) / 1000 : NaN;
+  if (!Number.isFinite(valor) || valor <= 0) return { error: 'Debe ser un número mayor que 0.' };
+  if (valor > MAX_CANTIDAD) return { error: 'La cantidad es demasiado grande.' };
+  return { valor };
+}
+
+/**
  * Comprueba los datos de un producto (alta o edición).
  *
  * Solo devuelve los campos que conozco: si me mandan algo más (por ejemplo,
@@ -71,14 +89,8 @@ export function validarProducto(entrada) {
     errores.nombre = `El nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
   }
 
-  // La base de datos guarda 3 decimales: redondeo antes de comprobar, porque
-  // 0.0001 se quedaría en 0 y no es una cantidad válida.
-  const cantidadRedondeada = typeof cantidad === 'number' ? Math.round(cantidad * 1000) / 1000 : NaN;
-  if (!Number.isFinite(cantidadRedondeada) || cantidadRedondeada <= 0) {
-    errores.cantidad = 'Debe ser un número mayor que 0.';
-  } else if (cantidadRedondeada > MAX_CANTIDAD) {
-    errores.cantidad = 'La cantidad es demasiado grande.';
-  }
+  const cantidadLeida = leerCantidad(cantidad);
+  if ('error' in cantidadLeida) errores.cantidad = cantidadLeida.error;
 
   if (!UNIDADES.includes(unidad)) {
     errores.unidad = 'Elige una unidad.';
@@ -97,7 +109,7 @@ export function validarProducto(entrada) {
   }
   return {
     ok: true,
-    datos: { nombre: nombreLimpio, cantidad: cantidadRedondeada, unidad, ubicacion, fechaCaducidad },
+    datos: { nombre: nombreLimpio, cantidad: cantidadLeida.valor, unidad, ubicacion, fechaCaducidad },
   };
 }
 // ============ Tuppers ============
@@ -273,4 +285,93 @@ export function validarCodigoInvitacion(valor) {
     return { ok: false, errores: { codigo: `El código son ${LONGITUD_CODIGO} letras y números.` } };
   }
   return { ok: true, datos: codigo };
+}
+
+// ============ Recetas ============
+
+/**
+ * Un ingrediente ya comprobado y limpio.
+ * @typedef {{ nombre: string, cantidad: number, unidad: import('./constantes.js').Unidad }} DatosIngrediente
+ */
+
+/**
+ * Una receta ya comprobada y limpia.
+ * @typedef {Object} DatosReceta
+ * @property {string} nombre Sin espacios a los lados.
+ * @property {number | null} raciones Entero de 1 a 20, o null si no lo sé.
+ * @property {DatosIngrediente[]} ingredientes De 1 a 30, en el orden del formulario.
+ * @property {string[]} pasos De 1 a 30, sin líneas vacías.
+ */
+
+/**
+ * Comprueba una receta (alta o edición, D-49). Los pasos llegan ya como
+ * lista: el formulario parte el área de texto por líneas.
+ * Los errores de cada ingrediente van en "ingredientes.N.campo" (N desde 0),
+ * para poder marcar el campo exacto de esa fila.
+ * @param {unknown} entrada
+ * @returns {{ ok: true, datos: DatosReceta } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarReceta(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Los datos de la receta no son válidos.' } };
+  }
+
+  const { nombre, raciones = null, ingredientes, pasos } = entrada;
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  const nombreLimpio = typeof nombre === 'string' ? nombre.trim() : '';
+  if (nombreLimpio === '') {
+    errores.nombre = 'Escribe el nombre de la receta.';
+  } else if (nombreLimpio.length > MAX_LONGITUD_NOMBRE) {
+    errores.nombre = `El nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+  }
+
+  if (raciones !== null && !(Number.isInteger(raciones) && raciones >= MIN_RACIONES && raciones <= MAX_RACIONES)) {
+    errores.raciones = `Escribe un número entero de ${MIN_RACIONES} a ${MAX_RACIONES}, o déjalo vacío.`;
+  }
+
+  /** @type {DatosIngrediente[]} */
+  const ingredientesLimpios = [];
+  if (!Array.isArray(ingredientes) || ingredientes.length === 0) {
+    errores.ingredientes = 'Añade al menos un ingrediente.';
+  } else if (ingredientes.length > MAX_INGREDIENTES_RECETA) {
+    errores.ingredientes = `Puedes poner como mucho ${MAX_INGREDIENTES_RECETA} ingredientes.`;
+  } else {
+    ingredientes.forEach((ingrediente, i) => {
+      const fila = esObjeto(ingrediente) ? ingrediente : {};
+      const nombreIngrediente = typeof fila.nombre === 'string' ? fila.nombre.trim() : '';
+      const cantidadLeida = leerCantidad(fila.cantidad);
+
+      if (nombreIngrediente === '') {
+        errores[`ingredientes.${i}.nombre`] = 'Escribe el ingrediente.';
+      } else if (nombreIngrediente.length > MAX_LONGITUD_NOMBRE) {
+        errores[`ingredientes.${i}.nombre`] = `Como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+      }
+      if ('error' in cantidadLeida) errores[`ingredientes.${i}.cantidad`] = cantidadLeida.error;
+      if (!UNIDADES.includes(fila.unidad)) errores[`ingredientes.${i}.unidad`] = 'Elige una unidad.';
+
+      if (nombreIngrediente !== '' && 'valor' in cantidadLeida) {
+        ingredientesLimpios.push({ nombre: nombreIngrediente, cantidad: cantidadLeida.valor, unidad: fila.unidad });
+      }
+    });
+  }
+
+  // Cada paso es una línea: si uno trae un salto de línea dentro, al
+  // guardarlos juntos se partiría en dos.
+  const pasosValidos = Array.isArray(pasos) && pasos.every((paso) => typeof paso === 'string' && !/[\r\n]/.test(paso));
+  const pasosLimpios = pasosValidos ? pasos.map((paso) => paso.trim()).filter((paso) => paso !== '') : [];
+  const pasoLargo = pasosLimpios.findIndex((paso) => paso.length > MAX_LONGITUD_PASO);
+  if (pasosLimpios.length === 0) {
+    errores.pasos = 'Escribe al menos un paso.';
+  } else if (pasosLimpios.length > MAX_PASOS_RECETA) {
+    errores.pasos = `Puedes poner como mucho ${MAX_PASOS_RECETA} pasos (uno por línea).`;
+  } else if (pasoLargo !== -1) {
+    errores.pasos = `El paso ${pasoLargo + 1} es demasiado largo (como mucho ${MAX_LONGITUD_PASO} caracteres).`;
+  }
+
+  if (Object.keys(errores).length > 0) {
+    return { ok: false, errores };
+  }
+  return { ok: true, datos: { nombre: nombreLimpio, raciones, ingredientes: ingredientesLimpios, pasos: pasosLimpios } };
 }

@@ -3,7 +3,8 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarLogin, validarProducto, validarRegistro, validarTupper } from '../../compartido/validacion.js';
+import { validarLogin, validarProducto, validarRegistro, validarTupper, validarReceta } from '../../compartido/validacion.js';
+import { MAX_INGREDIENTES_RECETA, MAX_LONGITUD_PASO, MAX_PASOS_RECETA } from '../../compartido/constantes.js';
 
 /** Un producto válido del que parten las pruebas. */
 const BUENO = {
@@ -133,5 +134,51 @@ describe('validarTupper()', () => {
 
   it('rechaza lo que no es un objeto', () => {
     assert.equal(validarTupper(null).ok, false);
+  });
+});
+
+describe('validarReceta', () => {
+  const HUEVOS = { nombre: 'Huevos', cantidad: 2, unidad: 'unidades' };
+  const RECETA = { nombre: 'Tortilla', raciones: 2, ingredientes: [HUEVOS], pasos: ['Bate los huevos.', 'Cuájalos.'] };
+
+  it('acepta una receta válida, limpia textos y quita líneas vacías', () => {
+    const resultado = validarReceta({ ...RECETA, nombre: '  Tortilla ', pasos: [' Bate los huevos. ', '', 'Cuájalos.'] });
+    assert.deepEqual(resultado, { ok: true, datos: RECETA });
+  });
+
+  it('las raciones son opcionales, pero si vienen son un entero de 1 a 20', () => {
+    const { raciones, ...sinRaciones } = RECETA;
+    assert.equal(validarReceta(sinRaciones).datos.raciones, null);
+    for (const mal of [0, 21, 2.5, '2']) {
+      assert.ok(validarReceta({ ...RECETA, raciones: mal }).errores.raciones);
+    }
+  });
+
+  it(`acepta ${MAX_INGREDIENTES_RECETA} ingredientes y rechaza uno más`, () => {
+    assert.equal(validarReceta({ ...RECETA, ingredientes: Array(MAX_INGREDIENTES_RECETA).fill(HUEVOS) }).ok, true);
+    assert.ok(validarReceta({ ...RECETA, ingredientes: Array(MAX_INGREDIENTES_RECETA + 1).fill(HUEVOS) }).errores.ingredientes);
+  });
+
+  it(`acepta ${MAX_PASOS_RECETA} pasos de ${MAX_LONGITUD_PASO} caracteres y rechaza uno más`, () => {
+    const largo = 'a'.repeat(MAX_LONGITUD_PASO);
+    assert.equal(validarReceta({ ...RECETA, pasos: Array(MAX_PASOS_RECETA).fill(largo) }).ok, true);
+    assert.ok(validarReceta({ ...RECETA, pasos: Array(MAX_PASOS_RECETA + 1).fill('Paso') }).errores.pasos);
+    assert.ok(validarReceta({ ...RECETA, pasos: [largo + 'a'] }).errores.pasos);
+  });
+
+  it('marca el campo exacto del ingrediente que falla', () => {
+    const resultado = validarReceta({ ...RECETA, ingredientes: [HUEVOS, { nombre: 'Sal', cantidad: 0, unidad: 'pizca' }] });
+    assert.deepEqual(Object.keys(resultado.errores).sort(), ['ingredientes.1.cantidad', 'ingredientes.1.unidad']);
+  });
+
+  it('pide al menos un ingrediente y un paso', () => {
+    const { errores } = validarReceta({ ...RECETA, ingredientes: [], pasos: ['', '  '] });
+    assert.ok(errores.ingredientes);
+    assert.ok(errores.pasos);
+  });
+
+  it('rechaza un paso con un salto de línea dentro e ignora campos que no conoce', () => {
+    assert.ok(validarReceta({ ...RECETA, pasos: ['uno\ndos'] }).errores.pasos);
+    assert.equal('hogarId' in validarReceta({ ...RECETA, hogarId: 99 }).datos, false);
   });
 });

@@ -44,6 +44,15 @@ export const MAX_BYTES_IMAGEN_TICKET = 5 * 1024 * 1024;
 /** Tamaño máximo del PDF del ticket: en base64 tiene que caber en 32 MB (D-47). */
 export const MAX_BYTES_PDF_TICKET = 20 * 1024 * 1024;
 
+/** Ingredientes y pasos de una receta, y lo que mide cada paso. SEC-05. */
+export const MAX_INGREDIENTES_RECETA = 30;
+export const MAX_PASOS_RECETA = 30;
+export const MAX_LONGITUD_PASO = 500;
+
+/** Para cuántas personas es una receta: opcional, de 1 a 20 (D-49). */
+export const MIN_RACIONES = 1;
+export const MAX_RACIONES = 20;
+
 /** Longitud de la contraseña: de 10 a 128 caracteres, sin más reglas (D-17). */
 export const MIN_LONGITUD_CONTRASENA = 10;
 export const MAX_LONGITUD_CONTRASENA = 128;
