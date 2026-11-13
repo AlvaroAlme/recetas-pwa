@@ -51,7 +51,13 @@ Proyecto de portfolio de un estudiante de DAW.
 3 (2026-11-08), 4 (2026-11-09) y 5 (2026-11-12). El detalle de cada paso
 está en los commits (`git log`).
 
-**Siguiente: fase 6 (recetas con IA y "La he cocinado").** Falta mi "ok"
+**Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
+ayudante con acciones (tarjetas que se confirman), el cuadrante va por
+fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
+semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
+recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
+8 chat ayudante, 9 cierre. Calendario: V2-03.
+**Siguiente: fase 6 (recetario y "La he cocinado").** Falta mi "ok"
 para empezarla. Antes de proponer nada, leer ARQUITECTURA §10 (fase 6).
 
 **Fase 5 (escaneo de tickets con Claude): aprobada.** Los 8 pasos

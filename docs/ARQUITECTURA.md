@@ -270,6 +270,9 @@ CREATE INDEX receta_ingredientes_receta_idx ON receta_ingredientes (receta_id);
 -- NO se pone CHECK (receta_id IS NOT NULL OR texto_libre IS NOT NULL):
 -- haría FALLAR el borrado de una receta asignada sin texto. Como en Expo,
 -- los huecos que quedan vacíos se ignoran al listar.
+-- ⚠️ D-48 (2026-11-13): el cuadrante pasa a ir POR FECHAS (fecha en vez de
+-- dia_semana), con "fuera de casa" y grupo de alimentos. Esta tabla se
+-- rediseña en la fase 7.
 CREATE TABLE planificador_semanal (
   id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   hogar_id     BIGINT NOT NULL REFERENCES hogares(id) ON DELETE CASCADE,
@@ -934,25 +937,50 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - en la pestaña Red del navegador no aparece la key **en ninguna petición**;
 - las pruebas de `validarRespuestaTicket()` cubren el límite exacto y un elemento de más (como SEC-05).
 
-### Fase 6 — Recetas con IA y "La he cocinado"
-- `005_recetas.sql`; portar `generadorRecetas.js`; sugerencias, guardar receta (TX), detalle con "qué me falta" y `/api/cocinar` (TX con `FOR UPDATE` e idempotente).
+> **Fases 6 a 9 replanteadas el 2026-11-13 (D-48):** la IA pasa a ser un
+> chat ayudante con acciones, el cuadrante va por fechas y el chat llega al
+> final, cuando ya existen el recetario y el cuadrante sobre los que actúa.
+> Así la app funciona entera sin IA. Los esquemas de §4 para `recetas`,
+> `planificador_semanal` y `sugerencias` se revisan en cada fase.
+
+### Fase 6 — Recetario y "La he cocinado" (sin IA)
+- `005_recetas.sql`; recetario del hogar (alta manual, editar, borrar); detalle con "qué me falta" y `/api/cocinar` (TX con `FOR UPDATE` e idempotente).
 
 **Hecho cuando:**
-- se generan 3 recetas para 2 personas, priorizando lo que caduca antes;
+- se puede crear a mano una receta con sus ingredientes y pasos;
 - "La he cocinado" convierte g↔kg y ml↔l, pregunta si las unidades no cuadran y marca como agotado lo que llega a 0;
 - si falla una fila, no se descuenta nada;
 - con dos navegadores del mismo hogar, si uno gasta antes → el otro recibe 409 y revisa;
 - repetir la misma `clave` no descuenta dos veces.
 
-### Fase 7 — Planificador semanal y aviso de la noche anterior
-- `006_planificador.sql` (con el `ALTER TABLE hogares` de la hora); cuadrante, asignar, quitar y plan del día; hora en Ajustes; aviso del plan en `avisos.js`.
+### Fase 7 — Cuadrante por fechas y aviso de la noche anterior (sin IA)
+- `006_cuadrante.sql` (con el `ALTER TABLE hogares` de la hora del aviso); semanas de lunes a domingo **por fechas** que empiezan vacías ("Semana del 23 al 29 de noviembre"), navegar entre semanas; cada hueco (fecha + comida/cena) con receta, texto libre o **"fuera de casa"**, y su **grupo de alimentos** (lista cerrada en `compartido/constantes.js`).
+- En el navegador, sin IA: **equilibrio de la semana** (veces de cada grupo frente a las frecuencias recomendadas, de una fuente española **verificada**, p. ej. AESAN) y **avisos de caducidad** ("El pollo caduca pronto") con `avisoCaducidad()`. Línea "Orientativo, no sustituye el consejo de un profesional".
+- Hora del aviso en Ajustes; aviso del plan en `avisos.js`.
 
 **Hecho cuando:**
-- con la hora puesta 5 minutos más tarde, llega "Mañana comes…", y al tocarlo se abre `/plan/<día>` con lo que tienes y lo que te falta;
-- no llega dos veces;
+- una semana nueva aparece vacía y la cabecera dice sus fechas;
+- se puede poner a mano "Comida aniversario" un día y marcar otro como "fuera de casa";
+- el equilibrio cambia al añadir o quitar un hueco con grupo;
+- con la hora puesta 5 minutos más tarde, llega "Mañana comes…", y al tocarlo se abre ese día con lo que tienes y lo que te falta; no llega dos veces;
 - borrar una receta asignada deja su hueco vacío sin error.
 
-### Fase 8 — Cierre
+### Fase 8 — Chat ayudante con IA
+- `007_chat.sql`: conversaciones y mensajes **por persona**, borrados solos a los N días (propuesta: 30) y a mano.
+- Respuesta en **streaming**; **herramientas** (*tool use*) que ejecuta el servidor: leer el inventario y la semana, proponer una receta, proponer huecos del cuadrante. Lo que propone sale como **tarjetas** ("Guardar receta", "Añadir al cuadrante"): nada se guarda sin confirmar.
+- Al sugerir huecos, la IA recibe la semana, los grupos que faltan y lo que caduca antes, y propone un grupo distinto cada día; nunca rellena un hueco "fuera de casa".
+- **Cuota propia del chat** (propuesta: 30 mensajes/día/persona); aviso de privacidad ampliado (los mensajes se envían a Anthropic y se guardan N días).
+- Verificar en la documentación actual de Claude: *tool use*, streaming y límites antes de escribir código (como R-17).
+
+**Hecho cuando:**
+- responde una duda de cocina con la respuesta apareciendo mientras se escribe;
+- "hazme una receta con lo que tengo" muestra una tarjeta y "Guardar receta" la añade al recetario;
+- "rellena las cenas de esta semana" propone huecos variados (grupos distintos, primero lo que caduca) y se añaden solo los que aceptas;
+- un hueco "fuera de casa" no se toca;
+- el mensaje siguiente al último de la cuota → 429; la conversación sigue al recargar y otra persona del hogar no la ve;
+- en la pestaña Red no aparece la key en ninguna petición.
+
+### Fase 9 — Cierre
 - Recuperar la contraseña por email (P-10; decisión del proveedor en ese momento).
 - Revisión de accesibilidad, `npm audit`, README del proyecto y actualización de la auditoría con los hallazgos nuevos.
 
@@ -968,8 +996,9 @@ diseña y se decide (D-xx) cuando le toque.
 
 | # | Idea | Qué es | Preguntas que habrá que decidir |
 |---|---|---|---|
-| V2-01 | **Consejos y trucos de cocina** | Consejos que da la IA: cómo ligar una salsa, cómo dejar las patatas más crujientes, etc. | ¿Se pregunta libremente o se eligen temas? ¿Gasta la cuota diaria de IA (D-15) o tiene la suya? ¿Se guardan los consejos (por hogar, como las recetas) para no repetir llamadas? ¿Se enlazan con las recetas (un consejo para la receta que estás viendo)? |
+| V2-01 | ~~Consejos y trucos de cocina~~ | **Pasa a la versión 1** (D-48): las dudas de cocina las resuelve el chat ayudante de la fase 8 | — |
 | V2-02 | **Productos de temporada** | Al cambiar de estación o al acercarse una fiesta, recomendar productos de temporada: fruta y verdura (fresas y melocotón en verano), pescado (también va por temporadas) y dulces de fiesta (turrón y panettone en Navidad) | ¿Lista fija revisada en `compartido/` (gratis y sin red) o la da la IA? ¿De dónde salen los datos de temporada (fuente fiable, España)? Fiestas con fecha que cambia cada año (Semana Santa). ¿Dónde se ven (aviso en el inventario, pestaña propia, en la lista de la compra)? ¿Se tienen en cuenta en el prompt de las recetas? |
+| V2-03 | **Importar el calendario** | Que las citas y eventos (comida de empresa, cumpleaños) aparezcan solos en el cuadrante, p. ej. con la dirección privada iCal de Google Calendar | La dirección iCal es un secreto que habría que guardar en el servidor. Los eventos que se repiten (RRULE) son difíciles de leer bien sin una librería (dependencia nueva). ¿Qué eventos cuentan como "comida" o "cena" (por la hora)? ¿Se crean como "fuera de casa" o como texto? |
 
 ---
 
@@ -991,7 +1020,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-12 | 2026-10-18 | Utilidades de seguridad | **`helmet`** para las cabeceras HTTP (con una CSP propia); **código propio** para leer la cookie de sesión y para el límite de peticiones; variables de entorno con `node --env-file` (sin `dotenv`) | Cabeceras probadas en producción; el resto son pocas líneas que se pueden explicar. |
 | D-13 | 2026-10-18 | Formato de los avisos push | **Declarative Web Push** (`web_push: 8030`, `notification`, `navigate`) **+ Service Worker que lee el mismo JSON** | En iOS 18.4+ el aviso se ve aunque falle el Service Worker; en el resto de navegadores lo muestra el Service Worker. Un solo formato para todos. |
 | D-14 | 2026-10-19 | Evitar agotar las horas de cómputo de Neon | **Próximo aviso en memoria** (§7.3): el ping solo consulta la base de datos cuando toca avisar | Consultar la base de datos cada 5 min la mantendría despierta 744 h/mes (≈ 186 CU-h > 100 gratis). Así Neon duerme casi todo el día y se mantiene la precisión de 5 min. |
-| D-15 | 2026-10-19 | Cuota diaria de IA | **10 llamadas por persona y día** (`CUOTA_IA_DIARIA`), además del límite de gasto mensual en la consola | Sobra para un uso normal (un ticket y algunas tandas de recetas) y pone techo al gasto aunque alguien abuse. |
+| D-15 | 2026-10-19 | Cuota diaria de IA | **10 llamadas por persona y día** (`CUOTA_IA_DIARIA`), además del límite de gasto mensual en la consola | Sobra para un uso normal (un ticket y algunas tandas de recetas) y pone techo al gasto aunque alguien abuse. **Cambiada por D-48:** queda para el ticket; el chat tiene su propia cuota. |
 | D-16 | 2026-10-19 | Hogares por persona | P-01 aceptada: **un solo hogar**; al unirse a otro, el hogar anterior se borra si se queda vacío (con confirmación) | Ver P-01 |
 | D-17 | 2026-10-19 | Contraseña y sesión | P-02 aceptada: **10–128 caracteres**, sesión de **30 días** | Ver P-02 |
 | D-18 | 2026-10-19 | Envío del ticket | P-03 aceptada: **base64 en JSON**, foto reducida con `<canvas>` | Ver P-03 |
@@ -1007,7 +1036,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-28 | 2026-10-19 | Pantallas que eran modales (fase B) | **Páginas con URL propia y "‹ Atrás"**; solo las confirmaciones (los `Alert` de Expo) usan `<dialog>` con `showModal()` | Funcionan el gesto atrás y el botón del navegador, se abren desde un aviso y el navegador gestiona el foco, `Esc` y el fondo inerte. |
 | D-29 | 2026-10-19 | Tipografía (fase B) | **Fuente del sistema** (`system-ui`, San Francisco en iPhone) con los tamaños de `tema.ts` y el tamaño de texto de iOS | 0 KB, funciona sin red y no envía datos a terceros. *Ampliada por D-45: los títulos y la marca usan Bricolage Grotesque; el texto sigue con la del sistema.* |
 | D-30 | 2026-10-19 | Iconos (fase B) | **SVG propios en línea** con `currentColor`, siempre con texto y `aria-hidden` | Toman el color del tema y no hay dependencias. |
-| D-31 | 2026-10-19 | Recetas sugeridas sin guardar (fase B, era P-12) | **En el servidor**: tabla `sugerencias` (JSONB) por hogar; cada generación sustituye a la anterior; caducan a los 7 días | Cada generación gasta cuota de IA: no se pierden al recargar, se ven en todos los dispositivos y las comparte el hogar. |
+| D-31 | 2026-10-19 | Recetas sugeridas sin guardar (fase B, era P-12) | **En el servidor**: tabla `sugerencias` (JSONB) por hogar; cada generación sustituye a la anterior; caducan a los 7 días | Cada generación gasta cuota de IA: no se pierden al recargar, se ven en todos los dispositivos y las comparte el hogar. **Cambiada por D-48:** las propuestas de la IA son tarjetas del chat (guardadas con la conversación, por persona); la tabla `sugerencias` se revisa en la fase 8. |
 | D-32 | 2026-10-19 | Fecha de caducidad (fase B, era P-12) | **`<input type="date">` nativo** + botón "Quitar fecha"; validación igual en el servidor | Rueda nativa en iOS, sin errores de formato ni librerías; el motivo de Expo (no añadir dependencias de calendario) desaparece en la web. |
 | D-33 | 2026-10-22 | Nombre de la carpeta del backend (fase 0) | **`server/`** en lugar de `servidor/`; las subcarpetas y los archivos siguen en español | Preferencia del autor. Se actualizan los scripts de `package.json` y las rutas de esta documentación. |
 | D-34 | 2026-10-22 | Dónde guardar los secretos de desarrollo para usarlos en varios ordenadores | **Bitwarden** (plan gratuito), nota segura con el `.env`, contraseña maestra única y verificación en dos pasos con app de autenticación | Gestor probado y auditado en lugar de uno propio; sincroniza entre los PC y el iPhone; los secretos nunca pasan por git, el email ni la mensajería. |
@@ -1024,6 +1053,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-45 | 2026-11-07 | Nombre comercial e identidad visual (fase 3; sustituye a D-41 y amplía D-29) | **"Vigía"**, con el icono "ojo-hoja" (almendra crema con pupila azafrán sobre verde pino). Paleta: fondo papel `#f6f5f0` / `#121614`, superficie blanca `#ffffff` / `#1b201d`, primario **verde pino** `#1d5e47` / `#6fcf9f`, acento **azafrán** `#a87108` / `#f2c14e` (solo gráficos). Tokens nuevos de caducidad `ok` / `pronto` / `caducado` (peligro, aviso y éxito pasan a ser sus alias) y `--color-superficie-2`. Radios 6 / 10 / 14 px y píldora. Títulos y marca con **Bricolage Grotesque** (OFL, variable, 41 KB) alojada en `web/fuentes/` por la CSP `'self'`; el texto sigue con la fuente del sistema. La caducidad se muestra como etiqueta con texto e icono distinto (aspa, reloj, punto) | La app sirve para **controlar lo que hay en casa y no tirar comida**, no para improvisar recetas: "Vigía" es quien vigila la despensa y avisa a tiempo. Diseño plano y sobrio de herramienta (recomendación de ui-ux-pro-max para inventario y lista de la compra). El verde pino da 7,65:1 con el texto del botón (el salvia daba 4,62). Todos los pares medidos ≥ 4,5:1 en texto y ≥ 3:1 en bordes, en los dos modos (`DISENO_UI.md` §2.1). Una sola fuente web, solo en títulos: conserva el tamaño de letra de iOS y pesa poco. La carpeta y el repositorio siguen llamándose `recetas-nevera-pwa`. |
 | D-46 | 2026-11-08 | Bienvenida P-03 (decidida al cerrar la fase 3) | **Se hace entera en la fase 4**, con sus 3 pasos (tu casa con el nombre editable, instalar la app y activar los avisos). Hasta entonces, el registro lleva al inventario | Su sentido es llevar a instalar la app y activar los avisos; sin avisos (fase 4) el paso de instalar pierde el porqué. El paso 1 necesita `PATCH /api/hogar`, que también está pendiente. Hacerla a trozos obligaría a rehacerla. |
 | D-47 | 2026-11-09 | Límite de los PDF del ticket y versión de la API de Claude (fase 5) | **PDF ≤ 20 MB** (no 25 como en `ticket.ts`): en base64 ocupa un tercio más y 25 MB serían ~33 MB, por encima del máximo de 32 MB por petición de la API. **`anthropic-version: 2023-06-01`**, como en Expo; la `2026-10-21` no cambia nada de esta petición | La API rechaza las peticiones de más de 32 MB; con 20 MB queda margen para el prompt y el JSON. Cambiar de versión no aporta nada ahora y rompería el «tal cual». Tiempo máximo con Claude, 60 s (Expo: 120), por debajo de los 75 s de api.js. La cuota se devuelve con cualquier error reintentable (no solo red y 5xx): ninguno es culpa de quien escanea |
+| D-48 | 2026-11-13 | La IA como ayudante de cocina: chat, recetas y cuadrante (replantea las fases 6 a 9; cambia D-15 y D-31; adelanta V2-01) | **Chat ayudante con acciones**: resuelve dudas y, con herramientas (*tool use*), propone recetas y huecos del cuadrante como **tarjetas que se confirman** ("Guardar receta", "Añadir al cuadrante"); nunca guarda nada sin confirmar. Conversaciones **en el servidor, por persona**, borradas solas a los N días (propuesta: 30). **Cuota propia del chat** (propuesta: 30 mensajes/día/persona); el ticket sigue con `CUOTA_IA_DIARIA`. **Cuadrante por fechas**: semanas de lunes a domingo que empiezan vacías ("Semana del 23 al 29 de noviembre"); cada hueco (fecha + comida/cena) lleva receta, texto libre o **"fuera de casa"**, y un **grupo de alimentos** (lista cerrada en `compartido/`). El navegador calcula sin IA los avisos de caducidad y el **equilibrio semanal** frente a frecuencias de una fuente española verificada (AESAN). Al sugerir, la IA elige un grupo distinto cada día, cubre los que faltan y usa primero lo que caduca. Orden: recetario (6) y cuadrante (7) sin IA, chat (8), cierre (9). Importar el calendario queda como V2-03 | El autor quiere la IA como **ayudante para planificar**, no como botones sueltos. Lo que se puede calcular (caducidad, equilibrio) no gasta IA y funciona sin red. Con 10 llamadas al día no da para conversar. Una semana fija que se repite no sirve: cada semana se planifica de cero y hay eventos de un día. El chat va al final porque sus acciones necesitan el recetario y el cuadrante; así, si la IA falla o se acaba la cuota, la app sigue sirviendo. Las cifras (cuota, días, frecuencias) se fijan en su fase |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 
