@@ -57,8 +57,21 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Siguiente: fase 6 (recetario y "La he cocinado").** Falta mi "ok"
-para empezarla. Antes de proponer nada, leer ARQUITECTURA §10 (fase 6).
+**Fase 6 (recetario y "La he cocinado"): en curso.** Plan: 1
+`005_recetas.sql` y `validarReceta()`; 2 "qué me falta" en
+`compartido/cocina.js`; 3 `/api/recetas` (crear, ver, editar, borrar);
+4 `POST /api/cocinar` (TX con `FOR UPDATE` en orden de id, 409
+`INVENTARIO_CAMBIADO`, `conClave()`); 5 pantallas: lista P-09 sin IA,
+formulario de receta NUEVO (reglas de formularios) y detalle P-11 con
+"qué me falta"; 6 "La he cocinado" P-12; 7 `sw.js` (añadir
+`/compartido/cocina.js` a `ARCHIVOS` y subir `VERSION`), desplegar e
+iPhone. D-49: editar (PUT), ingredientes en filas, pasos en un área de
+texto (uno por línea) y raciones opcionales (1 a 20).
+Hecho (2026-11-13): pasos 1, 2 y 3 (`005_recetas` aplicada en
+desarrollo; 100 pruebas en verde; `/api/recetas` probada desde la
+consola). Siguiente: paso 4.
+VS Code: la extensión SQL Server (mssql) marca en rojo los `.sql` de
+PostgreSQL; no son errores (la prueba real es `npm.cmd run migrar`).
 
 **Fase 5 (escaneo de tickets con Claude): aprobada.** Los 8 pasos
 (2026-11-09 a 2026-11-11), desplegada en Render (`app-v18`) y probada en

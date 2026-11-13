@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { formatearCantidad } from '../../compartido/formato.js';
 import { normalizar } from '../../compartido/texto.js';
 import { ubicacionesPosibles } from '../../compartido/ubicaciones.js';
+import { cantidadPropuesta, convertir, estadoIngrediente } from '../../compartido/cocina.js';
 
 describe('normalizar', () => {
   it('pasa a minúsculas y quita los espacios de los extremos', () => {
@@ -68,5 +69,33 @@ describe('formatearCantidad', () => {
   it('redondea a 2 decimales y no pone ceros de más', () => {
     assert.equal(formatearCantidad(0.333, 'l'), '0,33 l');
     assert.equal(formatearCantidad(0.1 + 0.2, 'kg'), '0,3 kg');
+  });
+});
+
+describe('cocina: qué me falta', () => {
+  const pollo = { id: 1, nombre: 'Pechuga de pollo', cantidad: 0.5, unidad: 'kg', fechaCaducidad: '2026-11-20' };
+  const huevos = { id: 2, nombre: 'Huevos', cantidad: 300, unidad: 'g', fechaCaducidad: null };
+
+  it('convierte g↔kg y ml↔l, y no mezcla familias', () => {
+    assert.equal(convertir(500, 'g', 'kg'), 0.5);
+    assert.equal(convertir(1.5, 'l', 'ml'), 1500);
+    assert.equal(convertir(2, 'unidades', 'g'), null);
+  });
+
+  it('"Pollo" encuentra "Pechuga de pollo" y suma en la unidad del ingrediente', () => {
+    assert.deepEqual(estadoIngrediente({ nombre: 'Pollo', cantidad: 300, unidad: 'g' }, [pollo], []), { tipo: 'tienes', disponible: 500 });
+    assert.deepEqual(estadoIngrediente({ nombre: 'Pollo', cantidad: 800, unidad: 'g' }, [pollo], []), { tipo: 'poco', disponible: 500 });
+  });
+
+  it('distingue "otra unidad", un tupper y "falta"', () => {
+    assert.equal(estadoIngrediente({ nombre: 'Huevos', cantidad: 2, unidad: 'unidades' }, [huevos], []).tipo, 'otra_unidad');
+    assert.equal(estadoIngrediente({ nombre: 'Lentejas', cantidad: 1, unidad: 'unidades' }, [], [{ id: 9, nombre: 'Lentejas con chorizo' }]).tipo, 'tupper');
+    assert.equal(estadoIngrediente({ nombre: 'Pimiento', cantidad: 1, unidad: 'unidades' }, [pollo], []).tipo, 'falta');
+  });
+
+  it('propone descontar en la unidad del producto, sin pasar de lo que hay', () => {
+    assert.equal(cantidadPropuesta({ nombre: 'Pollo', cantidad: 300, unidad: 'g' }, pollo), 0.3);
+    assert.equal(cantidadPropuesta({ nombre: 'Pollo', cantidad: 2, unidad: 'kg' }, pollo), 0.5);
+    assert.equal(cantidadPropuesta({ nombre: 'Huevos', cantidad: 2, unidad: 'unidades' }, huevos), null);
   });
 });

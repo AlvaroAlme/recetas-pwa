@@ -23,6 +23,7 @@ import { rutasProductos } from './rutas/productos.js';
 import { rutasPush } from './rutas/push.js';
 import { rutasTareas } from './rutas/tareas.js';
 import { rutasTuppers } from './rutas/tuppers.js';
+import { rutasRecetas } from './rutas/recetas.js';
 import { rutasYo } from './rutas/yo.js';
 
 const app = express();
@@ -103,6 +104,9 @@ app.use('/api/productos', exigirSesion, rutasProductos);
 
 // Tuppers (fase 4): igual, solo los de TU hogar.
 app.use('/api/tuppers', exigirSesion, rutasTuppers);
+
+// Recetario del hogar (fase 6): solo las recetas de TU hogar.
+app.use('/api/recetas', exigirSesion, rutasRecetas);
 
 // Avisos Web Push de este dispositivo (fase 4).
 app.use('/api/push', exigirSesion, rutasPush);
