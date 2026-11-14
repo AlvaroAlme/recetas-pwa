@@ -8,6 +8,9 @@
  */
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
+import { redondear } from '../../compartido/cocina.js';
+import { ErrorApi } from '../errores.js';
+import { conClave } from './operaciones.js';
 
 /** @typedef {import('../../compartido/validacion.js').DatosReceta} DatosReceta */
 
@@ -122,4 +125,59 @@ export async function actualizarReceta(hogarId, id, { nombre, raciones, ingredie
 export async function borrarReceta(hogarId, id) {
   const { rowCount } = await pool.query('DELETE FROM recetas WHERE hogar_id = $1 AND id = $2', [hogarId, id]);
   return rowCount > 0;
+}
+
+/**
+ * "La he cocinado" (P-07, P-06): descuento los productos y marco los tuppers
+ * como consumidos en UNA transacción. Si otra persona del hogar ha gastado
+ * algo mientras tanto y ya no llega, no recorto en silencio: 409 y la persona
+ * decide. Repetir la misma clave no descuenta dos veces.
+ * @param {number} hogarId
+ * @param {number} usuarioId
+ * @param {string} clave
+ * @param {{ productoId: number, cantidad: number }[]} descuentos En la unidad del producto.
+ * @param {number[]} tuppersConsumidos
+ * @returns {Promise<{ agotados: string[] }>} Los productos que se han acabado.
+ */
+export async function cocinar(hogarId, usuarioId, clave, descuentos, tuppersConsumidos) {
+  // Dos ingredientes pueden salir del mismo producto (sal en la masa y en la
+  // salsa): los sumo, o el segundo UPDATE pisaría al primero.
+  const porProducto = new Map();
+  for (const { productoId, cantidad } of descuentos) {
+    porProducto.set(productoId, redondear((porProducto.get(productoId) ?? 0) + cantidad));
+  }
+  const ids = [...porProducto.keys()];
+
+  return conTransaccion((cliente) =>
+    conClave(cliente, clave, usuarioId, async () => {
+      // Bloqueo las filas hasta el COMMIT, siempre en el mismo orden (ORDER BY
+      // id): dos personas cocinando a la vez nunca se esperan en círculo.
+      const { rows } = await cliente.query(
+        `SELECT id, nombre, cantidad FROM productos
+          WHERE hogar_id = $1 AND id = ANY($2::bigint[]) AND NOT agotado
+          ORDER BY id
+          FOR UPDATE`,
+        [hogarId, ids]
+      );
+
+      // ¿Falta alguno (borrado, agotado o de otra casa) o ya no llega?
+      const haCambiado =
+        rows.length !== ids.length || rows.some((fila) => porProducto.get(Number(fila.id)) > Number(fila.cantidad));
+      if (haCambiado) {
+        throw new ErrorApi(409, 'INVENTARIO_CAMBIADO', 'El inventario ha cambiado: alguien ha gastado algo mientras tanto. Revisa las cantidades.');
+      }
+
+      const agotados = [];
+      for (const fila of rows) {
+        const restante = redondear(Number(fila.cantidad) - porProducto.get(Number(fila.id)));
+        await cliente.query('UPDATE productos SET cantidad = $1::numeric, agotado = ($1::numeric = 0) WHERE id = $2', [restante, fila.id]);
+        if (restante === 0) agotados.push(fila.nombre);
+      }
+
+      if (tuppersConsumidos.length > 0) {
+        await cliente.query('UPDATE tuppers SET consumido = true WHERE hogar_id = $1 AND id = ANY($2::bigint[])', [hogarId, tuppersConsumidos]);
+      }
+      return { agotados };
+    })
+  );
 }

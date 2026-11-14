@@ -65,6 +65,20 @@ export function leerProducto(cuerpo) {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Compruebo la clave de idempotencia (P-06): el UUID que genera el navegador
+ * al abrir la pantalla. La comparten "Guardar ticket" y "La he cocinado".
+ * @param {unknown} clave
+ * @returns {string}
+ * @throws {ErrorApi} 400 VALIDACION
+ */
+export function leerClave(clave) {
+  if (typeof clave !== 'string' || !UUID.test(clave)) {
+    throw new ErrorApi(400, 'VALIDACION', 'Falta la clave de la operación. Vuelve a abrir la pantalla.');
+  }
+  return clave;
+}
+
+/**
  * Comprueba el lote del ticket: { clave, productos: [...] }, entre 1 y 100.
  * La `clave` es el UUID de idempotencia (P-06). Valido TODOS los productos
  * antes de guardar nada, y los errores van con la posición del producto
@@ -74,10 +88,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * @throws {ErrorApi} 400 VALIDACION
  */
 export function leerLote(cuerpo) {
-  const clave = cuerpo?.clave;
-  if (typeof clave !== 'string' || !UUID.test(clave)) {
-    throw new ErrorApi(400, 'VALIDACION', 'Falta la clave de la operación. Vuelve a abrir la pantalla.');
-  }
+  const clave = leerClave(cuerpo?.clave);
   const productos = cuerpo?.productos;
   if (!Array.isArray(productos) || productos.length === 0) {
     throw new ErrorApi(400, 'VALIDACION', REVISA_CAMPOS, {

@@ -57,7 +57,7 @@ function esObjeto(valor) {
  * @param {unknown} cantidad
  * @returns {{ valor: number } | { error: string }}
  */
-function leerCantidad(cantidad) {
+export function leerCantidad(cantidad) {
   const valor = typeof cantidad === 'number' ? Math.round(cantidad * 1000) / 1000 : NaN;
   if (!Number.isFinite(valor) || valor <= 0) return { error: 'Debe ser un número mayor que 0.' };
   if (valor > MAX_CANTIDAD) return { error: 'La cantidad es demasiado grande.' };

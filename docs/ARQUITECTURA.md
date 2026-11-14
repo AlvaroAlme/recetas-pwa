@@ -540,6 +540,9 @@ BEGIN;
 --    termine; 0 filas = ya hecha → devuelve la respuesta guardada sin aplicar nada.
 INSERT INTO operaciones (clave, usuario_id, respuesta) VALUES ($1, $2, '{}')
 ON CONFLICT (clave) DO NOTHING RETURNING clave;
+-- (Antes, en JS: los descuentos del MISMO producto se suman en uno, porque
+--  dos ingredientes pueden salir del mismo producto; si no, el segundo
+--  UPDATE pisaría al primero. Fase 6, 2026-11-14.)
 -- 1. Bloquea las filas que se van a tocar. ORDER BY id siempre en el mismo
 --    orden: dos transacciones simultáneas nunca se esperan en círculo (deadlock).
 SELECT id, nombre, cantidad FROM productos

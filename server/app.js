@@ -9,6 +9,7 @@
 import path from 'node:path';
 import express from 'express';
 import helmet from 'helmet';
+import { cocinar, rutasRecetas } from './rutas/recetas.js';
 import { comprobarOrigen } from './middlewares/origen.js';
 import { config } from './config.js';
 import { exigirSesion } from './middlewares/exigirSesion.js';
@@ -23,7 +24,6 @@ import { rutasProductos } from './rutas/productos.js';
 import { rutasPush } from './rutas/push.js';
 import { rutasTareas } from './rutas/tareas.js';
 import { rutasTuppers } from './rutas/tuppers.js';
-import { rutasRecetas } from './rutas/recetas.js';
 import { rutasYo } from './rutas/yo.js';
 
 const app = express();
@@ -107,6 +107,9 @@ app.use('/api/tuppers', exigirSesion, rutasTuppers);
 
 // Recetario del hogar (fase 6): solo las recetas de TU hogar.
 app.use('/api/recetas', exigirSesion, rutasRecetas);
+
+// "La he cocinado": descuenta del inventario (P-06, P-07).
+app.post('/api/cocinar', exigirSesion, cocinar);
 
 // Avisos Web Push de este dispositivo (fase 4).
 app.use('/api/push', exigirSesion, rutasPush);

@@ -69,7 +69,12 @@ iPhone. D-49: editar (PUT), ingredientes en filas, pasos en un área de
 texto (uno por línea) y raciones opcionales (1 a 20).
 Hecho (2026-11-13): pasos 1, 2 y 3 (`005_recetas` aplicada en
 desarrollo; 100 pruebas en verde; `/api/recetas` probada desde la
-consola). Siguiente: paso 4.
+consola). Hecho (2026-11-14): paso 4 (`POST /api/cocinar`: TX con
+`FOR UPDATE` en orden de id, 409 `INVENTARIO_CAMBIADO`, `conClave()`,
+suma los descuentos del mismo producto; `leerClave()` compartida con el
+lote; 104 pruebas en verde; 409 y ROLLBACK probados desde la consola).
+Falta probar dos navegadores a la vez (paso 7). Siguiente: paso 5
+(pantallas del recetario).
 VS Code: la extensión SQL Server (mssql) marca en rojo los `.sql` de
 PostgreSQL; no son errores (la prueba real es `npm.cmd run migrar`).
 

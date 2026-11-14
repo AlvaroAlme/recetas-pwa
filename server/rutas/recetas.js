@@ -6,7 +6,8 @@ import { Router } from 'express';
 import { ErrorApi } from '../errores.js';
 import * as recetas from '../servicios/recetas.js';
 import { leerId } from '../validacion/productos.js';
-import { leerReceta } from '../validacion/recetas.js';
+import * as agenda from '../agenda.js';
+import { leerCocinar, leerReceta } from '../validacion/recetas.js';
 
 export const rutasRecetas = Router();
 
@@ -40,6 +41,15 @@ rutasRecetas.post('/', async (req, res) => {
   const id = await recetas.crearReceta(req.hogarId, datos);
   res.status(201).json({ id });
 });
+
+// POST /api/cocinar (montada en app.js): "La he cocinado". Idempotente por `clave`.
+export async function cocinar(req, res) {
+  const { clave, descuentos, tuppersConsumidos } = leerCocinar(req.body);
+  const respuesta = await recetas.cocinar(req.hogarId, req.usuario.id, clave, descuentos, tuppersConsumidos);
+  // Un tupper consumido ya no tiene que avisar.
+  if (tuppersConsumidos.length > 0) await agenda.recalcular();
+  res.json(respuesta);
+}
 
 // PUT /api/recetas/3: la receta entera (D-49)
 rutasRecetas.put('/:id', async (req, res) => {
