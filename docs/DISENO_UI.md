@@ -477,7 +477,8 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 |---|---|---|
 | `FormularioProducto` | Alta y edición; validación por campo; regla "¿Dónde lo guardas?" (`ubicacionesPosibles()` en cada pulsación del nombre) | `{ inicial?, ubicacionSugerida?, textoBoton, alGuardar(datos) => Promise }` → `<form>` |
 | `LineaTicket` | Una línea del ticket: corregir, eliminar o confirmar; vista compacta "✓ Leche · 6 l · Despensa — Toca para editar" | `{ linea, alCambiar, alEliminar }` → `<article>`; exporta `problemaLinea()` |
-| `VistaReceta` | Ingredientes con "✓ Tienes 500 g" / "Solo tienes…" / "✗ Te falta", resumen "Tienes todo" / "Te faltan 2 ingredientes" y pasos numerados (`<ol>`) | `{ receta, productos, tuppers, sinPasos? }` → `<section>`; exporta `describirEstado()` |
+| `VistaReceta` | Ingredientes con "✓ Tienes 500 g" / "Solo tienes…" / "Tienes «X» en otra unidad: revísalo." / "Tienes el tupper «…»" / "✗ Te falta" (de `estadoIngrediente()`), resumen "Tienes todo" / "Te faltan 2 ingredientes" (cuenta `falta` y `poco`) y pasos numerados (`<ol>`) | `{ receta, productos, tuppers }` → `<section>`; exporta `describirEstado()` |
+| `FormularioReceta` | Alta y edición de una receta (P-20, D-49): nombre, raciones opcionales, filas de ingredientes (autocompletado de Producto y `<select>` de unidad) con "Añadir" y "Quitar", y pasos en un `<textarea>`; validación por campo con `validarReceta()` | `{ inicial?, textoBoton, alGuardar(datos) => Promise, buscarHistorial? }` → `{ formulario, boton }` (como `FormularioProducto`) |
 | `FilaCocinar` | Un ingrediente en "La he cocinado": "¿De cuál lo has usado?", la cantidad a descontar, "Quedarán…", "No descontar" | `{ fila, alCambiar }` → `<article>` |
 | `Hueco` | Un hueco del planificador (Comida/Cena) que se puede pulsar | `{ dia, tipo, plato }` → `<a>` |
 
@@ -688,57 +689,111 @@ ELEGIR                              REVISAR
 ```
 La primera vez, antes de "Elegir", aparece el **aviso de privacidad** (SEC-04, §7.1) y el pie dice `[Entendido, continuar]`. Un **solo botón** con un `<input type="file">` sin `capture` (R-08): el menú del sistema ofrece cámara, fotos y archivo.
 
-#### P-09 · Recetas — `/recetas` · E-1
+#### P-09 · Recetas — `/recetas` · E-1 (sin IA, D-48)
 ```
 ┌──────────────────────────────┐
 │  Recetas                      │
-│ [Generar recetas con lo que tengo]
-│  Claude propone recetas con   │
-│  tu inventario, empezando por │
-│  lo que caduca antes.         │
-│  Te quedan 9 de 10 hoy.       │
-│  SUGERENCIAS                  │
 │ ┌──────────────────────────┐ │
-│ │ Arroz con pollo          │ │
-│ │ Pechuga de pollo, arroz… │ │
+│ │ Tortilla de patatas    › │ │
+│ │ Para 4 personas          │ │
 │ └──────────────────────────┘ │
 │ ┌──────────────────────────┐ │
-│ │ Lentejas con chorizo     │ │
+│ │ Lentejas con chorizo   › │ │
 │ └──────────────────────────┘ │
-│  RECETAS GUARDADAS            │
-│ ┌──────────────────────────┐ │
-│ │ Tortilla de patatas      │ │
-│ └──────────────────────────┘ │
+│──────────────────────────────│
+│ [        + Receta         ]   │
 ├──────────────────────────────┤
 │ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │
 └──────────────────────────────┘
 ```
-Con sugerencias, el botón dice "Generar otras recetas" y avisa con `confirmar()`: "Las sugerencias actuales se sustituirán. Gastarás 1 de tus consultas de hoy."
+- Lista con `crearFila`, **las más recientes primero** (el orden de `GET /api/recetas`). Subtítulo "Para N personas" solo si la receta tiene raciones.
+- "Qué me falta" **no** se calcula en la lista (habría que cruzar cada receta con todo el inventario): está en el detalle (P-11).
+- Vacía: `EstadoVacio` "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte." + `[+ Receta]`.
+- `[+ Receta]` en el pie → `/receta/nueva` (P-20).
 
-#### P-10 · Sugerencia — `/sugerencia/:id` · P-11 · Receta guardada — `/receta/:id` · E-2
+#### P-10 · Sugerencia — pasa a la fase 8 (D-48)
+Las recetas propuestas por la IA llegan con el chat ayudante, como tarjetas que se confirman. Esta pantalla se rediseñará entonces.
+
+#### P-11 · Receta — `/receta/:id` · E-2
 ```
 ┌──────────────────────────────┐
-│  ‹ Recetas                    │
-│  Arroz con pollo              │  (h1)
-│  Para 2 personas · Te falta   │
-│  1 ingrediente  (naranja)     │
+│  ‹ Recetas            Editar  │
+│  Tortilla de patatas          │  (h1)
+│  Para 4 personas · Te faltan  │
+│  2 ingredientes  (naranja)    │
 │  INGREDIENTES                 │
-│  Pechuga de pollo · 300 g     │
-│  ✓ Tienes 500 g   (verde)     │
-│  Arroz · 200 g                │
-│  ✓ Tienes 1 kg                │
-│  Pimiento · 1 ud.             │
-│  ✗ Te falta       (rojo)      │
+│  Patatas · 1 kg               │
+│  ✓ Tienes 1,5 kg   (verde)    │
+│  Huevos · 6 ud.               │
+│  Solo tienes 4 ud. (naranja)  │
+│  Cebolla · 1 ud.              │
+│  ✗ Te falta        (rojo)     │
+│  Aceite · 100 ml              │
+│  Tienes «Aceite» en otra      │
+│  unidad: revísalo. (tenue)    │
 │  PASOS                        │
-│  1. Corta el pollo en dados.  │
+│  1. Pela y corta las patatas. │
 │  2. …                         │
+│  ‹Borrar receta›              │
 │──────────────────────────────│
-│ [Guardar receta]° [La he cocinado]│  ← sugerencia
+│ [     La he cocinado      ]   │
 └──────────────────────────────┘
 ```
-En la receta guardada, el pie solo tiene `[La he cocinado]` y al final hay un `‹Borrar receta›` con confirmación.
+- Estado de cada ingrediente con `estadoIngrediente()` (`compartido/cocina.js`), siempre con **texto además del color** (principio 4):
 
-#### P-12 · La he cocinado — `/cocinar?receta=:id` · `/cocinar?sugerencia=:id` · E-2
+  | Estado | Texto | Tono |
+  |---|---|---|
+  | `tienes` | "✓ Tienes 1,5 kg" | `exito` |
+  | `poco` | "Solo tienes 200 g" | `aviso` |
+  | `otra_unidad` | "Tienes «Aceite» en otra unidad: revísalo." | `tenue` |
+  | `tupper` | "Tienes el tupper «Lentejas con chorizo»" | `exito` |
+  | `falta` | "✗ Te falta" | `peligro` |
+
+- Resumen bajo el título: "Tienes todo" (`exito`) o "Te faltan N ingredientes" (`aviso`), contando **`falta` y `poco`**. `otra_unidad` no cuenta: sí lo tienes, y "La he cocinado" preguntará cuánto has gastado.
+- Se calcula **al abrir**, con los productos y los tuppers del hogar recién pedidos a la API (si alguien de la casa acaba de gastar algo, ya sale).
+- `Editar` en la cabecera → `/receta/:id/editar` (P-20).
+- `‹Borrar receta›` (botón fantasma, al final) con `confirmar()`: "Borrar receta" / "Se borrará «Tortilla de patatas». No se puede deshacer." / `[Borrar]` peligroso → vuelve a Recetas con "✓ «Tortilla de patatas» borrada."
+- El pie **solo** tiene `[La he cocinado]` → `/cocinar?receta=:id` (P-12).
+
+#### P-20 · Nueva / editar receta — `/receta/nueva` · `/receta/:id/editar` · E-2 (D-49)
+```
+┌──────────────────────────────┐
+│  ‹ Atrás      Nueva receta    │
+│  Nombre                       │
+│  [Ej. Tortilla de patatas___] │
+│  Raciones (opcional)          │
+│  [Ej. 4__]                    │
+│  ⓘ Solo para saber para       │
+│    cuántas personas es.       │
+│  INGREDIENTES                 │
+│ ┌──────────────────────────┐ │
+│ │ Ingrediente              │ │
+│ │ [Ej. Patatas___________] │ │
+│ │ Cantidad     Unidad      │ │
+│ │ [Ej. 500]    [ g      ▾] │ │
+│ │                ‹Quitar›  │ │
+│ └──────────────────────────┘ │
+│ [+ Añadir ingrediente]°       │
+│  Pasos                        │
+│  [__________________________] │
+│  [__________________________] │
+│  ⓘ Escribe un paso por línea. │
+│──────────────────────────────│
+│ [     Guardar receta      ]   │  ("Guardar cambios" al editar)
+└──────────────────────────────┘
+```
+Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la flotante, elegida a sabiendas), placeholder solo de ejemplo, ayuda bajo el campo con `aria-describedby` y "(opcional)" en vez de asteriscos.
+- **Nombre:** `CampoTexto`, máximo 80, placeholder "Ej. Tortilla de patatas".
+- **Raciones (opcional):** `inputmode="numeric"`, de 1 a 20, ayuda "Solo para saber para cuántas personas es."
+- **Ingredientes:** una `Tarjeta` por fila (empieza con **una fila vacía**):
+  - Ingrediente: `CampoTexto` con el **autocompletado de Producto** (historial del hogar + lista fija, D-42): si se escribe igual que en el inventario, "qué me falta" lo encuentra.
+  - Cantidad: `inputmode="decimal"` (acepta coma). Unidad: **`<select>` nativo** (g, kg, ml, l, unidades), al lado de la cantidad: con chips cada fila tendría 5 más y la pantalla se haría muy larga; en el iPhone abre la rueda del sistema.
+  - `‹Quitar›` solo si hay más de una fila. `[+ Añadir ingrediente]°` añade una fila vacía y lleva el foco a su nombre; con 30 filas se deshabilita con el motivo "Como mucho 30 ingredientes".
+- **Pasos:** `<textarea>` que crece con el texto, ayuda "Escribe un paso por línea." Al guardar se parte por líneas y se quitan las vacías (lo que espera `validarReceta()`). Al editar, los pasos se unen con un salto de línea.
+- **Errores:** `validarReceta()` (la misma del servidor, D-40) los da por campo, también los de cada fila (`ingredientes.2.cantidad`): se marca ese campo y el foco va al primero que falla.
+- **Al guardar** (`POST` o `PUT /api/recetas`): "Guardando…" → reemplaza el formulario en el historial por `/receta/:id` con "✓ Receta guardada." o "✓ Cambios guardados." (así "Atrás" no vuelve al formulario).
+
+#### P-12 · La he cocinado — `/cocinar?receta=:id` · E-2
 ```
 ┌──────────────────────────────┐
 │  ‹ Atrás      La he cocinado  │
@@ -906,9 +961,10 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/tupper/:id` | P-07 | Inventario | `id` entero > 0 | `/` |
 | `/ticket` | P-08 | Inventario | — | `/` |
 | `/recetas` | P-09 | Recetas | — | — |
-| `/sugerencia/:id` | P-10 | Recetas | `id` entero > 0 | `/recetas` |
+| `/receta/nueva` | P-20 | Recetas | — (va antes que `/receta/:id`) | `/recetas` |
 | `/receta/:id` | P-11 | Recetas | `id` entero > 0 | `/recetas` |
-| `/cocinar` | P-12 | Recetas | **exactamente uno** de `?receta` o `?sugerencia`, entero > 0 | la receta o la sugerencia |
+| `/receta/:id/editar` | P-20 | Recetas | `id` entero > 0 | `/receta/:id` |
+| `/cocinar` | P-12 | Recetas | `?receta` entero > 0 (la sugerencia, en la fase 8) | `/receta/:id` |
 | `/semana` | P-13 | Semana | — | — |
 | `/plan/:dia` | P-15 | Semana | `dia` ∈ `DIAS_SEMANA` | `/semana` |
 | `/plan/:dia/:tipo` | P-14 | Semana | `dia` ∈ `DIAS_SEMANA`, `tipo` ∈ `TIPOS_COMIDA` | `/semana` |
@@ -994,19 +1050,17 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 4. **Si se pulsa Guardar sin elegir:** "✗ Elige dónde guardas «Pechuga de pollo»." bajo el selector y el foco va al primer chip recomendado.
 5. **Al editar** no se pregunta (ya tiene ubicación), como en Expo.
 
-### 7.3 Generar receta → "La he cocinado"
-1. **Recetas** → `[Generar recetas con lo que tengo]`, con "Te quedan N de 10 hoy". Si ya hay sugerencias, `confirmar()`: "Las sugerencias actuales se sustituirán. Gastarás 1 de tus consultas de hoy." → `[Generar otras]`.
-2. **Generando:** el botón pasa a "Generando recetas…" y aparece "Pensando recetas…" / "Puede tardar hasta un minuto."
-3. **Errores:** inventario vacío → "Tu inventario está vacío. Añade productos o tuppers primero." + `‹Ir al inventario›`; cuota agotada; error de Claude + `[Reintentar]`.
-4. **Sugerencias** (guardadas en el servidor, D-31): tarjetas con el nombre y los ingredientes. Se ven también desde el otro móvil de la casa.
-5. **Sugerencia** → `VistaReceta`: "Para 2 personas · Te falta 1 ingrediente", y cada ingrediente con "✓ Tienes…", "Solo tienes…", "Tienes X (en otra unidad)" o "✗ Te falta", calculado **en el momento** con el inventario recién pedido.
-6. `[Guardar receta]°` → `POST /api/sugerencias/:id/guardar` → reemplaza la pantalla por `/receta/:id` (`replaceState`) con "✓ Receta guardada."
-7. `[La he cocinado]` → `/cocinar?…`: una `FilaCocinar` por ingrediente, con la propuesta automática (`cantidadPropuesta()`): el producto que antes caduca, la cantidad convertida a su unidad y "Quedarán 200 g." / "«Leche» quedará agotado." Si las unidades no cuadran, campo vacío y la pregunta "¿Cuánto has gastado?". Los tuppers aparecen como casilla "Marcar el tupper «Lentejas» como consumido". "No descontar" deja la fila tenue. Lo que no está en el inventario: "No está en tu inventario: no se descuenta nada."
-8. **El pie** dice "Revisa N ingredientes" (deshabilitado con el motivo) o `[Descontar del inventario]`.
-9. **Guardando:** "Actualizando…" → `POST /api/cocinar` (con `clave`).
-10. **Éxito:** vuelve a la receta con "✓ ¡Que aproveche! Inventario actualizado. Se han agotado: Leche, Huevos."
-11. **409** (alguien de la casa gastó algo): `Aviso` "Alguien de tu casa ha cambiado el inventario. Revisa las cantidades." → se recargan las filas con el inventario nuevo y se mantiene lo que el usuario ya había decidido cuando sigue siendo válido.
-12. **Otro fallo:** "No se ha descontado nada. Ha fallado la actualización del inventario. Inténtalo de nuevo." + `[Reintentar]`.
+### 7.3 Escribir una receta → ver qué me falta → "La he cocinado" (fase 6, sin IA, D-48)
+1. **Recetas** → `[+ Receta]` → **P-20**: nombre, raciones (opcional), filas de ingredientes y pasos (uno por línea). Errores por campo con `validarReceta()`.
+2. **Guardar** → `POST /api/recetas` → reemplaza el formulario por `/receta/:id` con "✓ Receta guardada." (Editar: `PUT`, "✓ Cambios guardados.")
+3. **Receta (P-11)** → `VistaReceta`: "Para 4 personas · Te faltan 2 ingredientes", y cada ingrediente con "✓ Tienes…", "Solo tienes…", "Tienes «X» en otra unidad: revísalo.", "Tienes el tupper «…»" o "✗ Te falta", calculado **en el momento** con el inventario y los tuppers recién pedidos.
+4. Las recetas son del hogar: se ven también desde el otro móvil de la casa. (Las propuestas por la IA llegan en la fase 8.)
+5. `[La he cocinado]` → `/cocinar?…`: una `FilaCocinar` por ingrediente, con la propuesta automática (`cantidadPropuesta()`): el producto que antes caduca, la cantidad convertida a su unidad y "Quedarán 200 g." / "«Leche» quedará agotado." Si las unidades no cuadran, campo vacío y la pregunta "¿Cuánto has gastado?". Los tuppers aparecen como casilla "Marcar el tupper «Lentejas» como consumido". "No descontar" deja la fila tenue. Lo que no está en el inventario: "No está en tu inventario: no se descuenta nada."
+6. **El pie** dice "Revisa N ingredientes" (deshabilitado con el motivo) o `[Descontar del inventario]`.
+7. **Guardando:** "Actualizando…" → `POST /api/cocinar` (con `clave`).
+8. **Éxito:** vuelve a la receta con "✓ ¡Que aproveche! Inventario actualizado. Se han agotado: Leche, Huevos."
+9. **409** (alguien de la casa gastó algo): `Aviso` "Alguien de tu casa ha cambiado el inventario. Revisa las cantidades." → se recargan las filas con el inventario nuevo y se mantiene lo que el usuario ya había decidido cuando sigue siendo válido.
+10. **Otro fallo:** "No se ha descontado nada. Ha fallado la actualización del inventario. Inténtalo de nuevo." + `[Reintentar]`.
 
 ### 7.4 Tupper → aviso → "Marcar como consumido"
 1. Inventario → `[+ Tupper]°` → `/tupper/nuevo`: nombre, ubicación y días (3 por defecto).
@@ -1058,8 +1112,9 @@ Comunes a todas:
 | Nuevo tupper | — | — | "Escribe qué hay en el tupper (ej. Cocido)." · "Debe ser un número entero entre 1 y 365." | "Guardando…" → "No se ha podido guardar el tupper. Inténtalo de nuevo." | Formulario + vista previa |
 | Tupper | "Cargando…" | "Este tupper ya no existe" + `[Volver]°` | "No se ha podido cargar el tupper." + `[Reintentar]` | "Guardando…" → "No se ha podido marcar como consumido. Inténtalo de nuevo." | Ficha |
 | Ticket | Aviso de privacidad / "Leyendo el ticket…" | Todas eliminadas: "No queda ningún producto" + `[Escanear otro ticket]°` | Mensajes de `ticket.ts` y `claude.ts` + `[Reintentar con el mismo ticket]` si es reintentable · "Sin permiso para usar la cámara…" **[sin verificar]** cómo se detecta en la web (fase 5) | "Guardando…" → "No se ha guardado nada…" + `[Reintentar]` | Lista de revisión |
-| Recetas | Guardadas: indicador en línea · Generando: "Pensando recetas…" | Guardadas: "Aún no has guardado recetas" / "Genera sugerencias y pulsa «Guardar receta» en las que te gusten." | De generación + `[Reintentar]` / `‹Ir al inventario›` · Al cargar: "No se han podido cargar las recetas." + `[Reintentar]` | — | Sugerencias + guardadas |
-| Sugerencia / Receta | "Cargando…" | "Esta sugerencia ya no está disponible" / "Se sustituyó por otras o ya se guardó." · "Esta receta ya no existe" + `[Volver]°` | `[Reintentar]` | Guardar receta: "Guardando…" → "No se ha guardado. Ha fallado el guardado de la receta. Inténtalo de nuevo." · Borrar: confirmación → "No se ha podido borrar." | `VistaReceta` |
+| Recetas | "Cargando…" | "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte." + `[+ Receta]` | "No se han podido cargar las recetas." + `[Reintentar]` | — | Lista de recetas |
+| Receta | "Cargando…" | "Esta receta ya no existe" + `[Volver]°` | "No se ha podido abrir la receta." + `[Reintentar]` | Borrar: confirmación → "No se ha podido borrar la receta." | `VistaReceta` |
+| Nueva / editar receta | Al editar: "Cargando…" | — | Por campo (`validarReceta()`) · "No se ha guardado. Ha fallado el guardado de la receta. Inténtalo de nuevo." | "Guardando…" | `FormularioReceta` |
 | La he cocinado | "Preparando el descuento…" | "Esta receta ya no está disponible" + `[Volver]°` | Errores por fila · 409 "Alguien de tu casa ha cambiado el inventario…" | "Actualizando…" → "No se ha descontado nada…" + `[Reintentar]` | Filas |
 | Semana | "Cargando el plan…" | No existe: los 7 días siempre se ven, con "+ Añadir" | "No se ha podido cargar el plan." + `[Reintentar]` | — | Cuadrante |
 | Planificar hueco | Recetas: indicador en línea | "Aún no tienes recetas guardadas" / "Genera y guarda alguna en la pestaña Recetas." · Parámetro malo: "Hueco no válido" | — | "Guardando…" → "No se ha guardado. Ha fallado el cambio en el plan. Inténtalo de nuevo." | Formulario + recetas |
