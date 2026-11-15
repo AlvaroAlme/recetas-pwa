@@ -199,6 +199,16 @@ export function repintar() {
 }
 
 /**
+ * Cambio el título de la cabecera y de la pestaña cuando la pantalla ya lo
+ * sabe (una receta: hasta que llega no sé cómo se llama).
+ * @param {string} titulo
+ */
+export function ponerTitulo(titulo) {
+  $('titulo').textContent = titulo;
+  document.title = `${titulo} · Vigía`;
+}
+
+/**
  * El mensaje de éxito que me ha dejado la pantalla anterior. Solo lo doy una
  * vez: lo borro del historial para que no salga otra vez al recargar.
  * @returns {string | { texto: string, tipo: 'aviso' } | undefined}

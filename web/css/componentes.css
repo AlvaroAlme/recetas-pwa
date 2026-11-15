@@ -314,6 +314,10 @@
   color: var(--color-peligro);
   font-weight: var(--peso-fuerte);
 }
+.tono--exito {
+  color: var(--color-exito);
+  font-weight: var(--peso-fuerte);
+}
 
 /* ============ Selector (chips) ============ */
 .selector {
@@ -1130,4 +1134,42 @@ textarea.campo__entrada {
 .fila-ingrediente__acciones {
   display: flex;
   justify-content: flex-end;
+}
+
+/* ============ Receta (P-11) ============ */
+.receta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.receta__seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+}
+/* Cada ingrediente: el nombre y la cantidad, y debajo cómo estoy de él. */
+.receta__ingredientes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+  padding: 0;
+  list-style: none;
+}
+.receta__ingredientes li {
+  display: flex;
+  flex-direction: column;
+}
+.receta__ingrediente {
+  font-weight: var(--peso-fuerte);
+}
+.receta__pasos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+  padding-left: 1.5em;
+}
+.receta__borrar {
+  align-self: flex-start;
+  margin-top: var(--espacio-xl);
+  color: var(--color-peligro);
 }

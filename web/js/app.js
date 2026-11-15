@@ -16,6 +16,7 @@ import { pantallaInvitar } from './pantallas/invitar.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
 import { pantallaPrivacidad } from './pantallas/privacidad.js';
 import { pantallaProducto } from './pantallas/producto.js';
+import { pantallaReceta } from './pantallas/receta.js';
 import { pantallaRecetas } from './pantallas/recetas.js';
 import { pantallaRegistro } from './pantallas/registro.js';
 import { pantallaTicket } from './pantallas/ticket.js';
@@ -50,6 +51,7 @@ iniciarRouter({
     { patron: '/ticket', pantalla: pantallaTicket },
     // Igual con las recetas: "nueva" antes que ":id" (P-20).
     { patron: '/receta/nueva', pantalla: pantallaEditarReceta },
+    { patron: '/receta/:id', pantalla: pantallaReceta, validar: ({ id }) => ES_ID.test(id) },
     { patron: '/receta/:id/editar', pantalla: pantallaEditarReceta, validar: ({ id }) => ES_ID.test(id) },
   ],
   noExiste: pantallaNoExiste,
