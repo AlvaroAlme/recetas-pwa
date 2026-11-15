@@ -73,8 +73,18 @@ consola). Hecho (2026-11-14): paso 4 (`POST /api/cocinar`: TX con
 `FOR UPDATE` en orden de id, 409 `INVENTARIO_CAMBIADO`, `conClave()`,
 suma los descuentos del mismo producto; `leerClave()` compartida con el
 lote; 104 pruebas en verde; 409 y ROLLBACK probados desde la consola).
-Falta probar dos navegadores a la vez (paso 7). Siguiente: paso 5
-(pantallas del recetario).
+Falta probar dos navegadores a la vez (paso 7).
+Hecho (2026-11-15): paso 5. DISENO_UI al día con D-48/D-49 (P-09 sin
+IA, P-11, P-20 nueva). 5a lista `pantallas/recetas.js`; 5b
+`crearCampo()` con `select`/`textarea`, `sugerirNombres()` compartido,
+`componentes/formularioReceta.js` y `pantallas/editarReceta.js`
+(`/receta/nueva`, `/receta/:id/editar`); 5c
+`componentes/vistaReceta.js`, `pantallas/receta.js`
+(`cargarInventarioCompleto()`, para el paso 6 también) y
+`ponerTitulo()` en `router.js`. `sw.js` en `app-v22` (con
+`/compartido/cocina.js`). Probado en Chrome. Siguiente: paso 6 ("La he
+cocinado", P-12). En el navegador integrado de Claude con el panel
+oculto, el `<dialog>` no lanza `close`: probar `confirmar()` en Chrome.
 VS Code: la extensión SQL Server (mssql) marca en rojo los `.sql` de
 PostgreSQL; no son errores (la prueba real es `npm.cmd run migrar`).
 
