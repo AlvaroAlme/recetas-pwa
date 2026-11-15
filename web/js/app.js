@@ -9,6 +9,7 @@ import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
+import { pantallaCocinar } from './pantallas/cocinar.js';
 import { pantallaEditarReceta } from './pantallas/editarReceta.js';
 import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
@@ -53,6 +54,8 @@ iniciarRouter({
     { patron: '/receta/nueva', pantalla: pantallaEditarReceta },
     { patron: '/receta/:id', pantalla: pantallaReceta, validar: ({ id }) => ES_ID.test(id) },
     { patron: '/receta/:id/editar', pantalla: pantallaEditarReceta, validar: ({ id }) => ES_ID.test(id) },
+    // "La he cocinado": ?receta=3 (la pantalla comprueba el id, P-12).
+    { patron: '/cocinar', pantalla: pantallaCocinar },
   ],
   noExiste: pantallaNoExiste,
 });

@@ -1173,3 +1173,48 @@ textarea.campo__entrada {
   margin-top: var(--espacio-xl);
   color: var(--color-peligro);
 }
+
+/* ============ Casilla (§3.2): la fila entera se puede pulsar ============ */
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-s);
+  min-height: var(--tactil);
+  cursor: pointer;
+}
+.casilla__entrada {
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+  accent-color: var(--color-primario);
+}
+
+/* ============ La he cocinado (P-12) ============ */
+.cocinar__receta {
+  font-weight: var(--peso-fuerte);
+}
+.cocinar__filas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+  margin-top: var(--espacio-m);
+}
+.fila-cocinar__titulo {
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+}
+/* Lo que hay que revisar: borde rojo más grueso (no solo el color: también el grosor y el texto). */
+.fila-cocinar--revisar {
+  border: 2px solid var(--color-peligro);
+}
+/* "No descontar": la fila se queda, pero tenue. */
+.fila-cocinar--descartada > :not(.fila-cocinar__acciones, .fila-cocinar__titulo, .fila-cocinar__quedaran) {
+  opacity: 0.5;
+}
+.fila-cocinar__quedaran:empty {
+  display: none;
+}
+.fila-cocinar__acciones {
+  display: flex;
+  justify-content: flex-end;
+}
