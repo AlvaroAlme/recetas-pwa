@@ -15,6 +15,7 @@ import { pantallaInvitar } from './pantallas/invitar.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
 import { pantallaPrivacidad } from './pantallas/privacidad.js';
 import { pantallaProducto } from './pantallas/producto.js';
+import { pantallaRecetas } from './pantallas/recetas.js';
 import { pantallaRegistro } from './pantallas/registro.js';
 import { pantallaTicket } from './pantallas/ticket.js';
 import { pantallaTupper } from './pantallas/tupper.js';
@@ -35,6 +36,7 @@ iniciarRouter({
     // Privadas: si no hay sesión, la API da 401 y api.js lleva a /entrar.
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
     { patron: '/ajustes', pestana: '/ajustes', pantalla: pantallaAjustes },
+    { patron: '/recetas', pestana: '/recetas', pantalla: pantallaRecetas },
     { patron: '/bienvenida', pantalla: pantallaBienvenida },
     { patron: '/hogar/invitar', pantalla: pantallaInvitar },
     { patron: '/hogar/unirse', pantalla: pantallaUnirse },
