@@ -48,8 +48,8 @@ Proyecto de portfolio de un estudiante de DAW.
 
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
-3 (2026-11-08), 4 (2026-11-09) y 5 (2026-11-12). El detalle de cada paso
-está en los commits (`git log`).
+3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12) y 6 (2026-11-15). El
+detalle de cada paso está en los commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
 ayudante con acciones (tarjetas que se confirman), el cuadrante va por
@@ -57,36 +57,33 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Fase 6 (recetario y "La he cocinado"): en curso.** Plan: 1
-`005_recetas.sql` y `validarReceta()`; 2 "qué me falta" en
-`compartido/cocina.js`; 3 `/api/recetas` (crear, ver, editar, borrar);
-4 `POST /api/cocinar` (TX con `FOR UPDATE` en orden de id, 409
-`INVENTARIO_CAMBIADO`, `conClave()`); 5 pantallas: lista P-09 sin IA,
-formulario de receta NUEVO (reglas de formularios) y detalle P-11 con
-"qué me falta"; 6 "La he cocinado" P-12; 7 `sw.js` (añadir
-`/compartido/cocina.js` a `ARCHIVOS` y subir `VERSION`), desplegar e
-iPhone. D-49: editar (PUT), ingredientes en filas, pasos en un área de
-texto (uno por línea) y raciones opcionales (1 a 20).
-Hecho (2026-11-13): pasos 1, 2 y 3 (`005_recetas` aplicada en
-desarrollo; 100 pruebas en verde; `/api/recetas` probada desde la
-consola). Hecho (2026-11-14): paso 4 (`POST /api/cocinar`: TX con
-`FOR UPDATE` en orden de id, 409 `INVENTARIO_CAMBIADO`, `conClave()`,
-suma los descuentos del mismo producto; `leerClave()` compartida con el
-lote; 104 pruebas en verde; 409 y ROLLBACK probados desde la consola).
-Falta probar dos navegadores a la vez (paso 7).
-Hecho (2026-11-15): paso 5. DISENO_UI al día con D-48/D-49 (P-09 sin
-IA, P-11, P-20 nueva). 5a lista `pantallas/recetas.js`; 5b
-`crearCampo()` con `select`/`textarea`, `sugerirNombres()` compartido,
-`componentes/formularioReceta.js` y `pantallas/editarReceta.js`
-(`/receta/nueva`, `/receta/:id/editar`); 5c
-`componentes/vistaReceta.js`, `pantallas/receta.js`
-(`cargarInventarioCompleto()`, para el paso 6 también) y
-`ponerTitulo()` en `router.js`. `sw.js` en `app-v22` (con
-`/compartido/cocina.js`). Probado en Chrome. Siguiente: paso 6 ("La he
-cocinado", P-12). En el navegador integrado de Claude con el panel
-oculto, el `<dialog>` no lanza `close`: probar `confirmar()` en Chrome.
-VS Code: la extensión SQL Server (mssql) marca en rojo los `.sql` de
-PostgreSQL; no son errores (la prueba real es `npm.cmd run migrar`).
+**Siguiente: fase 7 (cuadrante por fechas, sin IA).** Antes de empezar,
+leer ARQUITECTURA §10 (fase 7) y proponer el plan por pasos.
+
+**Fase 6 (recetario y "La he cocinado"): aprobada.** Los 7 pasos
+(2026-11-13 a 2026-11-15), desplegada en Render (`app-v23`, con
+`005_recetas` aplicada en producción) y probada en el iPhone y con dos
+navegadores a la vez (409). Lo que conviene recordar:
+- D-49: recetas escritas a mano; editar (PUT), ingredientes en filas,
+  pasos en un área de texto (uno por línea), raciones opcionales (1 a 20).
+- `compartido/cocina.js`: `estadoIngrediente()` (tienes, poco,
+  otra_unidad, tupper, falta) y `cantidadPropuesta()` (en la unidad del
+  producto; null si no se puede convertir, y entonces se PREGUNTA).
+- `POST /api/cocinar`: TX con `FOR UPDATE` en orden de id, todo o nada,
+  409 `INVENTARIO_CAMBIADO` (la pantalla recarga y mantiene lo decidido),
+  `conClave()` (una clave por visita) y suma los descuentos del mismo
+  producto.
+- Pantallas: `recetas.js` (P-09), `editarReceta.js` +
+  `formularioReceta.js` (P-20), `receta.js` + `vistaReceta.js` (P-11,
+  `cargarInventarioCompleto()`) y `cocinar.js` + `filaCocinar.js` (P-12).
+  `crearCampo()` admite `select` y `textarea`; `ponerTitulo()` en
+  `router.js`.
+- `replaceChildren()` es del navegador: un `undefined` sale como texto
+  (usar `...(x ? [nodo] : [])`); `el()` sí lo ignora.
+- En el navegador integrado de Claude con el panel oculto, el `<dialog>`
+  no lanza `close`: probar `confirmar()` en Chrome.
+- VS Code: la extensión SQL Server (mssql) marca en rojo los `.sql` de
+  PostgreSQL; no son errores (la prueba real es `npm.cmd run migrar`).
 
 **Fase 5 (escaneo de tickets con Claude): aprobada.** Los 8 pasos
 (2026-11-09 a 2026-11-11), desplegada en Render (`app-v18`) y probada en
