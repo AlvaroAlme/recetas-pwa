@@ -560,7 +560,9 @@ input:focus-visible + .chip {
    Las fechas siempre (el navegador dibuja su formato dentro). */
 .campo:focus-within .campo__etiqueta,
 .campo:has(.campo__entrada:not(:placeholder-shown)) .campo__etiqueta,
-.campo:has(.campo__entrada[type='date']) .campo__etiqueta {
+.campo:has(.campo__entrada[type='date']) .campo__etiqueta,
+.campo:has(select.campo__entrada) .campo__etiqueta,
+.campo:has(textarea.campo__entrada) .campo__etiqueta {
   top: calc(var(--espacio-xs) + 1px);
   transform: none;
   color: var(--color-texto-secundario);
@@ -1085,4 +1087,18 @@ input:focus-visible + .chip {
 }
 .privacidad ul {
   padding-left: 1.25em;
+}
+
+/* ============ Select y textarea dentro de un campo (P-20) ============ */
+/* El select con su flecha del sistema, pero con nuestro borde y padding. */
+select.campo__entrada {
+  appearance: auto;
+  color: var(--color-texto);
+}
+/* El textarea crece con el texto (lo hace el JavaScript); a mano, solo en vertical. */
+textarea.campo__entrada {
+  min-height: calc(var(--tactil) * 3);
+  resize: vertical;
+  font: inherit;
+  line-height: var(--linea-cuerpo);
 }

@@ -233,25 +233,43 @@ export function crearAviso({ tipo = 'error', mensaje, accion }) {
 /**
  * Campo de texto con su etiqueta, su ayuda y su hueco para el error (§3.2 CampoTexto).
  * Si es una contraseña, le pongo dentro un botón "Mostrar / Ocultar" para que
- * puedas ver lo que escribes.
- * @param {{ etiqueta: string | Array<string | Node>, nombre: string, valor?: string, ayuda?: string, atributos?: Record<string, any> }} opciones
- *   atributos: los del <input> (type, placeholder, inputmode, oninput…).
+ * puedas ver lo que escribes. También sirve para un <textarea> (texto largo)
+ * o un <select> (elegir de una lista corta), con la misma etiqueta y error.
+ * @param {{
+ *   etiqueta: string | Array<string | Node>,
+ *   nombre: string,
+ *   valor?: string,
+ *   ayuda?: string,
+ *   atributos?: Record<string, any>,
+ *   elemento?: 'input' | 'textarea' | 'select',
+ *   opciones?: { valor: string, etiqueta: string }[]
+ * }} opciones atributos: los del control (type, placeholder, inputmode, oninput…).
+ *   opciones: solo para el <select>.
  * @returns {HTMLDivElement}
  */
-export function crearCampo({ etiqueta, nombre, valor, ayuda, atributos = {} }) {
+export function crearCampo({ etiqueta, nombre, valor, ayuda, atributos = {}, elemento = 'input', opciones = [] }) {
   const id = nuevoId(nombre);
   const idAyuda = `${id}-ayuda`;
-  // El input en una constante: el botón de la contraseña necesita cambiarle el type.
-  const entrada = el('input', {
+  // Lo que comparten los tres: la clase, el id, el name y la ayuda.
+  const comunes = {
     class: 'campo__entrada',
-    type: 'text',
     id,
     name: nombre,
-    value: valor,
-    placeholder: ' ',
     'aria-describedby': ayuda ? idAyuda : null,
-    ...atributos,
-  });
+  };
+  // El control en una constante: el botón de la contraseña necesita cambiarle el type.
+  let entrada;
+  if (elemento === 'select') {
+    entrada = el(
+      'select',
+      { ...comunes, ...atributos },
+      opciones.map((opcion) => el('option', { value: opcion.valor, selected: opcion.valor === valor }, opcion.etiqueta))
+    );
+  } else if (elemento === 'textarea') {
+    entrada = el('textarea', { ...comunes, placeholder: ' ', ...atributos }, valor ?? '');
+  } else {
+    entrada = el('input', { ...comunes, type: 'text', value: valor, placeholder: ' ', ...atributos });
+  }
   // Solo en las contraseñas. type: 'button' para que no envíe el formulario.
   // El aria-label lleva el texto que se ve ("Mostrar") y dice de qué es.
   const botonVer =

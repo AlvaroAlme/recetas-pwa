@@ -7,12 +7,11 @@
  * la pantalla decide qué hacer (crear o editar).
  */
 import { UBICACIONES, UNIDADES } from '/compartido/constantes.js';
-import { buscarAlimentos } from '/compartido/sugerencias.js';
-import { normalizar } from '/compartido/texto.js';
 import { ETIQUETAS_UBICACION, listarUbicaciones, ubicacionesPosibles } from '/compartido/ubicaciones.js';
 import { validarProducto } from '/compartido/validacion.js';
 import { mensajeDeError } from '../api.js';
 import { el } from '../dom.js';
+import { sugerirNombres } from './sugerenciasNombre.js';
 import {
   crearAutocompletar,
   crearAviso,
@@ -59,7 +58,7 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
       oninput: alEscribirNombre,
     },
   });
-  crearAutocompletar(nombre, { buscar: buscarSugerencias, alElegir: alElegirSugerencia });
+  crearAutocompletar(nombre, { buscar: (texto) => sugerirNombres(texto, buscarHistorial), alElegir: alElegirSugerencia });
 
   const cantidad = crearCampo({
     etiqueta: 'Cantidad',
@@ -148,32 +147,6 @@ export function crearFormularioProducto({ inicial, ubicacionSugerida, textoBoton
       ubicacionDeSugerencia = false;
     }
     actualizarUbicacion();
-  }
-
-  /**
-   * Primero lo que ya ha tenido la casa (servidor), luego la lista fija, sin
-   * repetir nombres. Si el servidor falla (sin red…), solo la lista fija.
-   * @param {string} texto
-   * @returns {Promise<import('./ui/index.js').Sugerencia[]>}
-   */
-  async function buscarSugerencias(texto) {
-    if (normalizar(texto).length < 2) return [];
-    let historial = [];
-    try {
-      historial = (await buscarHistorial?.(texto)) ?? [];
-    } catch {
-      // Sin historial: sigo con la lista fija.
-    }
-    const vistos = new Set(historial.map((producto) => normalizar(producto.nombre)));
-    const deLaCasa = historial.map((producto) => ({
-      texto: producto.nombre,
-      detalle: `${producto.unidad} · ${ETIQUETAS_UBICACION[producto.ubicacion]}`,
-      datos: producto,
-    }));
-    const comunes = buscarAlimentos(texto)
-      .filter((alimento) => !vistos.has(normalizar(alimento)))
-      .map((alimento) => ({ texto: alimento }));
-    return [...deLaCasa, ...comunes].slice(0, 8);
   }
 
   /**
