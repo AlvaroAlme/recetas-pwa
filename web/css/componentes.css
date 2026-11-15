@@ -1102,3 +1102,32 @@ textarea.campo__entrada {
   font: inherit;
   line-height: var(--linea-cuerpo);
 }
+
+/* ============ Ingredientes del formulario de receta (P-20) ============ */
+.ingredientes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+}
+.ingredientes__filas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+}
+/* Cada fila es un fieldset con aspecto de tarjeta. min-width: 0 porque un
+   fieldset, por defecto, no encoge por debajo de su contenido. */
+.fila-ingrediente {
+  min-width: 0;
+  gap: var(--espacio-m);
+}
+/* Cantidad y unidad, una al lado de la otra; la cantidad, más ancha. */
+.fila-ingrediente__cantidad {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--espacio-s);
+  align-items: start;
+}
+.fila-ingrediente__acciones {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -9,6 +9,7 @@ import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
+import { pantallaEditarReceta } from './pantallas/editarReceta.js';
 import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
 import { pantallaInvitar } from './pantallas/invitar.js';
@@ -47,6 +48,9 @@ iniciarRouter({
     { patron: '/tupper/nuevo', pantalla: pantallaTupper },
     { patron: '/tupper/:id', pantalla: pantallaTupper, validar: ({ id }) => ES_ID.test(id) },
     { patron: '/ticket', pantalla: pantallaTicket },
+    // Igual con las recetas: "nueva" antes que ":id" (P-20).
+    { patron: '/receta/nueva', pantalla: pantallaEditarReceta },
+    { patron: '/receta/:id/editar', pantalla: pantallaEditarReceta, validar: ({ id }) => ES_ID.test(id) },
   ],
   noExiste: pantallaNoExiste,
 });
