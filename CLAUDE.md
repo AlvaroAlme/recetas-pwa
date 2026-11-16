@@ -48,8 +48,8 @@ Proyecto de portfolio de un estudiante de DAW.
 
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
-3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12) y 6 (2026-11-15). El
-detalle de cada paso está en los commits (`git log`).
+3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15) y 7
+(2026-11-16). El detalle de cada paso está en los commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
 ayudante con acciones (tarjetas que se confirman), el cuadrante va por
@@ -57,8 +57,37 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Siguiente: fase 7 (cuadrante por fechas, sin IA).** Antes de empezar,
-leer ARQUITECTURA §10 (fase 7) y proponer el plan por pasos.
+**Siguiente: fase 8 (chat ayudante con IA).** Antes de empezar, leer
+ARQUITECTURA §10 (fase 8) y D-48, y proponer el plan por pasos (las cifras
+de la cuota del chat y los días de las conversaciones se fijan en la fase).
+
+**Fase 7 (cuadrante por fechas, sin IA): aprobada.** Los 7 pasos
+(2026-11-16), desplegada en Render (`app-v26`, con `006_cuadrante`
+aplicada en producción) y probada en el iPhone, con el aviso "Mañana
+comes…". Lo que conviene recordar:
+- D-50: tabla `cuadrante` (fecha + comida/cena) con receta, plato escrito
+  a mano o "fuera de casa" (su `texto_libre` es una nota opcional:
+  "Comida aniversario" es una cita, no un plato); grupo opcional de 8
+  (`GRUPOS_ALIMENTOS`); margen de un año (400 `FECHA_FUERA_DE_MARGEN`).
+  Rutas `/semana`, `/semana/:lunes`, `/plan/:fecha` (P-15) y
+  `/plan/:fecha/:tipo` (P-14).
+- `compartido/plan.js`: semanas (`lunesDe`, `textoSemana`,
+  `dentroDelMargen`), `nombrePlato`, `textoAviso`, `equilibrioSemana()`
+  frente a AESAN 2022 (`OBJETIVOS_AESAN`) y `avisosDia()` (el mismo grupo
+  en comida y cena; el día en que se pasa de un máximo).
+  `compartido/horas.js`: `validarHora()`.
+- Aviso del plan: `PLAN_CON_AVISO` (`servicios/avisos.js`) es la MISMA
+  condición para la agenda y para el envío; se reclama con `INSERT … ON
+  CONFLICT DO NOTHING` en `avisos_plan_enviados`; va desde la hora de la
+  víspera hasta medianoche; "fuera de casa" no avisa. La tarea de avisos
+  borra los huecos de más de un año y los avisos de más de 7 días.
+- SQL: 'cena' va antes que 'comida' por orden alfabético (`ORDER BY
+  tipo_comida = 'cena'`); las fechas, como `::text` (si no, `pg` da un
+  Date en la hora del servidor).
+- `schema_migrations` guarda la `version` (6) y el nombre sin número
+  ('cuadrante'): para rehacer una migración en desarrollo, borrar por
+  `version`. `npm.cmd run dev` migra al arrancar. Solo se puede corregir
+  una migración que aún no esté en producción.
 
 **Fase 6 (recetario y "La he cocinado"): aprobada.** Los 7 pasos
 (2026-11-13 a 2026-11-15), desplegada en Render (`app-v23`, con
@@ -127,6 +156,9 @@ pruebas en el límite). Lo que conviene recordar:
   hora y qué hacía (¿volvía a la app?) para mirar los Logs de Render.
   Si es una conexión reutilizada muerta, la idea es reintentar una vez
   en `api.js` (seguro en GET, `/lote` y `/cocinar`).
+- `buscarProductos()` compara el nombre entero: en el Plan del día,
+  "Pollo asado" no encuentra "Pechuga de pollo". Idea: buscar palabra a
+  palabra (con cuidado de no dar falsos positivos en la fase 6).
 
 **Fase 4 (tuppers y avisos Web Push): aprobada.** Tuppers, Web Push
 (`web-push` 3.6.7 fija; la 4.0.0 salió el 2026-11-06), agenda en memoria
@@ -166,9 +198,11 @@ nueva del SW (`app.js`).
 
 **Cuentas de prueba** (base de datos de DESARROLLO; nunca en producción,
 porque este archivo es público):
-- ana@prueba.test, "una clave larga": sola en Casa de Ana (7 productos).
-- carla@prueba.test, "tercera clave larga": responsable de "Casa de Bea".
-- dani@prueba.test, "cuarta clave larga": miembro de "Casa de Bea".
+- ana@prueba.test, "una clave larga": propietaria de "Casa de Ana" (11
+  productos y huecos de prueba en la semana del 16 de noviembre).
+- carla@prueba.test, "tercera clave larga": miembro de "Casa de Ana".
+- dani@prueba.test, "cuarta clave larga": propietario de "Casa de Bea" (vacía).
+(Comprobado el 2026-11-16.)
 
 **Cosas que conviene recordar:**
 - Abrir la app en http://localhost:3000 (no 127.0.0.1: el Origin no
