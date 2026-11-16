@@ -240,7 +240,7 @@ CREATE INDEX tuppers_avisos_idx ON tuppers (fecha_limite)
   WHERE NOT consumido AND aviso_enviado_en IS NULL;
 
 -- Recetas guardadas. UNIQUE (id, hogar_id) parece redundante (id ya es
--- único), pero es lo que permite la FK compuesta del planificador.
+-- único), pero es lo que permite la FK compuesta del cuadrante.
 -- 15 029 = 30 pasos × 500 caracteres + 29 saltos de línea (SEC-05).
 CREATE TABLE recetas (
   id             BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -263,27 +263,34 @@ CREATE TABLE receta_ingredientes (
 );
 CREATE INDEX receta_ingredientes_receta_idx ON receta_ingredientes (receta_id);
 
--- Planificador semanal: una fila por hogar + día + comida/cena.
+-- Cuadrante por fechas (D-48, D-50): una fila por hogar + fecha + comida/cena.
+-- Las semanas empiezan vacías: solo hay fila si alguien ha planificado algo.
+-- Cada hueco lleva UNA de tres cosas: una receta, un texto libre ("Comida
+-- aniversario") o "fuera de casa"; y, si no es "fuera de casa", un grupo
+-- de alimentos OPCIONAL (lista cerrada GRUPOS_ALIMENTOS de compartido/).
 -- FK COMPUESTA (receta_id, hogar_id): la receta tiene que ser DEL MISMO HOGAR
 -- (un CHECK no podría mirar la tabla recetas, R-15). Al borrar la receta,
 -- SET NULL (receta_id) vacía solo receta_id y deja hogar_id intacto.
 -- Si receta_id es NULL, la FK no se comprueba (MATCH SIMPLE, por defecto).
--- NO se pone CHECK (receta_id IS NOT NULL OR texto_libre IS NOT NULL):
--- haría FALLAR el borrado de una receta asignada sin texto. Como en Expo,
--- los huecos que quedan vacíos se ignoran al listar.
--- ⚠️ D-48 (2026-11-13): el cuadrante pasa a ir POR FECHAS (fecha en vez de
--- dia_semana), con "fuera de casa" y grupo de alimentos. Esta tabla se
--- rediseña en la fase 7.
-CREATE TABLE planificador_semanal (
-  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  hogar_id     BIGINT NOT NULL REFERENCES hogares(id) ON DELETE CASCADE,
-  dia_semana   TEXT NOT NULL CHECK (dia_semana IN
-                 ('lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo')),
-  tipo_comida  TEXT NOT NULL CHECK (tipo_comida IN ('comida', 'cena')),
-  receta_id    BIGINT,
-  texto_libre  TEXT CHECK (texto_libre IS NULL OR char_length(btrim(texto_libre)) BETWEEN 1 AND 80),
-  UNIQUE (hogar_id, dia_semana, tipo_comida),
+-- NO se exige "receta, texto o fuera de casa": haría FALLAR el borrado de
+-- una receta asignada. Una fila sin ninguna de las tres es un hueco VACÍO
+-- (aunque le quede el grupo): no se lista, no cuenta para el equilibrio
+-- ni para el aviso. El margen de fechas (un año atrás y uno adelante) lo
+-- valida la API: un CHECK con current_date no vale (no es inmutable). La
+-- tarea de avisos borra las filas de hace más de un año.
+CREATE TABLE cuadrante (
+  id             BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  hogar_id       BIGINT NOT NULL REFERENCES hogares(id) ON DELETE CASCADE,
+  fecha          DATE NOT NULL,
+  tipo_comida    TEXT NOT NULL CHECK (tipo_comida IN ('comida', 'cena')),
+  receta_id      BIGINT,
+  texto_libre    TEXT CHECK (texto_libre IS NULL OR char_length(btrim(texto_libre)) BETWEEN 1 AND 80),
+  fuera_de_casa  BOOLEAN NOT NULL DEFAULT false,
+  grupo          TEXT CHECK (grupo IS NULL OR grupo IN ('legumbres', 'pescado', 'huevos',
+                   'carne_blanca', 'carne_roja', 'verduras', 'pasta_arroz', 'otro')),
+  UNIQUE (hogar_id, fecha, tipo_comida),                 -- también sirve para leer una semana
   CHECK (receta_id IS NULL OR texto_libre IS NULL),      -- nunca las dos cosas a la vez
+  CHECK (NOT fuera_de_casa OR (receta_id IS NULL AND texto_libre IS NULL AND grupo IS NULL)),
   FOREIGN KEY (receta_id, hogar_id) REFERENCES recetas (id, hogar_id)
     ON DELETE SET NULL (receta_id)
 );
@@ -304,7 +311,8 @@ CREATE TABLE suscripciones_push (
 CREATE INDEX suscripciones_usuario_idx ON suscripciones_push (usuario_id);
 
 -- Qué avisos del plan se han enviado ya. Insertar aquí con ON CONFLICT
--- DO NOTHING es la forma de "reclamar" el envío una sola vez.
+-- DO NOTHING es la forma de "reclamar" el envío una sola vez. La tarea de
+-- avisos borra las de más de 7 días.
 CREATE TABLE avisos_plan_enviados (
   hogar_id    BIGINT NOT NULL REFERENCES hogares(id) ON DELETE CASCADE,
   fecha       DATE NOT NULL,          -- el día del plan ("mañana" en la zona del hogar)
@@ -402,7 +410,7 @@ Nada sensible va a `localStorage`.
 | `003_tuppers_push.sql` | 4 | `tuppers`, `suscripciones_push`, `ALTER TABLE hogares ADD COLUMN zona_horaria …` |
 | `004_ia.sql` | 5 | `uso_ia`, `operaciones`, `ALTER TABLE usuarios ADD COLUMN aviso_ia_aceptado_en …` |
 | `005_recetas.sql` | 6 | `recetas`, `receta_ingredientes`, `sugerencias` |
-| `006_planificador.sql` | 7 | `planificador_semanal`, `avisos_plan_enviados`, `ALTER TABLE hogares ADD COLUMN hora_aviso_plan …` |
+| `006_cuadrante.sql` | 7 | `cuadrante`, `avisos_plan_enviados`, `ALTER TABLE hogares ADD COLUMN hora_aviso_plan …` |
 
 ---
 
@@ -438,7 +446,7 @@ Nada sensible va a `localStorage`.
 | 502 `ERROR_IA` / 504 `IA_TARDA` | Fallo o tiempo agotado de Claude, con `reintentable` como en `ErrorClaude` |
 
 - **Validación:** todas las rutas validan el cuerpo, los parámetros y la query **en el servidor**, con validadores propios (sin librerías) que devuelven errores por campo:
-  - tipos y valores permitidos (`UNIDADES`, `UBICACIONES`, `DIAS_SEMANA`, `TIPOS_COMIDA`);
+  - tipos y valores permitidos (`UNIDADES`, `UBICACIONES`, `TIPOS_COMIDA`, `GRUPOS_ALIMENTOS`);
   - textos con `trim()` y de 1 a 80 caracteres;
   - números finitos y dentro de rango;
   - ids enteros positivos;
@@ -561,14 +569,16 @@ COMMIT;
 
 Si la clave se reservara al final (con un `INSERT` en el paso 5), dos peticiones simultáneas con la misma clave pasarían las dos por los pasos 1 a 4 y la segunda acabaría en un 500. `POST /api/productos/lote` usa la misma `conClave()` (fase 5, paso 5); una clave de otra persona da 409 `CLAVE_USADA`.
 
-#### Planificador
+#### Cuadrante (por fechas, D-50)
+
+`Hueco` = `{ fecha, tipo, receta: { id, nombre } | null, texto | null, fueraDeCasa, grupo | null }`. Solo se devuelven los huecos con algo (receta, texto o "fuera de casa"). Las fechas van en ISO (`2026-11-24`) y tienen que estar entre **un año atrás y un año adelante** de hoy en la zona del hogar (400 `FECHA_FUERA_DE_MARGEN`).
 
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación / TX |
 |---|---|---|---|---|
-| `GET /api/plan` 🔑 | — | 200 `{ platos: Plato[] }` | — | La misma consulta que `listarPlan()`, filtrada por hogar |
-| `GET /api/plan/:dia` 🔑 | — | 200 `{ dia, platos: [{ tipo, plato, receta \| null }] }` | 400 | Lo que abre el aviso: platos con su receta completa |
-| `PUT /api/plan/:dia/:tipo` 🔑 | `{ recetaId }` o `{ texto }` (uno de los dos) | 200 `{ plato }` | 400, 404 (receta de otro hogar) | `INSERT … ON CONFLICT (hogar_id, dia_semana, tipo_comida) DO UPDATE`. Recalcula la agenda |
-| `DELETE /api/plan/:dia/:tipo` 🔑 | — | 204 | 400 | Recalcula la agenda |
+| `GET /api/plan?desde=2026-11-23` 🔑 | — | 200 `{ desde, huecos: Hueco[] }` | 400 (`desde` no es lunes o fuera de margen) | Los 7 días de `desde` a `desde + 6` |
+| `GET /api/plan/:fecha` 🔑 | — | 200 `{ fecha, huecos: [Hueco & { receta: Receta completa \| null }] }` | 400 | Lo que abre el aviso (P-15): los platos con sus ingredientes |
+| `PUT /api/plan/:fecha/:tipo` 🔑 | `{ recetaId, grupo? }`, `{ texto, grupo? }` o `{ fueraDeCasa: true }` (una de las tres) | 200 `{ hueco }` | 400, 404 `NO_EXISTE` (receta de otro hogar o borrada) | `validarHueco()`; `INSERT … ON CONFLICT (hogar_id, fecha, tipo_comida) DO UPDATE` (sustituye el hueco entero). Recalcula la agenda |
+| `DELETE /api/plan/:fecha/:tipo` 🔑 | — | 204 | 400 | Recalcula la agenda |
 
 #### Push
 
@@ -592,7 +602,7 @@ recetas-nevera-pwa/
 ├── docs/                      ARQUITECTURA.md, DISENO_UI.md
 │
 ├── compartido/                Módulos ES PUROS (sin DOM, sin Node): los usan el navegador Y el servidor
-│   ├── constantes.js          UNIDADES, UBICACIONES, DIAS_SEMANA, TIPOS_COMIDA, límites SEC-05,
+│   ├── constantes.js          UNIDADES, UBICACIONES, TIPOS_COMIDA, GRUPOS_ALIMENTOS, límites SEC-05,
 │   │                          NUMERO_RECETAS = 3, PERSONAS = 2, HORA_AVISO_TUPPER = 10,
 │   │                          HORA_AVISO_PLAN_POR_DEFECTO = '21:00'
 │   ├── texto.js               normalizar()                                ← lib/texto.ts
@@ -603,7 +613,8 @@ recetas-nevera-pwa/
 │   ├── cocina.js              convertir, redondear, buscarProductos, buscarTupper,
 │   │                          estadoIngrediente, cantidadPropuesta        ← lib/cocina.ts
 │   ├── formato.js             formatearCantidad                           ← lib/inventario.ts
-│   ├── planificador.js        ETIQUETAS_DIA, nombrePlato, textoAviso      ← lib/planificador.ts
+│   ├── plan.js                lunesDe, textoSemana, nombrePlato, textoAviso,
+│   │                          ETIQUETAS_GRUPO, OBJETIVOS_AESAN, equilibrioSemana (D-50)
 │   └── validacion.js          validarProducto… (API y formulario, D-40)   ← FormularioProducto
 │
 ├── server/
@@ -630,7 +641,7 @@ recetas-nevera-pwa/
 │   ├── servicios/             Lógica + SQL. No saben nada de HTTP
 │   │   ├── contrasenas.js     scrypt + timingSafeEqual
 │   │   ├── usuarios.js  sesiones.js  hogares.js  invitaciones.js
-│   │   ├── inventario.js  tuppers.js  recetas.js  cocina.js  planificador.js
+│   │   ├── inventario.js  tuppers.js  recetas.js  cocina.js  plan.js
 │   │   ├── claude.js          ← lib/claude.ts (fetch + ErrorClaude), con la key del entorno
 │   │   ├── ticket.js          ← lib/ticket.ts: prompt, esquema y validación TAL CUAL
 │   │   ├── generadorRecetas.js ← lib/recetas.ts: prompt, describirInventario, validarRecetas
@@ -710,7 +721,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 - **Variable:** `proximaRevision` (un instante, o `null` si no hay nada pendiente).
 - **`agenda.recalcular()`**, una consulta que devuelve el mínimo de:
   - los tuppers pendientes: `((fecha_limite - 1) + time '10:00') AT TIME ZONE zona_horaria`;
-  - en cada hogar **que tenga algo planificado**, la próxima vez que llegue su `hora_aviso_plan` local: hoy si aún no ha pasado y el aviso de mañana no está enviado, y si no, mañana.
+  - en cada hogar **que tenga algo planificado para mañana o pasado mañana** (receta o texto; "fuera de casa" no avisa), la próxima vez que llegue su `hora_aviso_plan` local: hoy si aún no ha pasado y el aviso de mañana no está enviado, y si no, mañana.
 - **Se llama** al arrancar, tras crear o consumir tuppers, en "La he cocinado", al cambiar el plan, la hora o la zona, al borrar una receta y después de cada envío.
 - **El ping** (`POST /api/tareas/avisos`) comprueba `proximaRevision !== null && Date.now() >= proximaRevision`:
   - **no** → responde `{ revisado: false }` sin tocar la base de datos, y Neon sigue dormido;
@@ -722,12 +733,12 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 
 | Paso | Qué pasa |
 |---|---|
-| **Alta** | `PUT /api/plan/:dia/:tipo` o cambio de hora en Ajustes → `agenda.recalcular()` |
-| **Envío** | Cuando llega la hora, por cada hogar cuya hora local ya ha llegado: se calcula *mañana* en su zona y su día de la semana (`EXTRACT(ISODOW …)`: 1 = lunes … 7 = domingo → `DIAS_SEMANA`). Si mañana tiene comida o cena, **se reclama** con `INSERT INTO avisos_plan_enviados (hogar_id, fecha) … ON CONFLICT DO NOTHING RETURNING` y se envía a todos los miembros |
+| **Alta** | `PUT` o `DELETE /api/plan/:fecha/:tipo`, cambio de hora o de zona en Ajustes, borrar una receta → `agenda.recalcular()` |
+| **Envío** | Cuando llega la hora, por cada hogar cuya hora local ya ha llegado: *mañana* = `(now() AT TIME ZONE h.zona_horaria)::date + 1`. Si mañana tiene comida o cena con receta o texto (los huecos "fuera de casa" y los vacíos no cuentan), **se reclama** con `INSERT INTO avisos_plan_enviados (hogar_id, fecha) … ON CONFLICT DO NOTHING RETURNING` y se envía a todos los miembros |
 | **Ventana** | Se envía desde la hora configurada **hasta medianoche** local. Si el servidor estuvo caído a las 21:00, el aviso sale al volver; pasada la medianoche ya no tiene sentido |
-| **Mensaje** | `title` = `textoAviso(comida, cena)` ("Mañana comes lentejas y cenas tortilla de patatas"); `body` = "¿Tienes todos los ingredientes? Toca para comprobarlo."; `navigate` = `https://<app>/plan/martes`; `tag` = `plan-2026-10-21` |
-| **Toque** | `notificationclick` → `/plan/martes` |
-| **Pantalla** | `GET /api/plan/martes` + `GET /api/inventario` → "qué tengo y qué me falta" calculado en el navegador con `estadoIngrediente()` (como `plan/[dia].tsx`, también para los platos escritos a mano) |
+| **Mensaje** | `title` = `textoAviso(comida, cena)` ("Mañana comes lentejas y cenas tortilla de patatas"; si solo hay uno, "Mañana cenas tortilla de patatas"); `body` = "¿Tienes todos los ingredientes? Toca para comprobarlo."; `navigate` = `https://<app>/plan/2026-11-24`; `tag` = `plan-2026-11-24` |
+| **Toque** | `notificationclick` → `/plan/2026-11-24` |
+| **Pantalla** | `GET /api/plan/2026-11-24` + `cargarInventarioCompleto()` → "qué tengo y qué me falta" calculado en el navegador con `estadoIngrediente()` (como `plan/[dia].tsx`, también para los platos escritos a mano) |
 
 ---
 
@@ -959,9 +970,10 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - repetir la misma `clave` no descuenta dos veces.
 
 ### Fase 7 — Cuadrante por fechas y aviso de la noche anterior (sin IA)
-- `006_cuadrante.sql` (con el `ALTER TABLE hogares` de la hora del aviso); semanas de lunes a domingo **por fechas** que empiezan vacías ("Semana del 23 al 29 de noviembre"), navegar entre semanas; cada hueco (fecha + comida/cena) con receta, texto libre o **"fuera de casa"**, y su **grupo de alimentos** (lista cerrada en `compartido/constantes.js`).
-- En el navegador, sin IA: **equilibrio de la semana** (veces de cada grupo frente a las frecuencias recomendadas, de una fuente española **verificada**, p. ej. AESAN) y **avisos de caducidad** ("El pollo caduca pronto") con `avisoCaducidad()`. Línea "Orientativo, no sustituye el consejo de un profesional".
-- Hora del aviso en Ajustes; aviso del plan en `avisos.js`.
+- `006_cuadrante.sql` (con el `ALTER TABLE hogares` de la hora del aviso); semanas de lunes a domingo **por fechas** que empiezan vacías ("Semana del 23 al 29 de noviembre"), navegar entre semanas (un año atrás y uno adelante, D-50); cada hueco (fecha + comida/cena) con receta, texto libre o **"fuera de casa"**, y su **grupo de alimentos** opcional (`GRUPOS_ALIMENTOS` en `compartido/constantes.js`, 8 grupos, D-50).
+- En el navegador, sin IA: **equilibrio de la semana** (`equilibrioSemana()`: veces de cada grupo frente a las frecuencias de AESAN 2022, D-50) y **avisos de caducidad** ("El pollo caduca pronto") con `avisoCaducidad()`. Línea "Orientativo, no sustituye el consejo de un profesional".
+- Hora del aviso en Ajustes (`horaAvisoPlan` en `PATCH /api/hogar`); aviso del plan en `avisos.js` y P-15 Plan del día.
+- Pasos: 1 documentación (este cambio); 2 `006_cuadrante.sql` y `compartido/` (`GRUPOS_ALIMENTOS`, `validarHueco()`, fechas de la semana) con pruebas; 3 `/api/plan`; 4 `equilibrioSemana()` con pruebas; 5 pantallas P-13 y P-14; 6 hora en Ajustes, aviso del plan y P-15; 7 `sw.js`, desplegar e iPhone.
 
 **Hecho cuando:**
 - una semana nueva aparece vacía y la cabecera dice sus fechas;
@@ -1060,6 +1072,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-47 | 2026-11-09 | Límite de los PDF del ticket y versión de la API de Claude (fase 5) | **PDF ≤ 20 MB** (no 25 como en `ticket.ts`): en base64 ocupa un tercio más y 25 MB serían ~33 MB, por encima del máximo de 32 MB por petición de la API. **`anthropic-version: 2023-06-01`**, como en Expo; la `2026-10-21` no cambia nada de esta petición | La API rechaza las peticiones de más de 32 MB; con 20 MB queda margen para el prompt y el JSON. Cambiar de versión no aporta nada ahora y rompería el «tal cual». Tiempo máximo con Claude, 60 s (Expo: 120), por debajo de los 75 s de api.js. La cuota se devuelve con cualquier error reintentable (no solo red y 5xx): ninguno es culpa de quien escanea |
 | D-48 | 2026-11-13 | La IA como ayudante de cocina: chat, recetas y cuadrante (replantea las fases 6 a 9; cambia D-15 y D-31; adelanta V2-01) | **Chat ayudante con acciones**: resuelve dudas y, con herramientas (*tool use*), propone recetas y huecos del cuadrante como **tarjetas que se confirman** ("Guardar receta", "Añadir al cuadrante"); nunca guarda nada sin confirmar. Conversaciones **en el servidor, por persona**, borradas solas a los N días (propuesta: 30). **Cuota propia del chat** (propuesta: 30 mensajes/día/persona); el ticket sigue con `CUOTA_IA_DIARIA`. **Cuadrante por fechas**: semanas de lunes a domingo que empiezan vacías ("Semana del 23 al 29 de noviembre"); cada hueco (fecha + comida/cena) lleva receta, texto libre o **"fuera de casa"**, y un **grupo de alimentos** (lista cerrada en `compartido/`). El navegador calcula sin IA los avisos de caducidad y el **equilibrio semanal** frente a frecuencias de una fuente española verificada (AESAN). Al sugerir, la IA elige un grupo distinto cada día, cubre los que faltan y usa primero lo que caduca. Orden: recetario (6) y cuadrante (7) sin IA, chat (8), cierre (9). Importar el calendario queda como V2-03 | El autor quiere la IA como **ayudante para planificar**, no como botones sueltos. Lo que se puede calcular (caducidad, equilibrio) no gasta IA y funciona sin red. Con 10 llamadas al día no da para conversar. Una semana fija que se repite no sirve: cada semana se planifica de cero y hay eventos de un día. El chat va al final porque sus acciones necesitan el recetario y el cuadrante; así, si la IA falla o se acaba la cuota, la app sigue sirviendo. Las cifras (cuota, días, frecuencias) se fijan en su fase |
 | D-49 | 2026-11-13 | Recetas escritas a mano (fase 6) | **Crear, editar y borrar** (`PUT /api/recetas/:id`: actualiza la receta y sustituye sus ingredientes en una TX). **Ingredientes en filas** (nombre, cantidad y unidad, con "Añadir ingrediente" y "Quitar"), **pasos en un área de texto** (un paso por línea, guardados juntos en `instrucciones`) y **raciones opcionales** (1 a 20, solo informan). Formulario de receta como pantalla nueva | Corregir una cantidad no debe obligar a rehacer la receta. "Qué me falta" y "La he cocinado" necesitan nombre, cantidad y unidad por separado: las filas evitan errores de formato. Los pasos como texto se escriben y se pegan cómodamente en el móvil. Las raciones las usará también el chat (fase 8) |
+| D-50 | 2026-11-16 | Cuadrante por fechas: grupos, equilibrio y rutas (fase 7) | Tabla **`cuadrante`** (sustituye a `planificador_semanal`, que nunca llegó a crearse): una fila por hogar + **fecha** + comida/cena con receta, texto libre o "fuera de casa". **8 grupos** en una lista cerrada (`GRUPOS_ALIMENTOS`): legumbres, pescado, huevos, carne blanca, carne roja, verduras, pasta o arroz, otro; **opcional** en cada hueco y nunca en "fuera de casa". **Equilibrio** frente al informe de AESAN 2022 (comprobado en aesan.gob.es el 2026-11-16): por semana, **legumbres ≥ 4**, **pescado ≥ 3**, **huevos ≤ 4** y **carne ≤ 3** (la blanca y la roja suman juntas; se recomienda priorizar aves y conejo). Los demás grupos se cuentan sin objetivo. **Rutas con la fecha en la ruta**: `/semana` (la actual), `/semana/2026-11-23` (lunes), `/plan/2026-11-24` y `/plan/2026-11-24/cena`. **Margen**: un año atrás y uno adelante (400 fuera de él); las filas de hace más de un año se borran en la tarea de avisos | Separar la carne blanca y la roja permite el matiz de AESAN sin cambiar el máximo. Un grupo obligatorio no encaja con "Comida aniversario". Las cifras diarias de AESAN (hortalizas, fruta, cereales) no se pueden contar con un hueco por comida, así que no se usan. Contar huecos no es contar raciones: por eso es "orientativo". La fecha en la ruta se lee bien y cabe en el router actual. Sin margen, la tabla crecería sin control |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

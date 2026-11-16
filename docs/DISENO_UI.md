@@ -480,7 +480,8 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 | `VistaReceta` | Ingredientes con "✓ Tienes 500 g" / "Solo tienes…" / "Tienes «X» en otra unidad: revísalo." / "Tienes el tupper «…»" / "✗ Te falta" (de `estadoIngrediente()`), resumen "Tienes todo" / "Te faltan 2 ingredientes" (cuenta `falta` y `poco`) y pasos numerados (`<ol>`) | `{ receta, productos, tuppers }` → `<section>`; exporta `describirEstado()` |
 | `FormularioReceta` | Alta y edición de una receta (P-20, D-49): nombre, raciones opcionales, filas de ingredientes (autocompletado de Producto y `<select>` de unidad) con "Añadir" y "Quitar", y pasos en un `<textarea>`; validación por campo con `validarReceta()` | `{ inicial?, textoBoton, alGuardar(datos) => Promise, buscarHistorial? }` → `{ formulario, boton }` (como `FormularioProducto`) |
 | `FilaCocinar` | Un ingrediente en "La he cocinado": "¿De cuál lo has usado?", la cantidad a descontar, "Quedarán…", "No descontar" | `{ fila, alCambiar }` → `<article>` |
-| `Hueco` | Un hueco del planificador (Comida/Cena) que se puede pulsar | `{ dia, tipo, plato }` → `<a>` |
+| `Hueco` | Un hueco del cuadrante (Comida/Cena) que se puede pulsar: el plato y su grupo en tono tenue, "Fuera de casa" o "+ Añadir" | `{ fecha, tipo, hueco \| null }` → `<a href="/plan/:fecha/:tipo">` |
+| `EquilibrioSemana` | Cuántas veces sale cada grupo frente a AESAN 2022 (`equilibrioSemana()`, D-50): "Legumbres · 2 de 4 o más" con su tono y su texto, nunca solo el color; los grupos sin objetivo, en una línea; y "Orientativo, no sustituye el consejo de un profesional." con la fuente | `{ huecos }` → `<section>` |
 
 Igual que en Expo: **no llaman a la API**. Reciben datos y avisan con *callbacks*; quien llama a `api.js` es la pantalla.
 
@@ -822,54 +823,79 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 └──────────────────────────────┘
 ```
 
-#### P-13 · Semana — `/semana` · E-1
+#### P-13 · Semana — `/semana` · `/semana/:lunes` · E-1 (D-50)
 ```
 ┌──────────────────────────────┐
 │  Semana                       │
-│  Toca un hueco para asignar   │
-│  una receta guardada o escri- │
-│  bir un plato. La noche ante- │
-│  rior, a las 21:00, te llegará│
-│  un aviso con el plan.        │
-│  LUNES                ‹Ingred.›│
-│ ┌──────────────────────────┐ │
-│ │ Comida   Lentejas        │ │
-│ │ Cena     + Añadir        │ │
+│  [‹]  Semana del 23 al 29  [›]│  ‹ y › con aria-label
+│       de noviembre            │  ("Semana anterior/siguiente")
+│  ‹Ir a esta semana›           │  (solo si no es la actual)
+│ ┌──────────────────────────┐ │  Aviso info (semana actual o
+│ │ Caduca pronto: Pollo     │ │  futura, avisoCaducidad())
+│ │ (mañana), Leche (hoy).   │ │
 │ └──────────────────────────┘ │
-│  MARTES · MAÑANA      ‹Ingred.›│
-│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │ borde primario
-│ ┃ Comida   + Añadir        ┃ │
-│ ┃ Cena     Tortilla        ┃ │
+│  LUNES 23            ‹Ver día›│  ‹Ver día› → P-15, si tiene algo
+│ ┌──────────────────────────┐ │
+│ │ Comida  Lentejas         │ │
+│ │         Legumbres        │ │  (grupo en tono tenue)
+│ │ Cena    + Añadir         │ │
+│ └──────────────────────────┘ │
+│  MARTES 24 · HOY             │
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │  borde primario (hoy)
+│ ┃ Comida  Fuera de casa    ┃ │
+│ ┃ Cena    Tortilla         ┃ │
+│ ┃         Huevos           ┃ │
 │ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │
-│  … hasta DOMINGO              │
+│  … hasta DOMINGO 29           │
+│  EQUILIBRIO DE LA SEMANA      │
+│  Legumbres  1 de 4 o más      │  tono aviso + texto
+│  Pescado    3 de 3 o más ✓    │  tono éxito
+│  Huevos     1 (hasta 4) ✓     │
+│  Carne      4 (máx. 3)        │  tono aviso: "Mejor aves y conejo."
+│  También: verduras 2, pasta   │
+│  o arroz 1.                   │
+│  Orientativo, no sustituye el │
+│  consejo de un profesional.   │
+│  Cuenta los platos con grupo, │
+│  no las raciones. Fuente:     │
+│  ‹AESAN 2022›                 │  enlace externo
 ├──────────────────────────────┤
 │ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │
 └──────────────────────────────┘
 ```
+- `/semana` muestra la semana de hoy (en la zona del navegador); `/semana/:lunes` tiene que ser un lunes dentro del margen de un año (si no, "Semana no válida" + `‹Ir a esta semana›`).
+- Los 7 días se ven siempre, aunque estén vacíos: una semana nueva aparece vacía.
+- ‹ y › cambian de semana con `navegar()` (sin "reemplazar": "Atrás" vuelve a la semana anterior vista). Al llegar al margen, el botón se deshabilita con su motivo.
+- "HOY" y "MAÑANA" junto al día que toque. Los días pasados se pueden editar igual (por si se apunta tarde lo que se comió).
 
-#### P-14 · Planificar hueco — `/plan/:dia/:tipo` · E-2
+#### P-14 · Planificar hueco — `/plan/:fecha/:tipo` · E-2 (D-50)
 ```
 ┌──────────────────────────────┐
-│  ‹ Semana   Martes · Cena     │
-│  ESCRIBIR UN PLATO            │
-│  Nombre del plato             │
-│  [Ej. Lentejas_____________]  │
-│  [   Usar este plato      ]   │
-│  O ELEGIR UNA RECETA GUARDADA │
-│ ┌──────────────────────────┐ │
-│ │ ✓ Tortilla de patatas    │ │ (elegida)
-│ └──────────────────────────┘ │
-│ ┌──────────────────────────┐ │
-│ │ Arroz con pollo          │ │
-│ └──────────────────────────┘ │
-│  ‹Dejar este hueco vacío›     │
+│  ‹ Semana   Martes 24 · Cena  │
+│  ¿QUÉ VAS A COMER?            │  (legend)
+│  (●) Una receta guardada      │
+│  ( ) Escribir un plato        │
+│  ( ) Fuera de casa            │
+│  ELIGE LA RECETA              │  (si "receta")
+│  (●) Tortilla de patatas      │
+│  ( ) Arroz con pollo          │
+│  GRUPO DE ALIMENTOS (opcional)│  (oculto si "fuera de casa")
+│  [ Huevos               ▾ ]   │  <select>, primera opción "Sin grupo"
+│  ‹Dejar este hueco vacío›     │  (solo si ya tiene algo)
+│──────────────────────────────│
+│ [        Guardar          ]   │
 └──────────────────────────────┘
 ```
+- "Escribir un plato": un campo "Nombre del plato" (`Ej. Comida aniversario`, 1 a 80 caracteres) con el autocompletado de nombres de producto.
+- Sin recetas guardadas: en vez de la lista, "Aún no tienes recetas guardadas." + `‹Escribir una›` (→ `/receta/nueva`); la opción por defecto pasa a ser "Escribir un plato".
+- Al abrir un hueco que ya tiene algo, sale lo que tiene marcado.
+- Guardar → "Guardando…" → vuelve a la semana del hueco (`reemplazar`) con "✓ Plan guardado." Si este dispositivo no tiene los avisos activos: "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
+- ‹Dejar este hueco vacío› → `DELETE` sin confirmar (se deshace volviendo a planificarlo) → vuelve con "✓ Hueco vaciado."
 
-#### P-15 · Plan del día — `/plan/:dia` · E-2 (**la abre el aviso**)
+#### P-15 · Plan del día — `/plan/:fecha` · E-2 (**la abre el aviso**)
 ```
 ┌──────────────────────────────┐
-│  ‹ Semana    Mañana (Martes)  │
+│  ‹ Semana   Mañana (martes 24)│
 │  COMIDA                       │
 │  Lentejas                     │
 │  Plato escrito a mano: no     │
@@ -878,12 +904,15 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │  con ese nombre:              │
 │  ✓ Lentejas: 1 kg             │
 │  CENA                         │
-│  Tortilla de patatas          │
+│  Tortilla de patatas  ‹Ver›   │  ‹Ver› → /receta/:id
 │  Para 2 personas · Tienes todo│
 │  Huevos · 4 ud. ✓ Tienes 6 ud.│
 │  Patatas · 500 g ✓ Tienes 2 kg│
 └──────────────────────────────┘
 ```
+- Título: "Hoy (martes 24)", "Mañana (martes 24)" o "Martes 24 de noviembre".
+- Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `buscarProductos()` por el nombre, o "✗ No hay nada con ese nombre en el inventario." "Fuera de casa": solo eso.
+- Nada planificado: "Nada planificado" / "No hay comida ni cena para el martes 24." + `[Planificar comida]°` (→ `/plan/:fecha/comida`).
 
 #### P-16 · Ajustes — `/ajustes` · E-1
 ```
@@ -965,9 +994,10 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/receta/:id` | P-11 | Recetas | `id` entero > 0 | `/recetas` |
 | `/receta/:id/editar` | P-20 | Recetas | `id` entero > 0 | `/receta/:id` |
 | `/cocinar` | P-12 | Recetas | `?receta` entero > 0 (la sugerencia, en la fase 8) | `/receta/:id` |
-| `/semana` | P-13 | Semana | — | — |
-| `/plan/:dia` | P-15 | Semana | `dia` ∈ `DIAS_SEMANA` | `/semana` |
-| `/plan/:dia/:tipo` | P-14 | Semana | `dia` ∈ `DIAS_SEMANA`, `tipo` ∈ `TIPOS_COMIDA` | `/semana` |
+| `/semana` | P-13 | Semana | — (la semana de hoy) | — |
+| `/semana/:lunes` | P-13 | Semana | `lunes`: fecha ISO, lunes, dentro del margen de un año (D-50) | — |
+| `/plan/:fecha` | P-15 | Semana | `fecha`: fecha ISO dentro del margen | `/semana/:lunes` de esa fecha |
+| `/plan/:fecha/:tipo` | P-14 | Semana | `fecha` igual, `tipo` ∈ `TIPOS_COMIDA` | `/semana/:lunes` de esa fecha |
 | `/ajustes` | P-16 | Ajustes | — | — |
 | `/hogar/invitar`, `/hogar/unirse` | P-17 | Ajustes | `?codigo` opcional, formato del código | `/ajustes` |
 | `/cuenta/borrar` | Borrar cuenta (fase 2): aviso de lo que se borra + contraseña | Ajustes | — | `/ajustes` |
@@ -986,7 +1016,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | Aviso | Título | URL (`navigate`) | Pantalla |
 |---|---|---|---|
 | Tupper | "Tu tupper de Cocido caduca pronto" | `/tupper/12` | P-07, con "Marcar como consumido" como acción principal |
-| Plan | "Mañana comes lentejas y cenas tortilla" | `/plan/martes` | P-15, con lo que tienes y lo que te falta |
+| Plan | "Mañana comes lentejas y cenas tortilla" | `/plan/2026-11-24` | P-15, con lo que tienes y lo que te falta |
 | Prueba | "Los avisos funcionan" | `/ajustes` | P-16 |
 
 ---
@@ -1071,13 +1101,13 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 6. **Toque** → la PWA se abre en `/tupper/12` → ficha con "Caduca mañana" → `[Marcar como consumido]` → "Guardando…" → vuelve a Inventario con "✓ Cocido marcado como consumido."
 7. **Si otra persona ya lo consumió:** la ficha muestra "✓ Consumido" sin botón.
 
-### 7.5 Planificar → aviso → "¿Tienes todo?"
-1. **Semana** → hueco "Martes · Cena" → `/plan/martes/cena`.
-2. Escribe "Tortilla de patatas" → `[Usar este plato]`, o pulsa una receta guardada. → "Guardando…" → vuelve a Semana con el hueco relleno.
-3. **Si este dispositivo no tiene avisos:** "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes." (como el `Alert` "Plan guardado sin aviso").
-4. **El lunes a las 21:00** (hora de Ajustes; ≤ 5 min tarde): "Mañana cenas tortilla de patatas" / "¿Tienes todos los ingredientes? Toca para comprobarlo."
-5. **Toque** → `/plan/martes` → título "Mañana (Martes)" → por cada plato: receta con "Tienes todo" / "Te faltan 2 ingredientes" y la lista con ✓/✗; o, si es un plato escrito a mano, "Esto es lo que hay en casa con ese nombre:" + ✓ o "✗ No hay nada con ese nombre en el inventario."
-6. **Nada planificado** (por ejemplo, alguien borró el plato): "Nada planificado · No hay comida ni cena para el martes." + `[Planificar comida]°`.
+### 7.5 Planificar → aviso → "¿Tienes todo?" (fase 7, D-50)
+1. **Semana** (`/semana`, la de hoy; ‹ › para cambiar) → hueco "Martes 24 · Cena" → `/plan/2026-11-24/cena`.
+2. Elige "Una receta guardada" y pulsa una, o "Escribir un plato" ("Comida aniversario"), o "Fuera de casa"; si quiere, el grupo de alimentos → `[Guardar]` → "Guardando…" → vuelve a esa semana con el hueco relleno y el equilibrio recalculado.
+3. **Si este dispositivo no tiene avisos:** "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
+4. **El lunes 23 a las 21:00** (hora de Ajustes; ≤ 5 min tarde): "Mañana cenas tortilla de patatas" / "¿Tienes todos los ingredientes? Toca para comprobarlo." Solo una vez; "fuera de casa" no avisa.
+5. **Toque** → `/plan/2026-11-24` → título "Mañana (martes 24)" → por cada plato: receta con "Tienes todo" / "Te faltan 2 ingredientes" y la lista con ✓/✗; o, si es un plato escrito a mano, "Esto es lo que hay en casa con ese nombre:" + ✓ o "✗ No hay nada con ese nombre en el inventario."
+6. **Nada planificado** (por ejemplo, alguien vació el hueco o borró la receta): "Nada planificado · No hay comida ni cena para el martes 24." + `[Planificar comida]°`.
 
 ### 7.6 Primer uso: cuenta, instalación y permiso de avisos
 1. **Abrir la URL en Safari** → `/entrar`. Sin cuenta → `‹Créala›` → `/registro` → `[Crear cuenta]` → el servidor crea la cuenta, la casa "Casa de {nombre}" y la sesión → `/bienvenida`.
@@ -1116,9 +1146,9 @@ Comunes a todas:
 | Receta | "Cargando…" | "Esta receta ya no existe" + `[Volver]°` | "No se ha podido abrir la receta." + `[Reintentar]` | Borrar: confirmación → "No se ha podido borrar la receta." | `VistaReceta` |
 | Nueva / editar receta | Al editar: "Cargando…" | — | Por campo (`validarReceta()`) · "No se ha guardado. Ha fallado el guardado de la receta. Inténtalo de nuevo." | "Guardando…" | `FormularioReceta` |
 | La he cocinado | "Preparando el descuento…" | "Esta receta ya no está disponible" + `[Volver]°` | Errores por fila · 409 "Alguien de tu casa ha cambiado el inventario…" | "Actualizando…" → "No se ha descontado nada…" + `[Reintentar]` | Filas |
-| Semana | "Cargando el plan…" | No existe: los 7 días siempre se ven, con "+ Añadir" | "No se ha podido cargar el plan." + `[Reintentar]` | — | Cuadrante |
-| Planificar hueco | Recetas: indicador en línea | "Aún no tienes recetas guardadas" / "Genera y guarda alguna en la pestaña Recetas." · Parámetro malo: "Hueco no válido" | — | "Guardando…" → "No se ha guardado. Ha fallado el cambio en el plan. Inténtalo de nuevo." | Formulario + recetas |
-| Plan del día | "Comprobando ingredientes…" | "Nada planificado" + `[Planificar comida]°` · "Día no válido" | `[Reintentar]` | — | Platos con ✓/✗ |
+| Semana | "Cargando el plan…" | No existe: los 7 días siempre se ven, con "+ Añadir" · Fecha mala: "Semana no válida" + `‹Ir a esta semana›` | "No se ha podido cargar el plan." + `[Reintentar]` | — | Cuadrante + equilibrio |
+| Planificar hueco | Recetas: indicador en línea | "Aún no tienes recetas guardadas." + `‹Escribir una›` · Parámetro malo: "Hueco no válido" | — | "Guardando…" → "No se ha guardado. Ha fallado el cambio en el plan. Inténtalo de nuevo." | Formulario + recetas |
+| Plan del día | "Comprobando ingredientes…" | "Nada planificado" + `[Planificar comida]°` · Fecha mala: "Día no válido" | `[Reintentar]` | — | Platos con ✓/✗ |
 | Ajustes | Cada sección con su indicador en línea | — | Hora: "Escribe la hora como HH:MM, por ejemplo 21:00." · Avisos: "No se han podido activar los avisos. Inténtalo de nuevo." | "Guardando…" → "Hora guardada: 21:30." / "No se ha podido guardar la hora." | Secciones |
 | Invitar / Unirse | "Creando código…" | — | "Ese código no existe o ha caducado." · "Ese código ya se ha usado." | "Uniéndote…" → "No se ha podido unir. Inténtalo de nuevo." | Código / formulario |
 
