@@ -841,11 +841,19 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │ │ Cena    + Añadir         │ │
 │ └──────────────────────────┘ │
 │  MARTES 24 · HOY             │
+│  Carne roja en la comida y en │  aviso del día (tono aviso),
+│  la cena: mejor variar.       │  avisosDia()
 │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │  borde primario (hoy)
-│ ┃ Comida  Fuera de casa    ┃ │
-│ ┃ Cena    Tortilla         ┃ │
-│ ┃         Huevos           ┃ │
+│ ┃ Comida  Hamburguesa      ┃ │
+│ ┃         Carne roja       ┃ │
+│ ┃ Cena    Filete           ┃ │
+│ ┃         Carne roja       ┃ │
 │ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │
+│  MIÉRCOLES 25                 │
+│ ┌──────────────────────────┐ │
+│ │ Comida  Fuera de casa    │ │  (tenue)
+│ │         Comida aniversario│ │  su nota, si la tiene
+│ └──────────────────────────┘ │
 │  … hasta DOMINGO 29           │
 │  EQUILIBRIO DE LA SEMANA      │
 │  Legumbres  1 de 4 o más      │  tono aviso + texto
@@ -867,6 +875,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 - Los 7 días se ven siempre, aunque estén vacíos: una semana nueva aparece vacía.
 - ‹ y › cambian de semana con `navegar()` (sin "reemplazar": "Atrás" vuelve a la semana anterior vista). Al llegar al margen, el botón se deshabilita con su motivo.
 - "HOY" y "MAÑANA" junto al día que toque. Los días pasados se pueden editar igual (por si se apunta tarde lo que se comió).
+- **Avisos del día** (`avisosDia()`, D-50), bajo su título y en tono aviso: el mismo grupo en la comida y en la cena ("Carne roja en la comida y en la cena: mejor variar.") y el día en que se pasa de un máximo de AESAN ("Cuarta vez de carne esta semana (AESAN: 3 como mucho)."). El equilibrio de abajo es el resumen de la semana.
 
 #### P-14 · Planificar hueco — `/plan/:fecha/:tipo` · E-2 (D-50)
 ```
@@ -879,6 +888,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │  ELIGE LA RECETA              │  (si "receta")
 │  (●) Tortilla de patatas      │
 │  ( ) Arroz con pollo          │
+│  Nota (opcional)              │  (solo si "fuera de casa")
 │  GRUPO DE ALIMENTOS (opcional)│  (oculto si "fuera de casa")
 │  [ Huevos               ▾ ]   │  <select>, primera opción "Sin grupo"
 │  ‹Dejar este hueco vacío›     │  (solo si ya tiene algo)
@@ -886,7 +896,8 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │ [        Guardar          ]   │
 └──────────────────────────────┘
 ```
-- "Escribir un plato": un campo "Nombre del plato" (`Ej. Comida aniversario`, 1 a 80 caracteres) con el autocompletado de nombres de producto.
+- "Escribir un plato": un campo "Nombre del plato" (`Ej. Lentejas con chorizo`, 1 a 80 caracteres) con el autocompletado de nombres de producto.
+- "Fuera de casa": un campo "Nota (opcional)" (`Ej. Comida aniversario`, hasta 80 caracteres): una cita no es un plato. Vacía, se guarda sin nota.
 - Sin recetas guardadas: en vez de la lista, "Aún no tienes recetas guardadas." + `‹Escribir una›` (→ `/receta/nueva`); la opción por defecto pasa a ser "Escribir un plato".
 - Al abrir un hueco que ya tiene algo, sale lo que tiene marcado.
 - Guardar → "Guardando…" → vuelve a la semana del hueco (`reemplazar`) con "✓ Plan guardado." Si este dispositivo no tiene los avisos activos: "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
@@ -911,7 +922,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 └──────────────────────────────┘
 ```
 - Título: "Hoy (martes 24)", "Mañana (martes 24)" o "Martes 24 de noviembre".
-- Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `buscarProductos()` por el nombre, o "✗ No hay nada con ese nombre en el inventario." "Fuera de casa": solo eso.
+- Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `buscarProductos()` por el nombre, o "✗ No hay nada con ese nombre en el inventario." "Fuera de casa": eso y su nota, si la tiene.
 - Nada planificado: "Nada planificado" / "No hay comida ni cena para el martes 24." + `[Planificar comida]°` (→ `/plan/:fecha/comida`).
 
 #### P-16 · Ajustes — `/ajustes` · E-1
@@ -1103,7 +1114,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 
 ### 7.5 Planificar → aviso → "¿Tienes todo?" (fase 7, D-50)
 1. **Semana** (`/semana`, la de hoy; ‹ › para cambiar) → hueco "Martes 24 · Cena" → `/plan/2026-11-24/cena`.
-2. Elige "Una receta guardada" y pulsa una, o "Escribir un plato" ("Comida aniversario"), o "Fuera de casa"; si quiere, el grupo de alimentos → `[Guardar]` → "Guardando…" → vuelve a esa semana con el hueco relleno y el equilibrio recalculado.
+2. Elige "Una receta guardada" y pulsa una, o "Escribir un plato" ("Lentejas con chorizo"), o "Fuera de casa" (con una nota, si quiere: "Comida aniversario"); si quiere, el grupo de alimentos → `[Guardar]` → "Guardando…" → vuelve a esa semana con el hueco relleno y el equilibrio recalculado.
 3. **Si este dispositivo no tiene avisos:** "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
 4. **El lunes 23 a las 21:00** (hora de Ajustes; ≤ 5 min tarde): "Mañana cenas tortilla de patatas" / "¿Tienes todos los ingredientes? Toca para comprobarlo." Solo una vez; "fuera de casa" no avisa.
 5. **Toque** → `/plan/2026-11-24` → título "Mañana (martes 24)" → por cada plato: receta con "Tienes todo" / "Te faltan 2 ingredientes" y la lista con ✓/✗; o, si es un plato escrito a mano, "Esto es lo que hay en casa con ese nombre:" + ✓ o "✗ No hay nada con ese nombre en el inventario."

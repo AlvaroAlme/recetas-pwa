@@ -265,8 +265,9 @@ CREATE INDEX receta_ingredientes_receta_idx ON receta_ingredientes (receta_id);
 
 -- Cuadrante por fechas (D-48, D-50): una fila por hogar + fecha + comida/cena.
 -- Las semanas empiezan vacías: solo hay fila si alguien ha planificado algo.
--- Cada hueco lleva UNA de tres cosas: una receta, un texto libre ("Comida
--- aniversario") o "fuera de casa"; y, si no es "fuera de casa", un grupo
+-- Cada hueco lleva UNA de tres cosas: una receta, un plato escrito a mano
+-- ("Lentejas con chorizo") o "fuera de casa", que puede llevar una NOTA en
+-- texto_libre ("Comida aniversario"); y, si no es "fuera de casa", un grupo
 -- de alimentos OPCIONAL (lista cerrada GRUPOS_ALIMENTOS de compartido/).
 -- FK COMPUESTA (receta_id, hogar_id): la receta tiene que ser DEL MISMO HOGAR
 -- (un CHECK no podría mirar la tabla recetas, R-15). Al borrar la receta,
@@ -290,7 +291,7 @@ CREATE TABLE cuadrante (
                    'carne_blanca', 'carne_roja', 'verduras', 'pasta_arroz', 'otro')),
   UNIQUE (hogar_id, fecha, tipo_comida),                 -- también sirve para leer una semana
   CHECK (receta_id IS NULL OR texto_libre IS NULL),      -- nunca las dos cosas a la vez
-  CHECK (NOT fuera_de_casa OR (receta_id IS NULL AND texto_libre IS NULL AND grupo IS NULL)),
+  CHECK (NOT fuera_de_casa OR (receta_id IS NULL AND grupo IS NULL)),   -- su texto es la nota
   FOREIGN KEY (receta_id, hogar_id) REFERENCES recetas (id, hogar_id)
     ON DELETE SET NULL (receta_id)
 );
@@ -577,7 +578,7 @@ Si la clave se reservara al final (con un `INSERT` en el paso 5), dos peticiones
 |---|---|---|---|---|
 | `GET /api/plan?desde=2026-11-23` 🔑 | — | 200 `{ desde, huecos: Hueco[] }` | 400 (`desde` no es lunes o fuera de margen) | Los 7 días de `desde` a `desde + 6` |
 | `GET /api/plan/:fecha` 🔑 | — | 200 `{ fecha, huecos: [Hueco & { receta: Receta completa \| null }] }` | 400 | Lo que abre el aviso (P-15): los platos con sus ingredientes |
-| `PUT /api/plan/:fecha/:tipo` 🔑 | `{ recetaId, grupo? }`, `{ texto, grupo? }` o `{ fueraDeCasa: true }` (una de las tres) | 200 `{ hueco }` | 400, 404 `NO_EXISTE` (receta de otro hogar o borrada) | `validarHueco()`; `INSERT … ON CONFLICT (hogar_id, fecha, tipo_comida) DO UPDATE` (sustituye el hueco entero). Recalcula la agenda |
+| `PUT /api/plan/:fecha/:tipo` 🔑 | `{ recetaId, grupo? }`, `{ texto, grupo? }` o `{ fueraDeCasa: true, texto? }` (una de las tres; con "fuera de casa", `texto` es una nota opcional) | 200 `{ hueco }` | 400, 404 `NO_EXISTE` (receta de otro hogar o borrada) | `validarHueco()`; `INSERT … ON CONFLICT (hogar_id, fecha, tipo_comida) DO UPDATE` (sustituye el hueco entero). Recalcula la agenda |
 | `DELETE /api/plan/:fecha/:tipo` 🔑 | — | 204 | 400 | Recalcula la agenda |
 
 #### Push
@@ -614,7 +615,7 @@ recetas-nevera-pwa/
 │   │                          estadoIngrediente, cantidadPropuesta        ← lib/cocina.ts
 │   ├── formato.js             formatearCantidad                           ← lib/inventario.ts
 │   ├── plan.js                lunesDe, textoSemana, nombrePlato, textoAviso,
-│   │                          ETIQUETAS_GRUPO, OBJETIVOS_AESAN, equilibrioSemana (D-50)
+│   │                          ETIQUETAS_GRUPO, OBJETIVOS_AESAN, equilibrioSemana, avisosDia (D-50)
 │   └── validacion.js          validarProducto… (API y formulario, D-40)   ← FormularioProducto
 │
 ├── server/
@@ -977,7 +978,8 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 
 **Hecho cuando:**
 - una semana nueva aparece vacía y la cabecera dice sus fechas;
-- se puede poner a mano "Comida aniversario" un día y marcar otro como "fuera de casa";
+- se puede escribir a mano un plato ("Lentejas con chorizo") un día y marcar otro como "fuera de casa" con su nota ("Comida aniversario");
+- si un día lleva el mismo grupo en la comida y en la cena, o se pasa del máximo semanal, el aviso sale junto a ese día;
 - el equilibrio cambia al añadir o quitar un hueco con grupo;
 - con la hora puesta 5 minutos más tarde, llega "Mañana comes…", y al tocarlo se abre ese día con lo que tienes y lo que te falta; no llega dos veces;
 - borrar una receta asignada deja su hueco vacío sin error.
@@ -1072,7 +1074,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-47 | 2026-11-09 | Límite de los PDF del ticket y versión de la API de Claude (fase 5) | **PDF ≤ 20 MB** (no 25 como en `ticket.ts`): en base64 ocupa un tercio más y 25 MB serían ~33 MB, por encima del máximo de 32 MB por petición de la API. **`anthropic-version: 2023-06-01`**, como en Expo; la `2026-10-21` no cambia nada de esta petición | La API rechaza las peticiones de más de 32 MB; con 20 MB queda margen para el prompt y el JSON. Cambiar de versión no aporta nada ahora y rompería el «tal cual». Tiempo máximo con Claude, 60 s (Expo: 120), por debajo de los 75 s de api.js. La cuota se devuelve con cualquier error reintentable (no solo red y 5xx): ninguno es culpa de quien escanea |
 | D-48 | 2026-11-13 | La IA como ayudante de cocina: chat, recetas y cuadrante (replantea las fases 6 a 9; cambia D-15 y D-31; adelanta V2-01) | **Chat ayudante con acciones**: resuelve dudas y, con herramientas (*tool use*), propone recetas y huecos del cuadrante como **tarjetas que se confirman** ("Guardar receta", "Añadir al cuadrante"); nunca guarda nada sin confirmar. Conversaciones **en el servidor, por persona**, borradas solas a los N días (propuesta: 30). **Cuota propia del chat** (propuesta: 30 mensajes/día/persona); el ticket sigue con `CUOTA_IA_DIARIA`. **Cuadrante por fechas**: semanas de lunes a domingo que empiezan vacías ("Semana del 23 al 29 de noviembre"); cada hueco (fecha + comida/cena) lleva receta, texto libre o **"fuera de casa"**, y un **grupo de alimentos** (lista cerrada en `compartido/`). El navegador calcula sin IA los avisos de caducidad y el **equilibrio semanal** frente a frecuencias de una fuente española verificada (AESAN). Al sugerir, la IA elige un grupo distinto cada día, cubre los que faltan y usa primero lo que caduca. Orden: recetario (6) y cuadrante (7) sin IA, chat (8), cierre (9). Importar el calendario queda como V2-03 | El autor quiere la IA como **ayudante para planificar**, no como botones sueltos. Lo que se puede calcular (caducidad, equilibrio) no gasta IA y funciona sin red. Con 10 llamadas al día no da para conversar. Una semana fija que se repite no sirve: cada semana se planifica de cero y hay eventos de un día. El chat va al final porque sus acciones necesitan el recetario y el cuadrante; así, si la IA falla o se acaba la cuota, la app sigue sirviendo. Las cifras (cuota, días, frecuencias) se fijan en su fase |
 | D-49 | 2026-11-13 | Recetas escritas a mano (fase 6) | **Crear, editar y borrar** (`PUT /api/recetas/:id`: actualiza la receta y sustituye sus ingredientes en una TX). **Ingredientes en filas** (nombre, cantidad y unidad, con "Añadir ingrediente" y "Quitar"), **pasos en un área de texto** (un paso por línea, guardados juntos en `instrucciones`) y **raciones opcionales** (1 a 20, solo informan). Formulario de receta como pantalla nueva | Corregir una cantidad no debe obligar a rehacer la receta. "Qué me falta" y "La he cocinado" necesitan nombre, cantidad y unidad por separado: las filas evitan errores de formato. Los pasos como texto se escriben y se pegan cómodamente en el móvil. Las raciones las usará también el chat (fase 8) |
-| D-50 | 2026-11-16 | Cuadrante por fechas: grupos, equilibrio y rutas (fase 7) | Tabla **`cuadrante`** (sustituye a `planificador_semanal`, que nunca llegó a crearse): una fila por hogar + **fecha** + comida/cena con receta, texto libre o "fuera de casa". **8 grupos** en una lista cerrada (`GRUPOS_ALIMENTOS`): legumbres, pescado, huevos, carne blanca, carne roja, verduras, pasta o arroz, otro; **opcional** en cada hueco y nunca en "fuera de casa". **Equilibrio** frente al informe de AESAN 2022 (comprobado en aesan.gob.es el 2026-11-16): por semana, **legumbres ≥ 4**, **pescado ≥ 3**, **huevos ≤ 4** y **carne ≤ 3** (la blanca y la roja suman juntas; se recomienda priorizar aves y conejo). Los demás grupos se cuentan sin objetivo. **Rutas con la fecha en la ruta**: `/semana` (la actual), `/semana/2026-11-23` (lunes), `/plan/2026-11-24` y `/plan/2026-11-24/cena`. **Margen**: un año atrás y uno adelante (400 fuera de él); las filas de hace más de un año se borran en la tarea de avisos | Separar la carne blanca y la roja permite el matiz de AESAN sin cambiar el máximo. Un grupo obligatorio no encaja con "Comida aniversario". Las cifras diarias de AESAN (hortalizas, fruta, cereales) no se pueden contar con un hueco por comida, así que no se usan. Contar huecos no es contar raciones: por eso es "orientativo". La fecha en la ruta se lee bien y cabe en el router actual. Sin margen, la tabla crecería sin control |
+| D-50 | 2026-11-16 | Cuadrante por fechas: grupos, equilibrio y rutas (fase 7) | Tabla **`cuadrante`** (sustituye a `planificador_semanal`, que nunca llegó a crearse): una fila por hogar + **fecha** + comida/cena con receta, texto libre o "fuera de casa". **8 grupos** en una lista cerrada (`GRUPOS_ALIMENTOS`): legumbres, pescado, huevos, carne blanca, carne roja, verduras, pasta o arroz, otro; **opcional** en cada hueco y nunca en "fuera de casa". **Equilibrio** frente al informe de AESAN 2022 (comprobado en aesan.gob.es el 2026-11-16): por semana, **legumbres ≥ 4**, **pescado ≥ 3**, **huevos ≤ 4** y **carne ≤ 3** (la blanca y la roja suman juntas; se recomienda priorizar aves y conejo). Los demás grupos se cuentan sin objetivo. **Avisos junto al día** (`avisosDia()`): el mismo grupo en la comida y en la cena ("mejor variar"; "otro" no avisa) y el día en que se pasa de un máximo ("Cuarta vez de carne esta semana"); el bloque del equilibrio se queda abajo como resumen (lo que falta no es de ningún día). **"Fuera de casa" con nota opcional** en `texto_libre` ("Comida aniversario": una cita no es un plato). **Rutas con la fecha en la ruta**: `/semana` (la actual), `/semana/2026-11-23` (lunes), `/plan/2026-11-24` y `/plan/2026-11-24/cena`. **Margen**: un año atrás y uno adelante (400 fuera de él); las filas de hace más de un año se borran en la tarea de avisos | Separar la carne blanca y la roja permite el matiz de AESAN sin cambiar el máximo. Un grupo obligatorio no encaja con "Comida aniversario". Las cifras diarias de AESAN (hortalizas, fruta, cereales) no se pueden contar con un hueco por comida, así que no se usan. Contar huecos no es contar raciones: por eso es "orientativo". La fecha en la ruta se lee bien y cabe en el router actual. Sin margen, la tabla crecería sin control |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

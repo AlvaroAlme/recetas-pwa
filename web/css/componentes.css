@@ -1218,3 +1218,110 @@ textarea.campo__entrada {
   display: flex;
   justify-content: flex-end;
 }
+
+/* ============ Semana (P-13, D-50) ============ */
+.texto--pequeno {
+  font-size: var(--texto-pequeno);
+  line-height: var(--linea-pequeno);
+}
+/* ‹ Semana del 23 al 29 de noviembre ›: las flechas a los lados, el texto en medio. */
+.semana__navegacion {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-s);
+  margin-bottom: var(--espacio-l);
+}
+.semana__flecha {
+  flex: none;
+  width: var(--tactil);
+  padding: 0;
+  font-size: var(--texto-subtitulo);
+}
+.semana__fechas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.semana__texto {
+  font-weight: var(--peso-fuerte);
+}
+.semana__hoy {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tactil);
+  color: var(--color-primario-texto);
+}
+.semana {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xl);
+}
+.semana__dias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+}
+.dia__titulo {
+  font-size: var(--texto-seccion);
+  font-weight: var(--peso-fuerte);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-texto-secundario);
+}
+/* Hoy: borde primario más grueso (y "· Hoy" en el título, no solo el color). */
+.dia--hoy .lista {
+  border: 2px solid var(--color-primario);
+}
+.dia__aviso {
+  font-size: var(--texto-secundario);
+  line-height: var(--linea-secundario);
+}
+.dia--hoy .dia__titulo {
+  color: var(--color-primario-texto);
+}
+/* "Comida" / "Cena" a la izquierda, siempre del mismo ancho. */
+.hueco__tipo {
+  flex: none;
+  width: 4.5em;
+  color: var(--color-texto-tenue);
+  font-size: var(--texto-secundario);
+}
+.hueco__grupo {
+  color: var(--color-texto-tenue);
+}
+/* "Escribir una" (sin recetas) a su tamaño, no a lo ancho. */
+.hueco__sin-recetas {
+  align-items: flex-start;
+}
+.hueco__anadir {
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-normal);
+}
+/* Equilibrio: el grupo a la izquierda y cómo va a la derecha. */
+.equilibrio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+  padding: 0;
+  list-style: none;
+}
+.equilibrio__linea {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--espacio-m);
+}
+.equilibrio__grupo {
+  font-weight: var(--peso-fuerte);
+}
+.equilibrio__consejo {
+  flex-basis: 100%;
+  text-align: right;
+}

@@ -387,8 +387,10 @@ export function validarReceta(entrada) {
 
 /**
  * Lo que se guarda en un hueco del cuadrante (D-50). Me llega UNA de tres
- * cosas: { recetaId, grupo? }, { texto, grupo? } o { fueraDeCasa: true }.
- * La fecha y comida/cena van en la URL: las valida quien la lee.
+ * cosas: { recetaId, grupo? }, { texto, grupo? } (un plato escrito a mano)
+ * o { fueraDeCasa: true, texto? }, donde el texto es una nota opcional
+ * ("Comida aniversario"). La fecha y comida/cena van en la URL: las valida
+ * quien la lee.
  * @param {unknown} entrada
  * @returns {{ ok: true, datos: DatosHueco } | { ok: false, errores: Record<string, string> }}
  */
@@ -401,8 +403,9 @@ export function validarHueco(entrada) {
   if (typeof fueraDeCasa !== 'boolean') {
     return { ok: false, errores: { general: 'Los datos del hueco no son válidos.' } };
   }
-  // Una y solo una de las tres. fueraDeCasa: false cuenta como "no viene".
-  const cuantas = [recetaId !== null, texto !== null, fueraDeCasa].filter(Boolean).length;
+  // Una y solo una de las tres. fueraDeCasa: false cuenta como "no viene", y
+  // con "fuera de casa" el texto es su nota, así que no cuenta como plato.
+  const cuantas = [recetaId !== null, texto !== null && !fueraDeCasa, fueraDeCasa].filter(Boolean).length;
   if (cuantas !== 1) {
     return { ok: false, errores: { general: 'Elige una receta, escribe un plato o marca «Fuera de casa».' } };
   }
@@ -415,11 +418,14 @@ export function validarHueco(entrada) {
   }
 
   const textoLimpio = typeof texto === 'string' ? texto.trim() : '';
-  if (texto !== null) {
+  // La nota de "fuera de casa" es opcional: vacía, como si no viniera.
+  const notaVacia = fueraDeCasa && typeof texto === 'string' && textoLimpio === '';
+  if (texto !== null && !notaVacia) {
+    const que = fueraDeCasa ? 'La nota' : 'El plato';
     if (textoLimpio === '') {
       errores.texto = 'Escribe el plato.';
     } else if (textoLimpio.length > MAX_LONGITUD_NOMBRE) {
-      errores.texto = `El plato puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+      errores.texto = `${que} puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
     }
   }
 
@@ -436,6 +442,6 @@ export function validarHueco(entrada) {
   }
   return {
     ok: true,
-    datos: { recetaId, texto: texto === null ? null : textoLimpio, fueraDeCasa, grupo },
+    datos: { recetaId, texto: texto === null || notaVacia ? null : textoLimpio, fueraDeCasa, grupo },
   };
 }

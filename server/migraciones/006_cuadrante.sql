@@ -11,9 +11,10 @@ ALTER TABLE hogares
 
 -- Cuadrante: una fila por hogar + fecha + comida/cena. Las semanas empiezan
 -- vacías: solo hay fila si alguien ha planificado algo. Cada hueco lleva UNA
--- de tres cosas: una receta, un texto libre ("Comida aniversario") o "fuera
--- de casa"; y, si no es "fuera de casa", un grupo de alimentos opcional
--- (la misma lista que GRUPOS_ALIMENTOS en compartido/constantes.js).
+-- de tres cosas: una receta, un plato escrito a mano ("Lentejas con
+-- chorizo") o "fuera de casa", que puede llevar una nota en texto_libre
+-- ("Comida aniversario"); y, si no es "fuera de casa", un grupo de
+-- alimentos opcional (la misma lista que GRUPOS_ALIMENTOS en compartido/).
 --
 -- FK COMPUESTA (receta_id, hogar_id): la receta tiene que ser DEL MISMO
 -- HOGAR (un CHECK no puede mirar otra tabla, R-15). Al borrar la receta,
@@ -39,8 +40,8 @@ CREATE TABLE cuadrante (
   UNIQUE (hogar_id, fecha, tipo_comida),
   -- Nunca una receta y un texto a la vez.
   CHECK (receta_id IS NULL OR texto_libre IS NULL),
-  -- "Fuera de casa" va solo: sin receta, sin texto y sin grupo.
-  CHECK (NOT fuera_de_casa OR (receta_id IS NULL AND texto_libre IS NULL AND grupo IS NULL)),
+  -- "Fuera de casa" no lleva receta ni grupo (el texto, si lo hay, es su nota).
+  CHECK (NOT fuera_de_casa OR (receta_id IS NULL AND grupo IS NULL)),
   FOREIGN KEY (receta_id, hogar_id) REFERENCES recetas (id, hogar_id)
     ON DELETE SET NULL (receta_id)
 );

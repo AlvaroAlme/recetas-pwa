@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v23';
+const VERSION = 'app-v25';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -33,9 +33,11 @@ const ARCHIVOS = [
   '/js/dom.js',
   '/js/log.js',
   '/js/router.js',
+  '/js/componentes/equilibrioSemana.js',
   '/js/componentes/filaCocinar.js',
   '/js/componentes/formularioProducto.js',
   '/js/componentes/formularioReceta.js',
+  '/js/componentes/hueco.js',
   '/js/componentes/lineaTicket.js',
   '/js/componentes/panelAvisos.js',
   '/js/componentes/sugerenciasNombre.js',
@@ -50,11 +52,13 @@ const ARCHIVOS = [
   '/js/pantallas/inventario.js',
   '/js/pantallas/invitar.js',
   '/js/pantallas/noExiste.js',
+  '/js/pantallas/planificarHueco.js',
   '/js/pantallas/privacidad.js',
   '/js/pantallas/producto.js',
   '/js/pantallas/receta.js',
   '/js/pantallas/recetas.js',
   '/js/pantallas/registro.js',
+  '/js/pantallas/semana.js',
   '/js/pantallas/ticket.js',
   '/js/pantallas/tupper.js',
   '/js/pantallas/unirse.js',
@@ -62,6 +66,7 @@ const ARCHIVOS = [
   '/compartido/constantes.js',
   '/compartido/fechas.js',
   '/compartido/formato.js',
+  '/compartido/plan.js',
   '/compartido/sugerencias.js',
   '/compartido/texto.js',
   '/compartido/ubicaciones.js',

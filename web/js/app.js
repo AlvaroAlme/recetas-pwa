@@ -15,11 +15,13 @@ import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
 import { pantallaInvitar } from './pantallas/invitar.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
+import { pantallaPlanificarHueco } from './pantallas/planificarHueco.js';
 import { pantallaPrivacidad } from './pantallas/privacidad.js';
 import { pantallaProducto } from './pantallas/producto.js';
 import { pantallaReceta } from './pantallas/receta.js';
 import { pantallaRecetas } from './pantallas/recetas.js';
 import { pantallaRegistro } from './pantallas/registro.js';
+import { pantallaSemana } from './pantallas/semana.js';
 import { pantallaTicket } from './pantallas/ticket.js';
 import { pantallaTupper } from './pantallas/tupper.js';
 import { pantallaUnirse } from './pantallas/unirse.js';
@@ -40,6 +42,9 @@ iniciarRouter({
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
     { patron: '/ajustes', pestana: '/ajustes', pantalla: pantallaAjustes },
     { patron: '/recetas', pestana: '/recetas', pantalla: pantallaRecetas },
+    // La semana de hoy, o la que empieza en ese lunes (la pantalla comprueba la fecha, D-50).
+    { patron: '/semana', pestana: '/semana', pantalla: pantallaSemana },
+    { patron: '/semana/:lunes', pestana: '/semana', pantalla: pantallaSemana },
     { patron: '/bienvenida', pantalla: pantallaBienvenida },
     { patron: '/hogar/invitar', pantalla: pantallaInvitar },
     { patron: '/hogar/unirse', pantalla: pantallaUnirse },
@@ -56,6 +61,8 @@ iniciarRouter({
     { patron: '/receta/:id/editar', pantalla: pantallaEditarReceta, validar: ({ id }) => ES_ID.test(id) },
     // "La he cocinado": ?receta=3 (la pantalla comprueba el id, P-12).
     { patron: '/cocinar', pantalla: pantallaCocinar },
+    // Planificar hueco (P-14): /plan/2026-11-24/cena (la pantalla comprueba la fecha y el tipo).
+    { patron: '/plan/:fecha/:tipo', pantalla: pantallaPlanificarHueco },
   ],
   noExiste: pantallaNoExiste,
 });

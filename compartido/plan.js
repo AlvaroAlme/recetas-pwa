@@ -122,6 +122,34 @@ export function textoSemana(lunes) {
   return `Semana del ${dia1} al ${fin}`;
 }
 
+const DIAS = Object.freeze(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']);
+
+/**
+ * "Martes 24": el día de la semana y el número, como en la cabecera de cada día.
+ * @param {string} fecha
+ * @returns {string}
+ */
+export function textoDia(fecha) {
+  const [anio, mes, dia] = partes(fecha);
+  const diaSemana = (new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay() + 6) % 7;
+  return `${DIAS[diaSemana]} ${dia}`;
+}
+
+/**
+ * Lo que se come en un hueco, para enseñarlo: la receta, el plato escrito o
+ * "Fuera de casa" (su nota, si la tiene, la enseña quien me llama). null si
+ * está vacío.
+ * @param {{ receta: { nombre: string } | null, texto: string | null, fueraDeCasa: boolean } | null | undefined} hueco
+ * @returns {string | null}
+ */
+export function nombrePlato(hueco) {
+  if (!hueco) return null;
+  // Primero "fuera de casa": su texto es la nota, no el plato.
+  if (hueco.fueraDeCasa) return 'Fuera de casa';
+  if (hueco.receta) return hueco.receta.nombre;
+  return hueco.texto || null;
+}
+
 /**
  * Lo que recomienda AESAN por semana (informe de recomendaciones dietéticas
  * sostenibles de 2022, comprobado en aesan.gob.es el 2026-11-16, D-50). Solo
@@ -199,4 +227,72 @@ export function equilibrioSemana(huecos) {
   }));
 
   return { objetivos, otros, conGrupo };
+}
+
+/** Para "Cuarta vez de carne…". Una semana tiene 14 huecos como mucho. */
+const ORDINALES = Object.freeze([
+  '',
+  'Primera',
+  'Segunda',
+  'Tercera',
+  'Cuarta',
+  'Quinta',
+  'Sexta',
+  'Séptima',
+  'Octava',
+  'Novena',
+  'Décima',
+  'Undécima',
+  'Duodécima',
+  'Decimotercera',
+  'Decimocuarta',
+]);
+
+/**
+ * Los avisos de cada día de la semana, para enseñarlos junto a ese día:
+ * - el mismo grupo en la comida y en la cena ("mejor variar", D-48);
+ * - el día en que se pasa del máximo de AESAN (carne, huevos), con la vez
+ *   más alta de ese día.
+ * "Otro" no avisa (no dice qué se come) y "fuera de casa" no cuenta.
+ * @param {{ fecha: string, tipo: string, grupo: string | null, fueraDeCasa?: boolean }[]} huecos Los de la semana.
+ * @returns {Record<string, string[]>} Por fecha; los días sin avisos no salen.
+ */
+export function avisosDia(huecos) {
+  /** @type {Record<string, string[]>} */
+  const avisos = {};
+  const poner = (fecha, texto) => {
+    avisos[fecha] ??= [];
+    avisos[fecha].push(texto);
+  };
+
+  // En orden: por fecha y, dentro del día, la comida antes que la cena.
+  const conGrupo = huecos
+    .filter((hueco) => hueco.grupo && !hueco.fueraDeCasa)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || Number(a.tipo === 'cena') - Number(b.tipo === 'cena'));
+
+  // 1. El mismo grupo dos veces el mismo día.
+  for (const comida of conGrupo.filter((hueco) => hueco.tipo === 'comida')) {
+    const cena = conGrupo.find((hueco) => hueco.fecha === comida.fecha && hueco.tipo === 'cena');
+    if (cena && cena.grupo === comida.grupo && comida.grupo !== 'otro') {
+      poner(comida.fecha, `${ETIQUETAS_GRUPO[comida.grupo]} en la comida y en la cena: mejor variar.`);
+    }
+  }
+
+  // 2. Pasar del máximo: cuento en orden y me quedo con la vez más alta de cada día.
+  for (const { etiqueta, grupos, maximo } of OBJETIVOS_AESAN) {
+    if (maximo === undefined) continue;
+    let veces = 0;
+    /** @type {Map<string, number>} */
+    const pasadas = new Map();
+    for (const hueco of conGrupo) {
+      if (!grupos.includes(hueco.grupo)) continue;
+      veces += 1;
+      if (veces > maximo) pasadas.set(hueco.fecha, veces);
+    }
+    for (const [fecha, vez] of pasadas) {
+      poner(fecha, `${ORDINALES[vez]} vez de ${etiqueta.toLowerCase()} esta semana (AESAN: ${maximo} como mucho).`);
+    }
+  }
+
+  return avisos;
 }

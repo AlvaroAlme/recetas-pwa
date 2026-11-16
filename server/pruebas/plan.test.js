@@ -9,10 +9,13 @@ import { GRUPOS_ALIMENTOS, MAX_LONGITUD_NOMBRE } from '../../compartido/constant
 import {
   ETIQUETAS_GRUPO,
   OBJETIVOS_AESAN,
+  avisosDia,
   dentroDelMargen,
   equilibrioSemana,
   esLunes,
   lunesDe,
+  nombrePlato,
+  textoDia,
   textoSemana,
 } from '../../compartido/plan.js';
 import { validarHueco } from '../../compartido/validacion.js';
@@ -96,9 +99,9 @@ describe('validarHueco', () => {
   });
 
   it('un texto, sin los espacios de los extremos', () => {
-    assert.deepEqual(validarHueco({ texto: '  Comida aniversario ', grupo: 'otro' }), {
+    assert.deepEqual(validarHueco({ texto: '  Lentejas con chorizo ', grupo: 'legumbres' }), {
       ok: true,
-      datos: { recetaId: null, texto: 'Comida aniversario', fueraDeCasa: false, grupo: 'otro' },
+      datos: { recetaId: null, texto: 'Lentejas con chorizo', fueraDeCasa: false, grupo: 'legumbres' },
     });
   });
 
@@ -110,7 +113,7 @@ describe('validarHueco', () => {
   });
 
   it('ninguna de las tres, o más de una, no', () => {
-    for (const entrada of [{}, { fueraDeCasa: false }, { recetaId: 3, texto: 'Lentejas' }, { texto: 'Pizza', fueraDeCasa: true }]) {
+    for (const entrada of [{}, { fueraDeCasa: false }, { recetaId: 3, texto: 'Lentejas' }, { recetaId: 3, fueraDeCasa: true }]) {
       const resultado = validarHueco(entrada);
       assert.equal(resultado.ok, false);
       assert.ok(resultado.errores.general);
@@ -138,6 +141,17 @@ describe('validarHueco', () => {
 
   it('un grupo que no está en la lista', () => {
     assert.equal(validarHueco({ texto: 'Pizza', grupo: 'pizza' }).errores.grupo, 'Elige un grupo de la lista.');
+  });
+
+  it('fuera de casa, con una nota opcional (vacía = sin nota)', () => {
+    assert.deepEqual(validarHueco({ fueraDeCasa: true, texto: ' Comida aniversario ' }).datos, {
+      recetaId: null,
+      texto: 'Comida aniversario',
+      fueraDeCasa: true,
+      grupo: null,
+    });
+    assert.equal(validarHueco({ fueraDeCasa: true, texto: '   ' }).datos.texto, null);
+    assert.ok(validarHueco({ fueraDeCasa: true, texto: 'a'.repeat(MAX_LONGITUD_NOMBRE + 1) }).errores.texto.startsWith('La nota'));
   });
 
   it('fuera de casa no lleva grupo', () => {
@@ -242,5 +256,70 @@ describe('equilibrioSemana', () => {
     for (const objetivo of OBJETIVOS_AESAN) {
       for (const grupo of objetivo.grupos) assert.ok(GRUPOS_ALIMENTOS.includes(grupo), grupo);
     }
+  });
+});
+
+describe('textoDia y nombrePlato', () => {
+  it('textoDia: el día de la semana y el número', () => {
+    assert.equal(textoDia('2026-11-23'), 'Lunes 23');
+    assert.equal(textoDia('2026-11-25'), 'Miércoles 25');
+    assert.equal(textoDia('2026-11-29'), 'Domingo 29');
+  });
+
+  it('nombrePlato: la receta, el texto o fuera de casa', () => {
+    assert.equal(nombrePlato({ receta: { id: 1, nombre: 'Tortilla' }, texto: null, fueraDeCasa: false }), 'Tortilla');
+    assert.equal(nombrePlato({ receta: null, texto: 'Lentejas con chorizo', fueraDeCasa: false }), 'Lentejas con chorizo');
+    assert.equal(nombrePlato({ receta: null, texto: null, fueraDeCasa: true }), 'Fuera de casa');
+    // Con fuera de casa, el texto es la nota: el plato sigue siendo "Fuera de casa".
+    assert.equal(nombrePlato({ receta: null, texto: 'Comida aniversario', fueraDeCasa: true }), 'Fuera de casa');
+    assert.equal(nombrePlato(undefined), null);
+  });
+});
+
+describe('avisosDia', () => {
+  /** Un hueco con grupo. */
+  const h = (fecha, tipo, grupo, fueraDeCasa = false) => ({ fecha, tipo, grupo, fueraDeCasa });
+
+  it('una semana sin nada que decir', () => {
+    assert.deepEqual(avisosDia([h('2026-11-16', 'comida', 'pescado'), h('2026-11-16', 'cena', 'verduras')]), {});
+  });
+
+  it('el mismo grupo en la comida y en la cena, ese día', () => {
+    assert.deepEqual(avisosDia([h('2026-11-16', 'cena', 'carne_roja'), h('2026-11-16', 'comida', 'carne_roja')]), {
+      '2026-11-16': ['Carne roja en la comida y en la cena: mejor variar.'],
+    });
+  });
+
+  it('"otro" dos veces no avisa', () => {
+    assert.deepEqual(avisosDia([h('2026-11-16', 'comida', 'otro'), h('2026-11-16', 'cena', 'otro')]), {});
+  });
+
+  it('pasar del máximo: en el día en que se pasa, con la vez más alta de ese día', () => {
+    const avisos = avisosDia([
+      // Desordenados a propósito: cuento por fecha y comida antes que cena.
+      h('2026-11-19', 'cena', 'carne_roja'),
+      h('2026-11-16', 'comida', 'carne_blanca'),
+      h('2026-11-19', 'comida', 'carne_roja'),
+      h('2026-11-17', 'cena', 'carne_roja'),
+      h('2026-11-18', 'comida', 'carne_blanca'),
+    ]);
+    assert.deepEqual(avisos, {
+      '2026-11-19': [
+        'Carne roja en la comida y en la cena: mejor variar.',
+        'Quinta vez de carne esta semana (AESAN: 3 como mucho).',
+      ],
+    });
+  });
+
+  it('los huevos, a partir del quinto', () => {
+    const huevos = ['16', '17', '18', '19', '20'].map((dia) => h(`2026-11-${dia}`, 'cena', 'huevos'));
+    assert.deepEqual(avisosDia(huevos), { '2026-11-20': ['Quinta vez de huevos esta semana (AESAN: 4 como mucho).'] });
+  });
+
+  it('fuera de casa y sin grupo no cuentan', () => {
+    assert.deepEqual(
+      avisosDia([h('2026-11-16', 'comida', null), h('2026-11-16', 'cena', null, true), h('2026-11-17', 'comida', 'legumbres')]),
+      {}
+    );
   });
 });
