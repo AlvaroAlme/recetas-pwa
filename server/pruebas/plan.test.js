@@ -1,11 +1,20 @@
 /**
  * @file Pruebas del cuadrante en compartido/: las semanas (plan.js) y
- * validarHueco() (validacion.js), y la validación de /api/plan, fase 7.
+ * validarHueco() (validacion.js), la validación de /api/plan y el
+ * equilibrio de la semana, fase 7.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { GRUPOS_ALIMENTOS, MAX_LONGITUD_NOMBRE } from '../../compartido/constantes.js';
-import { ETIQUETAS_GRUPO, dentroDelMargen, esLunes, lunesDe, textoSemana } from '../../compartido/plan.js';
+import {
+  ETIQUETAS_GRUPO,
+  OBJETIVOS_AESAN,
+  dentroDelMargen,
+  equilibrioSemana,
+  esLunes,
+  lunesDe,
+  textoSemana,
+} from '../../compartido/plan.js';
 import { validarHueco } from '../../compartido/validacion.js';
 import { leerFechaPlan, leerHueco, leerLunes, leerTipo } from '../validacion/plan.js';
 
@@ -170,5 +179,68 @@ describe('validación de /api/plan', () => {
     assert.throws(() => leerHueco({}), (error) => error.estado === 400 && /fuera de casa/i.test(error.message));
     assert.throws(() => leerHueco({ texto: '' }), (error) => error.campos.texto === 'Escribe el plato.');
     assert.deepEqual(leerHueco({ fueraDeCasa: true }), { recetaId: null, texto: null, fueraDeCasa: true, grupo: null });
+  });
+});
+
+describe('equilibrioSemana', () => {
+  /** Huecos con estos grupos. */
+  const conGrupos = (...grupos) => grupos.map((grupo) => ({ grupo, fueraDeCasa: false }));
+  const linea = (resultado, clave) => resultado.objetivos.find((objetivo) => objetivo.clave === clave);
+
+  it('una semana vacía: faltan legumbres y pescado; huevos y carne, bien', () => {
+    const resultado = equilibrioSemana([]);
+    assert.deepEqual(
+      resultado.objetivos.map(({ clave, estado, texto }) => [clave, estado, texto]),
+      [
+        ['legumbres', 'faltan', '0 de 4 o más'],
+        ['pescado', 'faltan', '0 de 3 o más'],
+        ['huevos', 'bien', '0 de 4 como mucho'],
+        ['carne', 'bien', '0 de 3 como mucho'],
+      ]
+    );
+    assert.deepEqual(resultado.otros, []);
+    assert.equal(resultado.conGrupo, 0);
+  });
+
+  it('el mínimo se cumple justo al llegar', () => {
+    assert.equal(linea(equilibrioSemana(conGrupos('pescado', 'pescado')), 'pescado').estado, 'faltan');
+    assert.equal(linea(equilibrioSemana(conGrupos('pescado', 'pescado', 'pescado')), 'pescado').estado, 'bien');
+  });
+
+  it('la carne blanca y la roja suman para el máximo de 3', () => {
+    const carne = linea(equilibrioSemana(conGrupos('carne_blanca', 'carne_blanca', 'carne_roja', 'carne_roja')), 'carne');
+    assert.equal(carne.veces, 4);
+    assert.equal(carne.estado, 'demasiado');
+    assert.equal(carne.texto, '4 de 3 como mucho');
+  });
+
+  it('aconseja aves y conejo solo si gana la carne roja', () => {
+    assert.equal(linea(equilibrioSemana(conGrupos('carne_roja')), 'carne').consejo, 'Mejor aves y conejo.');
+    assert.equal(linea(equilibrioSemana(conGrupos('carne_roja', 'carne_blanca')), 'carne').consejo, null);
+    assert.equal(linea(equilibrioSemana([]), 'carne').consejo, null);
+  });
+
+  it('no cuenta los huecos sin grupo ni los de fuera de casa', () => {
+    const resultado = equilibrioSemana([
+      { grupo: null, fueraDeCasa: false },
+      { grupo: null, fueraDeCasa: true },
+      { grupo: 'legumbres', fueraDeCasa: false },
+    ]);
+    assert.equal(linea(resultado, 'legumbres').veces, 1);
+    assert.equal(resultado.conGrupo, 1);
+  });
+
+  it('los grupos sin cifra de AESAN salen aparte, solo si aparecen', () => {
+    const resultado = equilibrioSemana(conGrupos('verduras', 'verduras', 'otro'));
+    assert.deepEqual(resultado.otros, [
+      { grupo: 'verduras', etiqueta: 'Verduras', veces: 2 },
+      { grupo: 'otro', etiqueta: 'Otro', veces: 1 },
+    ]);
+  });
+
+  it('cada grupo de un objetivo existe en GRUPOS_ALIMENTOS', () => {
+    for (const objetivo of OBJETIVOS_AESAN) {
+      for (const grupo of objetivo.grupos) assert.ok(GRUPOS_ALIMENTOS.includes(grupo), grupo);
+    }
   });
 });
