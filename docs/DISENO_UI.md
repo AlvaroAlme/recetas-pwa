@@ -922,6 +922,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 └──────────────────────────────┘
 ```
 - Título: "Hoy (martes 24)", "Mañana (martes 24)" o "Martes 24 de noviembre".
+- Cada plato con `‹Cambiar›` (→ P-14); una receta, además, con `‹Ver receta›` (→ P-11). Un hueco sin nada: "Sin planificar." + `‹Planificar›`. En la Semana, `‹Ver día›` junto a cada día que tenga algo.
 - Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `buscarProductos()` por el nombre, o "✗ No hay nada con ese nombre en el inventario." "Fuera de casa": eso y su nota, si la tiene.
 - Nada planificado: "Nada planificado" / "No hay comida ni cena para el martes 24." + `[Planificar comida]°` (→ `/plan/:fecha/comida`).
 

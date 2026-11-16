@@ -1,6 +1,7 @@
 /**
  * @file Validación de lo que llega a /api/hogar.
  */
+import { validarHora } from '../../compartido/horas.js';
 import { validarCodigoInvitacion, validarNombreCasa } from '../../compartido/validacion.js';
 import { ErrorApi } from '../errores.js';
 
@@ -22,10 +23,10 @@ export function leerUnirse(cuerpo) {
 const ZONAS = new Set([...Intl.supportedValuesOf('timeZone'), 'UTC']);
 
 /**
- * El cuerpo de PATCH /api/hogar: { nombre?, zonaHoraria? }, al menos uno.
- * La hora del aviso del plan (horaAvisoPlan) llega en la fase 7.
+ * El cuerpo de PATCH /api/hogar: { nombre?, zonaHoraria?, horaAvisoPlan? },
+ * al menos uno. La hora es la del aviso del plan, HH:MM (fase 7).
  * @param {unknown} cuerpo
- * @returns {{ nombre: string | null, zonaHoraria: string | null }} null = no cambia.
+ * @returns {{ nombre: string | null, zonaHoraria: string | null, horaAvisoPlan: string | null }} null = no cambia.
  * @throws {ErrorApi} 400 VALIDACION
  */
 export function leerCambiosHogar(cuerpo) {
@@ -33,6 +34,7 @@ export function leerCambiosHogar(cuerpo) {
   const campos = {};
   let nombre = null;
   let zonaHoraria = null;
+  let horaAvisoPlan = null;
 
   if (cuerpo?.nombre !== undefined) {
     const resultado = validarNombreCasa(cuerpo.nombre);
@@ -43,12 +45,17 @@ export function leerCambiosHogar(cuerpo) {
     if (ZONAS.has(cuerpo.zonaHoraria)) zonaHoraria = cuerpo.zonaHoraria;
     else campos.zonaHoraria = 'Esa zona horaria no existe.';
   }
-  if (Object.keys(campos).length === 0 && nombre === null && zonaHoraria === null) {
+  if (cuerpo?.horaAvisoPlan !== undefined) {
+    const resultado = validarHora(cuerpo.horaAvisoPlan);
+    if (resultado.ok) horaAvisoPlan = resultado.datos;
+    else Object.assign(campos, resultado.errores);
+  }
+  if (Object.keys(campos).length === 0 && nombre === null && zonaHoraria === null && horaAvisoPlan === null) {
     campos.general = 'No hay nada que cambiar.';
   }
 
   if (Object.keys(campos).length > 0) {
     throw new ErrorApi(400, 'VALIDACION', 'Revisa los campos marcados.', { campos });
   }
-  return { nombre, zonaHoraria };
+  return { nombre, zonaHoraria, horaAvisoPlan };
 }

@@ -148,11 +148,12 @@ export function nombreDeCasa(nombre) {
 /**
  * Mi hogar y quién vive en él (para GET /api/yo y Ajustes).
  * @param {number} hogarId
- * @returns {Promise<{ id: number, nombre: string, zonaHoraria: string, miembros: { id: number, nombre: string, rol: string }[] }>}
+ * @returns {Promise<{ id: number, nombre: string, zonaHoraria: string, horaAvisoPlan: string, miembros: { id: number, nombre: string, rol: string }[] }>}
  */
 export async function obtenerHogar(hogarId) {
+  // La hora como texto HH:MM (pg me daría '21:00:00').
   const { rows } = await pool.query(
-    `SELECT h.id, h.nombre, h.zona_horaria, u.id AS usuario_id, u.nombre AS usuario_nombre, m.rol
+    `SELECT h.id, h.nombre, h.zona_horaria, to_char(h.hora_aviso_plan, 'HH24:MI') AS hora_aviso_plan, u.id AS usuario_id, u.nombre AS usuario_nombre, m.rol
        FROM hogares h
        JOIN miembros m ON m.hogar_id = h.id
        JOIN usuarios u ON u.id = m.usuario_id
@@ -164,21 +165,25 @@ export async function obtenerHogar(hogarId) {
     id: Number(rows[0].id),
     nombre: rows[0].nombre,
     zonaHoraria: rows[0].zona_horaria,
+    horaAvisoPlan: rows[0].hora_aviso_plan,
     miembros: rows.map((fila) => ({ id: Number(fila.usuario_id), nombre: fila.usuario_nombre, rol: fila.rol })),
   };
 }
 
 /**
- * Cambia el nombre y/o la zona horaria de mi hogar (PATCH /api/hogar). Lo
- * que llega como null se queda como estaba (COALESCE).
+ * Cambia el nombre, la zona horaria y/o la hora del aviso del plan de mi
+ * hogar (PATCH /api/hogar). Lo que llega como null se queda como estaba (COALESCE).
  * @param {number} hogarId
- * @param {{ nombre: string | null, zonaHoraria: string | null }} cambios Ya validados.
+ * @param {{ nombre: string | null, zonaHoraria: string | null, horaAvisoPlan: string | null }} cambios Ya validados.
  * @returns {ReturnType<typeof obtenerHogar>}
  */
-export async function actualizarHogar(hogarId, { nombre, zonaHoraria }) {
+export async function actualizarHogar(hogarId, { nombre, zonaHoraria, horaAvisoPlan }) {
   await pool.query(
-    'UPDATE hogares SET nombre = COALESCE($2, nombre), zona_horaria = COALESCE($3, zona_horaria) WHERE id = $1',
-    [hogarId, nombre, zonaHoraria]
+    `UPDATE hogares
+        SET nombre = COALESCE($2, nombre), zona_horaria = COALESCE($3, zona_horaria),
+            hora_aviso_plan = COALESCE($4::time, hora_aviso_plan)
+      WHERE id = $1`,
+    [hogarId, nombre, zonaHoraria, horaAvisoPlan]
   );
   return obtenerHogar(hogarId);
 }

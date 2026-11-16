@@ -102,7 +102,14 @@ export function pantallaSemana({ parametros }) {
       return el(
         'section',
         { class: fecha === hoy ? 'dia dia--hoy' : 'dia', 'aria-labelledby': idTitulo },
-        el('h2', { class: 'dia__titulo', id: idTitulo }, textoDia(fecha), marca),
+        el(
+          'div',
+          { class: 'dia__cabecera' },
+          el('h2', { class: 'dia__titulo', id: idTitulo }, textoDia(fecha), marca),
+          // "Ver día" (P-15: qué tengo y qué me falta), solo si hay algo.
+          huecos.some((hueco) => hueco.fecha === fecha) &&
+            el('a', { class: 'dia__ver', href: `/plan/${fecha}`, 'aria-label': `Ver el ${textoDia(fecha).toLocaleLowerCase('es')}` }, 'Ver día')
+        ),
         // Con texto y en naranja: no es un error, es para variar.
         (avisos[fecha] ?? []).map((aviso) => el('p', { class: 'dia__aviso tono--aviso' }, aviso)),
         el(

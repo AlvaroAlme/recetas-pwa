@@ -1279,6 +1279,19 @@ textarea.campo__entrada {
 .dia--hoy .lista {
   border: 2px solid var(--color-primario);
 }
+.dia__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-s);
+}
+.dia__ver {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tactil);
+  color: var(--color-primario-texto);
+  font-size: var(--texto-secundario);
+}
 .dia__aviso {
   font-size: var(--texto-secundario);
   line-height: var(--linea-secundario);
@@ -1324,4 +1337,18 @@ textarea.campo__entrada {
 .equilibrio__consejo {
   flex-basis: 100%;
   text-align: right;
+}
+
+/* ============ Plan del día (P-15) ============ */
+.plan-dia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xl);
+}
+.plan-dia__cabecera,
+.plan-dia__plato {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-s);
 }

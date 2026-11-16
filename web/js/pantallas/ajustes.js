@@ -1,7 +1,8 @@
 /**
  * @file Pantalla Ajustes (P-16): los avisos de este dispositivo (fase 4),
- * tu casa y tu cuenta. La IA y la hora del planificador llegan en sus fases.
+ * la hora del aviso del plan (fase 7), tu casa y tu cuenta.
  */
+import { validarHora } from '/compartido/horas.js';
 import { validarNombreCasa } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
 import { desactivarAvisos } from '../avisos.js';
@@ -30,7 +31,12 @@ export function pantallaAjustes() {
     zona.replaceChildren(crearCarga('Cargando…'));
     try {
       const { usuario, hogar } = await api.get('/yo');
-      zona.replaceChildren(crearSeccionAvisos(), crearSeccionCasa(usuario, hogar), crearSeccionCuenta(usuario));
+      zona.replaceChildren(
+        crearSeccionAvisos(),
+        crearSeccionPlan(hogar),
+        crearSeccionCasa(usuario, hogar),
+        crearSeccionCuenta(usuario)
+      );
     } catch (error) {
       zona.replaceChildren(
         error.codigo === 'SIN_CONEXION'
@@ -50,6 +56,52 @@ export function pantallaAjustes() {
       { class: 'seccion', 'aria-labelledby': 'titulo-avisos' },
       el('h2', { class: 'titulo-seccion', id: 'titulo-avisos' }, 'Avisos en este dispositivo'),
       crearPanelAvisos()
+    );
+  }
+
+  /**
+   * "Aviso del plan": a qué hora llega, la noche anterior, "Mañana comes…"
+   * (§7.4). Es de la casa: si la cambio, cambia para todos.
+   * @param {{ horaAvisoPlan: string }} hogar
+   */
+  function crearSeccionPlan(hogar) {
+    const aviso = el('div');
+    // type="time": en el iPhone, la rueda de horas; siempre da HH:MM.
+    const campo = crearCampo({
+      etiqueta: 'Hora del aviso',
+      nombre: 'hora-aviso-plan',
+      valor: hogar.horaAvisoPlan,
+      atributos: { type: 'time', required: true },
+    });
+    const guardar = el('button', { class: 'boton boton--secundario boton--ajustado', type: 'submit', 'data-escribe': true }, 'Guardar hora');
+
+    /** @param {SubmitEvent} evento */
+    async function alEnviar(evento) {
+      evento.preventDefault();
+      if (guardar.disabled) return;
+      aviso.replaceChildren();
+      const resultado = validarHora(leerCampo(campo));
+      ponerErrorCampo(campo, resultado.ok ? null : resultado.errores.horaAvisoPlan);
+      if (!resultado.ok) return;
+      ponerCargando(guardar, true);
+      try {
+        const { hogar: nuevo } = await api.patch('/hogar', { horaAvisoPlan: resultado.datos });
+        hogar.horaAvisoPlan = nuevo.horaAvisoPlan;
+        aviso.replaceChildren(crearAviso({ tipo: 'exito', mensaje: `✓ Hora guardada: ${nuevo.horaAvisoPlan}.` }));
+      } catch (error) {
+        if (error.campos?.horaAvisoPlan) ponerErrorCampo(campo, error.campos.horaAvisoPlan);
+        else aviso.replaceChildren(crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido guardar la hora.') }));
+      } finally {
+        ponerCargando(guardar, false);
+      }
+    }
+
+    return el(
+      'section',
+      { class: 'seccion', 'aria-labelledby': 'titulo-plan' },
+      el('h2', { class: 'titulo-seccion', id: 'titulo-plan' }, 'Aviso del plan'),
+      el('p', { class: 'tono--tenue' }, 'La noche anterior te avisamos de lo que tienes planificado, a esta hora. Es la misma para toda tu casa.'),
+      el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, campo, el('div', { class: 'seccion__acciones' }, guardar))
     );
   }
 

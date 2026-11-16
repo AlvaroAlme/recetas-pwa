@@ -15,6 +15,7 @@ import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
 import { pantallaInvitar } from './pantallas/invitar.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
+import { pantallaPlanDia } from './pantallas/planDia.js';
 import { pantallaPlanificarHueco } from './pantallas/planificarHueco.js';
 import { pantallaPrivacidad } from './pantallas/privacidad.js';
 import { pantallaProducto } from './pantallas/producto.js';
@@ -61,7 +62,9 @@ iniciarRouter({
     { patron: '/receta/:id/editar', pantalla: pantallaEditarReceta, validar: ({ id }) => ES_ID.test(id) },
     // "La he cocinado": ?receta=3 (la pantalla comprueba el id, P-12).
     { patron: '/cocinar', pantalla: pantallaCocinar },
-    // Planificar hueco (P-14): /plan/2026-11-24/cena (la pantalla comprueba la fecha y el tipo).
+    // Plan del día (P-15, lo abre el aviso) y Planificar hueco (P-14): /plan/2026-11-24
+    // y /plan/2026-11-24/cena. Cada pantalla comprueba la fecha (y el tipo).
+    { patron: '/plan/:fecha', pantalla: pantallaPlanDia },
     { patron: '/plan/:fecha/:tipo', pantalla: pantallaPlanificarHueco },
   ],
   noExiste: pantallaNoExiste,

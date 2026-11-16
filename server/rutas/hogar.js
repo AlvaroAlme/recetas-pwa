@@ -11,12 +11,13 @@ import * as hogares from '../servicios/hogares.js';
 
 export const rutasHogar = Router();
 
-// PATCH /api/hogar: { nombre?, zonaHoraria? }. Cualquiera de la casa puede.
+// PATCH /api/hogar: { nombre?, zonaHoraria?, horaAvisoPlan? }. Cualquiera de la casa puede.
 rutasHogar.patch('/', async (req, res) => {
   const cambios = leerCambiosHogar(req.body);
   const hogar = await hogares.actualizarHogar(req.hogarId, cambios);
-  // Con otra zona, las 10:00 de los avisos son otro instante.
-  if (cambios.zonaHoraria) await agenda.recalcular();
+  // Con otra zona, las 10:00 de los avisos son otro instante; con otra hora,
+  // el aviso del plan también cambia de momento.
+  if (cambios.zonaHoraria || cambios.horaAvisoPlan) await agenda.recalcular();
   res.json({ hogar });
 });
 

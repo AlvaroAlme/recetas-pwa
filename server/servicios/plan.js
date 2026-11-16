@@ -145,3 +145,14 @@ export async function guardarHueco(hogarId, fecha, tipo, { recetaId, texto, fuer
 export async function vaciarHueco(hogarId, fecha, tipo) {
   await pool.query('DELETE FROM cuadrante WHERE hogar_id = $1 AND fecha = $2 AND tipo_comida = $3', [hogarId, fecha, tipo]);
 }
+
+/**
+ * Limpieza (la hace la tarea de avisos): los huecos de hace más de un año,
+ * que ya no se pueden ver (D-50), y los avisos del plan enviados hace más
+ * de 7 días, que ya no pueden repetirse. current_date es el día del
+ * servidor (UTC): con estos márgenes, un día arriba o abajo da igual.
+ */
+export async function borrarAntiguos() {
+  await pool.query('DELETE FROM cuadrante WHERE fecha < current_date - 366');
+  await pool.query('DELETE FROM avisos_plan_enviados WHERE fecha < current_date - 7');
+}

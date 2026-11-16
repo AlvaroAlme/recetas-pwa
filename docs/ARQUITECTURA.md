@@ -479,7 +479,7 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación / TX |
 |---|---|---|---|---|
-| `PATCH /api/hogar` 🔑 | `{ nombre?, horaAvisoPlan?, zonaHoraria? }` | 200 `{ hogar }` | 400 | `validarHora()`; zona dentro de `Intl.supportedValuesOf('timeZone')`. Recalcula la agenda. **Fase 4:** solo `nombre` y `zonaHoraria`; `horaAvisoPlan` llega en la fase 7, con su columna |
+| `PATCH /api/hogar` 🔑 | `{ nombre?, horaAvisoPlan?, zonaHoraria? }` | 200 `{ hogar }` | 400 | `validarHora()`; zona dentro de `Intl.supportedValuesOf('timeZone')`. Recalcula la agenda si cambia la zona o la hora. `horaAvisoPlan` (HH:MM, `validarHora()`) desde la fase 7 |
 | `POST /api/hogar/invitaciones` 🔑 | — | 201 `{ codigo, caducaEn }` | 429 | Código aleatorio de 8 caracteres legibles; se guarda su SHA-256; caduca a las 48 h |
 | `POST /api/hogar/unirse` 🔑 | `{ codigo, confirmarBorrado? }` | 200 `{ hogar }` | 400, 404 (código no válido o caducado), 409 (ya usado), 409 `CONFIRMAR_BORRADO` | **TX** con `SELECT … FOR UPDATE` sobre la invitación. Marca `usada_en`. Si tu hogar actual se quedaría vacío y tiene datos, exige `confirmarBorrado: true` (P-01) |
 | `POST /api/hogar/salir` 🔑 | — | 200 `{ hogar }` | 409 si eres la única persona | **TX:** quita al miembro y le crea un hogar nuevo vacío |
@@ -609,7 +609,7 @@ recetas-nevera-pwa/
 │   ├── texto.js               normalizar()                                ← lib/texto.ts
 │   ├── fechas.js              hoyIso, esFechaIso, isoATexto, sumarDias,
 │   │                          diasHasta (sin textoAIso, D-32)             ← lib/fechas.ts
-│   ├── horas.js               validarHora, formatearHora                  ← lib/ajustes.ts
+│   ├── horas.js               validarHora                                 ← lib/ajustes.ts
 │   ├── ubicaciones.js         ETIQUETAS_UBICACION, ubicacionesPosibles    ← lib/ubicaciones.ts
 │   ├── cocina.js              convertir, redondear, buscarProductos, buscarTupper,
 │   │                          estadoIngrediente, cantidadPropuesta        ← lib/cocina.ts

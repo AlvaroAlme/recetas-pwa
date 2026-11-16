@@ -58,11 +58,18 @@ function textoRaciones(raciones) {
  * @param {{
  *   receta: import('/compartido/validacion.js').DatosReceta,
  *   productos: import('/compartido/cocina.js').Producto[],
- *   tuppers: import('/compartido/cocina.js').Tupper[]
+ *   tuppers: import('/compartido/cocina.js').Tupper[],
+ *   conPasos?: boolean,
+ *   nivel?: 'h2' | 'h3',
+ *   sufijo?: string
  * }} opciones productos y tuppers: TODO el inventario de la casa, recién pedido.
+ *   En el Plan del día (P-15) puede haber dos recetas: sin pasos (solo
+ *   miro qué me falta), con títulos h3 (van dentro de "Comida"/"Cena") y
+ *   un sufijo para que los id no se repitan.
  * @returns {HTMLElement}
  */
-export function crearVistaReceta({ receta, productos, tuppers }) {
+export function crearVistaReceta({ receta, productos, tuppers, conPasos = true, nivel = 'h2', sufijo = '' }) {
+  const idIngredientes = `titulo-ingredientes${sufijo}`;
   const estados = receta.ingredientes.map((ingrediente) => estadoIngrediente(ingrediente, productos, tuppers));
   // "Te faltan" cuenta lo que no tengo y lo que no me llega. "Otra unidad"
   // no: sí lo tengo, y "La he cocinado" preguntará cuánto he gastado.
@@ -99,15 +106,16 @@ export function crearVistaReceta({ receta, productos, tuppers }) {
     resumen,
     el(
       'section',
-      { class: 'receta__seccion', 'aria-labelledby': 'titulo-ingredientes' },
-      el('h2', { class: 'titulo-seccion', id: 'titulo-ingredientes' }, 'Ingredientes'),
+      { class: 'receta__seccion', 'aria-labelledby': idIngredientes },
+      el(nivel, { class: 'titulo-seccion', id: idIngredientes }, 'Ingredientes'),
       ingredientes
     ),
-    el(
-      'section',
-      { class: 'receta__seccion', 'aria-labelledby': 'titulo-pasos' },
-      el('h2', { class: 'titulo-seccion', id: 'titulo-pasos' }, 'Pasos'),
-      el('ol', { class: 'receta__pasos' }, receta.pasos.map((paso) => el('li', {}, paso)))
-    )
+    conPasos &&
+      el(
+        'section',
+        { class: 'receta__seccion', 'aria-labelledby': 'titulo-pasos' },
+        el('h2', { class: 'titulo-seccion', id: 'titulo-pasos' }, 'Pasos'),
+        el('ol', { class: 'receta__pasos' }, receta.pasos.map((paso) => el('li', {}, paso)))
+      )
   );
 }

@@ -63,5 +63,7 @@ rutasRecetas.put('/:id', async (req, res) => {
 rutasRecetas.delete('/:id', async (req, res) => {
   const id = leerId(req.params.id, NO_EXISTE);
   comprobarQueExiste(await recetas.borrarReceta(req.hogarId, id));
+  // Si estaba en el cuadrante, su hueco se queda vacío: puede que ya no toque avisar (§7.4).
+  await agenda.recalcular();
   res.status(204).end();
 });

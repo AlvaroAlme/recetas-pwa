@@ -9,6 +9,7 @@ import { config } from '../config.js';
 import { ErrorApi } from '../errores.js';
 import { enviarPendientes } from '../servicios/avisos.js';
 import * as operaciones from '../servicios/operaciones.js';
+import * as plan from '../servicios/plan.js';
 import { coincideSecreto } from '../validacion/tareas.js';
 
 export const rutasTareas = Router();
@@ -24,6 +25,7 @@ rutasTareas.post('/avisos', async (req, res) => {
   }
   const enviados = await enviarPendientes();
   await operaciones.borrarAntiguas();
+  await plan.borrarAntiguos();
   await agenda.recalcular();
   res.json({ revisado: true, enviados });
 });

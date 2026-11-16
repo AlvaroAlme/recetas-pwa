@@ -136,6 +136,36 @@ export function textoDia(fecha) {
 }
 
 /**
+ * "Martes 24 de noviembre": el día con su mes, para el título del Plan del día.
+ * @param {string} fecha
+ * @returns {string}
+ */
+export function textoDiaLargo(fecha) {
+  return `${textoDia(fecha)} de ${MESES[partes(fecha)[1] - 1]}`;
+}
+
+/**
+ * Un plato dentro de una frase: "Tortilla de patatas" → "tortilla de patatas".
+ * @param {string} plato
+ */
+const enFrase = (plato) => plato.charAt(0).toLocaleLowerCase('es') + plato.slice(1);
+
+/**
+ * El título del aviso de la noche anterior (§7.4): "Mañana comes lentejas y
+ * cenas tortilla de patatas", o solo lo que haya. null si no hay nada (un
+ * día "fuera de casa" no avisa).
+ * @param {string | null} comida
+ * @param {string | null} cena
+ * @returns {string | null}
+ */
+export function textoAviso(comida, cena) {
+  if (comida && cena) return `Mañana comes ${enFrase(comida)} y cenas ${enFrase(cena)}`;
+  if (comida) return `Mañana comes ${enFrase(comida)}`;
+  if (cena) return `Mañana cenas ${enFrase(cena)}`;
+  return null;
+}
+
+/**
  * Lo que se come en un hueco, para enseñarlo: la receta, el plato escrito o
  * "Fuera de casa" (su nota, si la tiene, la enseña quien me llama). null si
  * está vacío.

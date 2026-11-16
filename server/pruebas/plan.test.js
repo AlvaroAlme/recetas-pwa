@@ -15,9 +15,12 @@ import {
   esLunes,
   lunesDe,
   nombrePlato,
+  textoAviso,
   textoDia,
+  textoDiaLargo,
   textoSemana,
 } from '../../compartido/plan.js';
+import { validarHora } from '../../compartido/horas.js';
 import { validarHueco } from '../../compartido/validacion.js';
 import { leerFechaPlan, leerHueco, leerLunes, leerTipo } from '../validacion/plan.js';
 
@@ -321,5 +324,27 @@ describe('avisosDia', () => {
       avisosDia([h('2026-11-16', 'comida', null), h('2026-11-16', 'cena', null, true), h('2026-11-17', 'comida', 'legumbres')]),
       {}
     );
+  });
+});
+
+describe('textoAviso, textoDiaLargo y validarHora', () => {
+  it('textoAviso: comida y cena, solo una, o nada', () => {
+    assert.equal(textoAviso('Lentejas', 'Tortilla de patatas'), 'Mañana comes lentejas y cenas tortilla de patatas');
+    assert.equal(textoAviso('Lentejas', null), 'Mañana comes lentejas');
+    assert.equal(textoAviso(null, 'Tortilla de patatas'), 'Mañana cenas tortilla de patatas');
+    assert.equal(textoAviso(null, null), null);
+  });
+
+  it('textoDiaLargo: con el mes', () => {
+    assert.equal(textoDiaLargo('2026-11-24'), 'Martes 24 de noviembre');
+  });
+
+  it('validarHora: HH:MM de 00:00 a 23:59', () => {
+    assert.deepEqual(validarHora('21:00'), { ok: true, datos: '21:00' });
+    assert.equal(validarHora('00:00').ok, true);
+    assert.equal(validarHora('23:59').ok, true);
+    for (const mala of ['24:00', '9:30', '21:60', '21:00:00', '', null, 2100]) {
+      assert.equal(validarHora(mala).ok, false, String(mala));
+    }
   });
 });

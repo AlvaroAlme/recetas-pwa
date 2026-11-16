@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v25';
+const VERSION = 'app-v26';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -52,6 +52,7 @@ const ARCHIVOS = [
   '/js/pantallas/inventario.js',
   '/js/pantallas/invitar.js',
   '/js/pantallas/noExiste.js',
+  '/js/pantallas/planDia.js',
   '/js/pantallas/planificarHueco.js',
   '/js/pantallas/privacidad.js',
   '/js/pantallas/producto.js',
@@ -66,6 +67,7 @@ const ARCHIVOS = [
   '/compartido/constantes.js',
   '/compartido/fechas.js',
   '/compartido/formato.js',
+  '/compartido/horas.js',
   '/compartido/plan.js',
   '/compartido/sugerencias.js',
   '/compartido/texto.js',

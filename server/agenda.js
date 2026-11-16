@@ -9,13 +9,15 @@
  */
 import { pool } from './bd/pool.js';
 import { logError } from './log.js';
+import { PLAN_CON_AVISO } from './servicios/avisos.js';
 
 /** Instante (ms) del próximo aviso, o null si no hay nada pendiente. */
 let proximaRevision = null;
 
 /**
- * Busca el próximo aviso pendiente y lo apunto. Es la misma condición que
- * usa avisos.js para reclamarlos: si no coincidieran, la agenda podría
+ * Busca el próximo aviso pendiente y lo apunto: el de un tupper (§7.2) o el
+ * del plan de mañana (§7.4), el que llegue antes. Son las mismas condiciones
+ * que usa avisos.js para reclamarlos: si no coincidieran, la agenda podría
  * apuntar a un aviso que nunca se envía y miraría la base de datos en cada ping.
  *
  * Si la consulta falla, apunto "ahora": prefiero mirar en el siguiente
@@ -24,12 +26,20 @@ let proximaRevision = null;
  */
 export async function recalcular() {
   try {
+    // least() se salta los NULL: si una de las dos no tiene nada, vale la otra.
     const { rows } = await pool.query(
-      `SELECT min(((t.fecha_limite - 1) + time '10:00') AT TIME ZONE h.zona_horaria) AS proximo
-         FROM tuppers t
-         JOIN hogares h ON h.id = t.hogar_id
-        WHERE NOT t.consumido AND t.aviso_enviado_en IS NULL
-          AND t.fecha_limite >= (now() AT TIME ZONE h.zona_horaria)::date`
+      `SELECT least(
+         (SELECT min(((t.fecha_limite - 1) + time '10:00') AT TIME ZONE h.zona_horaria)
+            FROM tuppers t
+            JOIN hogares h ON h.id = t.hogar_id
+           WHERE NOT t.consumido AND t.aviso_enviado_en IS NULL
+             AND t.fecha_limite >= (now() AT TIME ZONE h.zona_horaria)::date),
+         (SELECT min(((c.fecha - 1) + h.hora_aviso_plan) AT TIME ZONE h.zona_horaria)
+            FROM cuadrante c
+            JOIN hogares h ON h.id = c.hogar_id
+           WHERE ${PLAN_CON_AVISO}
+             AND NOT EXISTS (SELECT 1 FROM avisos_plan_enviados a WHERE a.hogar_id = c.hogar_id AND a.fecha = c.fecha))
+       ) AS proximo`
     );
     proximaRevision = rows[0].proximo ? rows[0].proximo.getTime() : null;
   } catch (error) {
