@@ -66,3 +66,33 @@ export const MAX_LONGITUD_EMAIL = 254;
  */
 export const ALFABETO_CODIGO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 export const LONGITUD_CODIGO = 8;
+
+/**
+ * Los dos huecos de cada día del cuadrante.
+ * @typedef {'comida' | 'cena'} TipoComida
+ */
+
+/** @type {readonly TipoComida[]} */
+export const TIPOS_COMIDA = Object.freeze(['comida', 'cena']);
+
+/**
+ * Grupo de alimentos de un hueco del cuadrante (D-50). Es opcional, y con él
+ * calculo el equilibrio de la semana frente a AESAN. La carne va en dos para
+ * poder decir "mejor aves y conejo"; para el máximo de 3, suman juntas.
+ * @typedef {'legumbres' | 'pescado' | 'huevos' | 'carne_blanca' | 'carne_roja' | 'verduras' | 'pasta_arroz' | 'otro'} GrupoAlimentos
+ */
+
+/** @type {readonly GrupoAlimentos[]} */
+export const GRUPOS_ALIMENTOS = Object.freeze([
+  'legumbres',
+  'pescado',
+  'huevos',
+  'carne_blanca',
+  'carne_roja',
+  'verduras',
+  'pasta_arroz',
+  'otro',
+]);
+
+/** Cuánto puedo moverme por el cuadrante: un año atrás y uno adelante (D-50). */
+export const DIAS_MARGEN_PLAN = 365;

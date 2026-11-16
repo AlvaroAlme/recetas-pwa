@@ -8,6 +8,7 @@
  */
 import {
   ALFABETO_CODIGO,
+  GRUPOS_ALIMENTOS,
   LONGITUD_CODIGO,
   MAX_CANTIDAD,
   MAX_DIAS_TUPPER,
@@ -374,4 +375,67 @@ export function validarReceta(entrada) {
     return { ok: false, errores };
   }
   return { ok: true, datos: { nombre: nombreLimpio, raciones, ingredientes: ingredientesLimpios, pasos: pasosLimpios } };
+}
+
+/**
+ * @typedef {Object} DatosHueco
+ * @property {number | null} recetaId
+ * @property {string | null} texto
+ * @property {boolean} fueraDeCasa
+ * @property {import('./constantes.js').GrupoAlimentos | null} grupo
+ */
+
+/**
+ * Lo que se guarda en un hueco del cuadrante (D-50). Me llega UNA de tres
+ * cosas: { recetaId, grupo? }, { texto, grupo? } o { fueraDeCasa: true }.
+ * La fecha y comida/cena van en la URL: las valida quien la lee.
+ * @param {unknown} entrada
+ * @returns {{ ok: true, datos: DatosHueco } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarHueco(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Los datos del hueco no son válidos.' } };
+  }
+
+  const { recetaId = null, texto = null, fueraDeCasa = false, grupo = null } = entrada;
+  if (typeof fueraDeCasa !== 'boolean') {
+    return { ok: false, errores: { general: 'Los datos del hueco no son válidos.' } };
+  }
+  // Una y solo una de las tres. fueraDeCasa: false cuenta como "no viene".
+  const cuantas = [recetaId !== null, texto !== null, fueraDeCasa].filter(Boolean).length;
+  if (cuantas !== 1) {
+    return { ok: false, errores: { general: 'Elige una receta, escribe un plato o marca «Fuera de casa».' } };
+  }
+
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  if (recetaId !== null && !(Number.isSafeInteger(recetaId) && recetaId > 0)) {
+    errores.recetaId = 'Elige una receta.';
+  }
+
+  const textoLimpio = typeof texto === 'string' ? texto.trim() : '';
+  if (texto !== null) {
+    if (textoLimpio === '') {
+      errores.texto = 'Escribe el plato.';
+    } else if (textoLimpio.length > MAX_LONGITUD_NOMBRE) {
+      errores.texto = `El plato puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+    }
+  }
+
+  if (grupo !== null) {
+    if (fueraDeCasa) {
+      errores.grupo = '«Fuera de casa» no lleva grupo de alimentos.';
+    } else if (!GRUPOS_ALIMENTOS.includes(grupo)) {
+      errores.grupo = 'Elige un grupo de la lista.';
+    }
+  }
+
+  if (Object.keys(errores).length > 0) {
+    return { ok: false, errores };
+  }
+  return {
+    ok: true,
+    datos: { recetaId, texto: texto === null ? null : textoLimpio, fueraDeCasa, grupo },
+  };
 }
