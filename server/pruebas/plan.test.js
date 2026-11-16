@@ -1,12 +1,13 @@
 /**
  * @file Pruebas del cuadrante en compartido/: las semanas (plan.js) y
- * validarHueco() (validacion.js), fase 7.
+ * validarHueco() (validacion.js), y la validación de /api/plan, fase 7.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { GRUPOS_ALIMENTOS, MAX_LONGITUD_NOMBRE } from '../../compartido/constantes.js';
 import { ETIQUETAS_GRUPO, dentroDelMargen, esLunes, lunesDe, textoSemana } from '../../compartido/plan.js';
 import { validarHueco } from '../../compartido/validacion.js';
+import { leerFechaPlan, leerHueco, leerLunes, leerTipo } from '../validacion/plan.js';
 
 describe('lunesDe', () => {
   it('un lunes es su propio lunes', () => {
@@ -132,5 +133,42 @@ describe('validarHueco', () => {
 
   it('fuera de casa no lleva grupo', () => {
     assert.ok(validarHueco({ fueraDeCasa: true, grupo: 'pescado' }).errores.grupo);
+  });
+});
+
+describe('validación de /api/plan', () => {
+  const HOY = '2026-11-16';
+
+  it('leerFechaPlan: una fecha que existe y dentro del margen', () => {
+    assert.equal(leerFechaPlan('2026-11-24', HOY), '2026-11-24');
+    assert.throws(() => leerFechaPlan('2026-02-30', HOY), { estado: 400, codigo: 'VALIDACION' });
+    assert.throws(() => leerFechaPlan('mañana', HOY), { estado: 400, codigo: 'VALIDACION' });
+    assert.throws(() => leerFechaPlan('2027-11-17', HOY), { estado: 400, codigo: 'FECHA_FUERA_DE_MARGEN' });
+  });
+
+  it('leerLunes: tiene que ser lunes', () => {
+    assert.equal(leerLunes('2026-11-23', HOY), '2026-11-23');
+    assert.throws(() => leerLunes('2026-11-24', HOY), { estado: 400, codigo: 'VALIDACION' });
+    assert.throws(() => leerLunes(undefined, HOY), { estado: 400, codigo: 'VALIDACION' });
+  });
+
+  it('leerLunes: vale la semana del borde si alguno de sus días cabe', () => {
+    // El 2027-11-15 es lunes y cae dentro (364 días); el 2027-11-22, ya no.
+    assert.equal(leerLunes('2027-11-15', HOY), '2027-11-15');
+    assert.throws(() => leerLunes('2027-11-22', HOY), { codigo: 'FECHA_FUERA_DE_MARGEN' });
+    // Hacia atrás: la semana del 2025-11-10 acaba el 16, justo un año antes.
+    assert.equal(leerLunes('2025-11-10', HOY), '2025-11-10');
+    assert.throws(() => leerLunes('2025-11-03', HOY), { codigo: 'FECHA_FUERA_DE_MARGEN' });
+  });
+
+  it('leerTipo: comida o cena', () => {
+    assert.equal(leerTipo('cena'), 'cena');
+    assert.throws(() => leerTipo('desayuno'), { estado: 400 });
+  });
+
+  it('leerHueco: 400 con el mensaje general o con los campos', () => {
+    assert.throws(() => leerHueco({}), (error) => error.estado === 400 && /fuera de casa/i.test(error.message));
+    assert.throws(() => leerHueco({ texto: '' }), (error) => error.campos.texto === 'Escribe el plato.');
+    assert.deepEqual(leerHueco({ fueraDeCasa: true }), { recetaId: null, texto: null, fueraDeCasa: true, grupo: null });
   });
 });

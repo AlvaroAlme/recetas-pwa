@@ -20,6 +20,7 @@ import { sesion } from './middlewares/sesion.js';
 import { rutasAuth } from './rutas/auth.js';
 import { rutasHogar } from './rutas/hogar.js';
 import { rutasIa } from './rutas/ia.js';
+import { rutasPlan } from './rutas/plan.js';
 import { rutasProductos } from './rutas/productos.js';
 import { rutasPush } from './rutas/push.js';
 import { rutasTareas } from './rutas/tareas.js';
@@ -110,6 +111,9 @@ app.use('/api/recetas', exigirSesion, rutasRecetas);
 
 // "La he cocinado": descuenta del inventario (P-06, P-07).
 app.post('/api/cocinar', exigirSesion, cocinar);
+
+// Cuadrante por fechas (fase 7): solo el de TU hogar.
+app.use('/api/plan', exigirSesion, rutasPlan);
 
 // Avisos Web Push de este dispositivo (fase 4).
 app.use('/api/push', exigirSesion, rutasPush);
