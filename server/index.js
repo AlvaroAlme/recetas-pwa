@@ -12,6 +12,7 @@ import { config } from './config.js';
 import { app } from './app.js';
 import * as agenda from './agenda.js';
 import { enviarPendientes } from './servicios/avisos.js';
+import { limpiar } from './servicios/limpieza.js';
 import { migrar } from './bd/migrar.js';
 import { pool } from './bd/pool.js';
 import { configurarLog, logError } from './log.js';
@@ -43,6 +44,15 @@ async function arrancar() {
     logError('No se han podido enviar los avisos atrasados', error);
   }
   await agenda.recalcular();
+
+  // La limpieza diaria también al arrancar (Neon ya está despierto por las
+  // migraciones): así un reinicio nunca se salta un día. Si falla, la
+  // próxima toca a las 04:00 UTC.
+  try {
+    await limpiar();
+  } catch (error) {
+    logError('No se ha podido hacer la limpieza al arrancar', error);
+  }
 
   const servidor = app.listen(config.puerto, config.host, async (error) => {
     // En Express 5, si el servidor no puede arrancar, el error llega aquí.

@@ -510,7 +510,7 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | `POST /api/auth/registro` | `{ email, nombre, contrasena }` | 201 `{ usuario, hogar }` + cookie | 400, 409 (email existente), 429 | Email en minúsculas, ≤ 254, con formato básico; nombre de 1 a 80; contraseña de 10 a 128 (P-02). **TX:** `usuarios` + `hogares` ("Casa de {nombre}") + `miembros` (propietario) + `sesiones` |
 | `POST /api/auth/login` | `{ email, contrasena }` | 200 `{ usuario, hogar }` + cookie | 400, **401 genérico** ("Email o contraseña incorrectos"), 429 | Se calcula el hash aunque el email no exista, para no revelar qué emails existen por el tiempo de respuesta. Límite: 10 intentos / 15 min por IP y 5 por email |
 | `POST /api/auth/logout` 🔑 | — | 204 + cookie borrada | — | Borra la fila de `sesiones` |
-| `GET /api/yo` 🔑 | — | 200 `{ usuario, hogar, miembros, cuotaIa: { usadas, limite }, avisoIaAceptado }` | 401 | — |
+| `GET /api/yo` 🔑 | — | 200 `{ usuario, hogar, miembros, cuotaIa: { usadas, limite }, cuotaChat: { usadas, limite }, avisoIaAceptado }` | 401 | — |
 | `DELETE /api/yo` 🔑 | `{ contrasena }` | 204 | 400, 401 | **TX:** si la persona era la única del hogar, se borra el hogar (`CASCADE` borra sus datos); si había más y era propietaria, se pasa la propiedad al miembro más antiguo. Después se borra el usuario |
 
 #### Hogar
@@ -647,11 +647,11 @@ La conversación es **de la persona** (no del hogar). Las herramientas leen siem
 2. Lee el historial **tal cual** de `mensajes_chat` y le añade tu mensaje: un bloque con la **fecha de hoy** en la zona del hogar ("Hoy es martes, 17 de noviembre de 2026") y otro con tu texto. La fecha va aquí, y no en las instrucciones, para que estas no cambien nunca (D-51).
 3. `client.messages.stream()` con el modelo `claude-sonnet-5-5`, `thinking: { type: 'adaptive' }`, esfuerzo `low`, `max_tokens` 16 000, las instrucciones y las 5 herramientas (siempre las mismas y en el mismo orden) con `cache_control`. Cada `text_delta` sale como una línea `texto`.
 4. Al terminar (`finalMessage()`):
-   - `stop_reason = 'refusal'` → "No puedo ayudarte con eso." y se guarda así;
+   - `stop_reason = 'refusal'` → línea de error "No puedo ayudarte con eso." (no reintentable) y **no se guarda el turno**: una respuesta rechazada puede quedar a medias y estropearía el historial;
    - `max_tokens` con un `tool_use` → error (la propuesta llegaría cortada);
    - `tool_use` → valida la entrada y ejecuta la herramienta. Si no es válida, devuelve el error como `tool_result` con `is_error: true` y el modelo lo corrige;
    - `end_turn` → fin.
-5. Como mucho **5 vueltas** de herramientas por mensaje (`MAX_VUELTAS_HERRAMIENTAS`). A la sexta, se para con "No he podido terminar. Prueba a pedirlo de otra forma.".
+5. Como mucho **5 vueltas** de herramientas por mensaje (`MAX_VUELTAS_HERRAMIENTAS`). En la sexta no se ejecuta nada: cada herramienta recibe un error "Responde ya con lo que tienes, sin usar más herramientas", y así el modelo cierra con texto y el historial queda completo. Si aun así pide otra, se para con "No he podido terminar. Prueba a pedirlo de otra forma." y no se guarda.
 6. Guarda el turno en una TX y suma 1 a `preguntas`.
 
 **Las herramientas** (todas con `strict: true` y `eager_input_streaming: true`; el servidor valida igualmente cada entrada):
@@ -731,7 +731,9 @@ recetas-nevera-pwa/
 │   │   ├── claude.js          ← lib/claude.ts (fetch + ErrorClaude), con la key del entorno
 │   │   ├── ticket.js          ← lib/ticket.ts: prompt, esquema y validación TAL CUAL
 │   │   ├── chat.js            Chat ayudante (D-51): instrucciones, bucle con @anthropic-ai/sdk,
-│   │   │                      streaming, conversación y tarjetas
+│   │   │                      streaming, ver la conversación y guardar o descartar tarjetas
+│   │   ├── conversaciones.js  Tablas del chat: leer, guardar el turno, reclamar tarjetas
+│   │   ├── vistaChat.js       De los bloques guardados a lo que ve la persona (sin SQL)
 │   │   ├── herramientasChat.js Las 5 herramientas: esquemas, validación y resúmenes (sin SQL)
 │   │   ├── usarHerramienta.js Ejecuta una herramienta: lee la base de datos del hogar de la sesión
 │   │   ├── cuotaIa.js  operaciones.js  limpieza.js (la limpieza diaria, D-51)

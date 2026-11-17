@@ -49,10 +49,45 @@ export async function recalcular() {
 }
 
 /**
- * ¿Toca mirar la base de datos? Esto NO la toca.
+ * ¿Toca mirar la base de datos para enviar avisos? Esto NO la toca.
  * @param {number} [ahora] Para las pruebas.
  * @returns {boolean}
  */
 export function tocaRevisar(ahora = Date.now()) {
   return proximaRevision !== null && ahora >= proximaRevision;
+}
+
+/** Hora (UTC) de la limpieza diaria: de madrugada en España (D-51). */
+const HORA_LIMPIEZA_UTC = 4;
+
+/**
+ * La próxima vez que toca limpiar: hoy a las 04:00 UTC si aún no han
+ * pasado, y si no, mañana.
+ * @param {number} ahora ms
+ * @returns {number} ms
+ */
+export function siguienteLimpieza(ahora) {
+  const fecha = new Date(ahora);
+  const hoy = Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate(), HORA_LIMPIEZA_UTC);
+  return hoy > ahora ? hoy : hoy + 24 * 60 * 60 * 1000;
+}
+
+/** Instante (ms) de la próxima limpieza. Al arrancar limpia index.js. */
+let proximaLimpieza = siguienteLimpieza(Date.now());
+
+/**
+ * ¿Toca la limpieza diaria? Esto NO toca la base de datos.
+ * @param {number} [ahora]
+ * @returns {boolean}
+ */
+export function tocaLimpiar(ahora = Date.now()) {
+  return ahora >= proximaLimpieza;
+}
+
+/**
+ * Apunto que ya he limpiado: la siguiente, mañana a la misma hora.
+ * @param {number} [ahora]
+ */
+export function limpiezaHecha(ahora = Date.now()) {
+  proximaLimpieza = siguienteLimpieza(ahora);
 }

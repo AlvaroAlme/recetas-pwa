@@ -18,6 +18,7 @@ import { limiteGeneral } from './middlewares/limite.js';
 import { manejarErrores, rutaNoEncontrada } from './middlewares/errores.js';
 import { sesion } from './middlewares/sesion.js';
 import { rutasAuth } from './rutas/auth.js';
+import { rutasChat } from './rutas/chat.js';
 import { rutasHogar } from './rutas/hogar.js';
 import { rutasIa } from './rutas/ia.js';
 import { rutasPlan } from './rutas/plan.js';
@@ -126,6 +127,9 @@ app.use('/api/yo', exigirSesion, rutasYo);
 
 // Escaneo de tickets con Claude (fase 5): solo con sesión.
 app.use('/api/ia', exigirSesion, rutasIa);
+
+// Chat ayudante (fase 8): la conversación es de cada persona.
+app.use('/api/chat', exigirSesion, rutasChat);
 
 // Cualquier otra /api/... que no exista: 404 en JSON. Va DESPUÉS de todas
 // las rutas de la API y ANTES de los archivos estáticos.

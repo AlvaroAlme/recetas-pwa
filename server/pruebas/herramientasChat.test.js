@@ -248,6 +248,11 @@ describe('validarPropuestaHuecos()', () => {
         ['2026-11-19', 'cena', 'Merluza', 'Pizza'],
       ]
     );
+    // indice: la posición en lo que propuso el modelo (la tarjeta la manda al guardar).
+    assert.deepEqual(
+      resultado.huecos.map((h) => h.indice),
+      [2, 1, 0]
+    );
     assert.equal(resultado.huecos[0].recetaId, 4);
     assert.equal(resultado.huecos[1].texto, 'Lentejas');
   });

@@ -145,3 +145,28 @@ export async function haAceptadoAvisoIa(usuarioId) {
   );
   return rows[0]?.aceptado === true;
 }
+
+/**
+ * Marco que la persona ha aceptado el aviso del CHAT (D-51): es otro aviso,
+ * porque aquí se envían sus mensajes y se guarda la conversación.
+ * @param {number} usuarioId
+ */
+export async function aceptarAvisoChat(usuarioId) {
+  await pool.query(
+    'UPDATE usuarios SET aviso_chat_aceptado_en = COALESCE(aviso_chat_aceptado_en, now()) WHERE id = $1',
+    [usuarioId]
+  );
+}
+
+/**
+ * ¿Ha aceptado ya el aviso del chat?
+ * @param {number} usuarioId
+ * @returns {Promise<boolean>}
+ */
+export async function haAceptadoAvisoChat(usuarioId) {
+  const { rows } = await pool.query(
+    'SELECT aviso_chat_aceptado_en IS NOT NULL AS aceptado FROM usuarios WHERE id = $1',
+    [usuarioId]
+  );
+  return rows[0]?.aceptado === true;
+}

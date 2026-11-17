@@ -105,11 +105,12 @@ export async function obtenerDia(hogarId, fecha) {
  * chat propone poner algo (D-51).
  * @param {number} hogarId
  * @param {string[]} fechas AAAA-MM-DD, ya comprobadas.
+ * @param {import('pg').Pool | import('pg').PoolClient} [cliente]
  * @returns {Promise<Hueco[]>}
  */
-export async function huecosDeFechas(hogarId, fechas) {
+export async function huecosDeFechas(hogarId, fechas, cliente = pool) {
   if (fechas.length === 0) return [];
-  const { rows } = await pool.query(
+  const { rows } = await cliente.query(
     `SELECT ${COLUMNAS}
        FROM cuadrante c
        LEFT JOIN recetas r ON r.id = c.receta_id
@@ -126,14 +127,16 @@ export async function huecosDeFechas(hogarId, fechas) {
  * @param {string} fecha
  * @param {import('../../compartido/constantes.js').TipoComida} tipo
  * @param {import('../../compartido/validacion.js').DatosHueco} datos
+ * @param {import('pg').Pool | import('pg').PoolClient} [cliente] Una transacción
+ *   de quien me llama (guardar una tarjeta del chat, D-51); si no, el grupo.
  * @returns {Promise<Hueco>}
  * @throws {ErrorApi} 404 NO_EXISTE si la receta no existe o es de otro hogar.
  */
-export async function guardarHueco(hogarId, fecha, tipo, { recetaId, texto, fueraDeCasa, grupo }) {
+export async function guardarHueco(hogarId, fecha, tipo, { recetaId, texto, fueraDeCasa, grupo }, cliente = pool) {
   try {
     // El CTE (WITH) me deja hacer el INSERT y, en la misma consulta, unir
     // la fila guardada con su receta para devolver el nombre.
-    const { rows } = await pool.query(
+    const { rows } = await cliente.query(
       `WITH c AS (
          INSERT INTO cuadrante (hogar_id, fecha, tipo_comida, receta_id, texto_libre, fuera_de_casa, grupo)
          VALUES ($1, $2, $3, $4, $5, $6, $7)

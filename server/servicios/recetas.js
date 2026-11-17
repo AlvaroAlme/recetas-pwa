@@ -92,11 +92,12 @@ export async function listarRecetasConIngredientes(hogarId, limite) {
  * Para comprobar los recetaId que propone el chat.
  * @param {number} hogarId
  * @param {number[]} ids
+ * @param {import('pg').Pool | import('pg').PoolClient} [cliente]
  * @returns {Promise<Map<number, string>>} id → nombre.
  */
-export async function nombresDeRecetas(hogarId, ids) {
+export async function nombresDeRecetas(hogarId, ids, cliente = pool) {
   if (ids.length === 0) return new Map();
-  const { rows } = await pool.query('SELECT id, nombre FROM recetas WHERE hogar_id = $1 AND id = ANY($2::bigint[])', [hogarId, ids]);
+  const { rows } = await cliente.query('SELECT id, nombre FROM recetas WHERE hogar_id = $1 AND id = ANY($2::bigint[])', [hogarId, ids]);
   return new Map(rows.map((fila) => [Number(fila.id), fila.nombre]));
 }
 
@@ -128,16 +129,27 @@ async function insertarIngredientes(cliente, recetaId, ingredientes) {
  * @param {DatosReceta} datos
  * @returns {Promise<number>} El id de la receta nueva.
  */
-export async function crearReceta(hogarId, { nombre, raciones, ingredientes, pasos }) {
-  return conTransaccion(async (cliente) => {
-    const { rows } = await cliente.query(
-      'INSERT INTO recetas (hogar_id, nombre, raciones, instrucciones) VALUES ($1, $2, $3, $4) RETURNING id',
-      [hogarId, nombre, raciones, pasos.join('\n')]
-    );
-    const id = Number(rows[0].id);
-    await insertarIngredientes(cliente, id, ingredientes);
-    return id;
-  });
+export async function crearReceta(hogarId, datos) {
+  return conTransaccion((cliente) => insertarReceta(cliente, hogarId, datos));
+}
+
+/**
+ * Lo mismo que crearReceta(), pero dentro de una transacción que ya tiene
+ * quien me llama: la de guardar una tarjeta del chat (D-51), que en la misma
+ * TX marca la tarjeta como guardada.
+ * @param {import('pg').PoolClient} cliente
+ * @param {number} hogarId
+ * @param {DatosReceta} datos
+ * @returns {Promise<number>} El id de la receta nueva.
+ */
+export async function insertarReceta(cliente, hogarId, { nombre, raciones, ingredientes, pasos }) {
+  const { rows } = await cliente.query(
+    'INSERT INTO recetas (hogar_id, nombre, raciones, instrucciones) VALUES ($1, $2, $3, $4) RETURNING id',
+    [hogarId, nombre, raciones, pasos.join('\n')]
+  );
+  const id = Number(rows[0].id);
+  await insertarIngredientes(cliente, id, ingredientes);
+  return id;
 }
 
 /**

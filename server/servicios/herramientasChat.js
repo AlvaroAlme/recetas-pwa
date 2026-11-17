@@ -260,6 +260,7 @@ export function fechasDePropuesta(entrada) {
 
 /**
  * @typedef {Object} HuecoPropuesto
+ * @property {number} indice Su posición en la propuesta del modelo.
  * @property {string} fecha
  * @property {import('../../compartido/constantes.js').TipoComida} tipo
  * @property {number | null} recetaId
@@ -341,6 +342,9 @@ export function validarPropuestaHuecos(entrada, { hoy, recetas, actuales }) {
     }
 
     validos.push({
+      // Su posición en lo que propuso el modelo: la tarjeta la manda al
+      // guardar para decir cuáles has elegido (la lista sale reordenada).
+      indice: i,
       fecha,
       tipo,
       recetaId: datos.recetaId,

@@ -7,20 +7,27 @@ import { ErrorApi } from '../errores.js';
 import * as hogares from '../servicios/hogares.js';
 import * as usuarios from '../servicios/usuarios.js';
 import { leerBorrarCuenta } from '../validacion/auth.js';
-import { CUOTA_IA_DIARIA } from '../../compartido/constantes.js';
+import { CUOTA_CHAT_DIARIA, CUOTA_IA_DIARIA } from '../../compartido/constantes.js';
 import * as cuotaIa from '../servicios/cuotaIa.js';
 
 export const rutasYo = Router();
 
 
-// GET /api/yo: quién soy, mi hogar, cuánta IA me queda hoy y si he aceptado el aviso.
+// GET /api/yo: quién soy, mi hogar, cuánta IA me queda hoy (ticket y chat)
+// y si he aceptado el aviso del ticket.
 rutasYo.get('/', async (req, res) => {
-  const [hogar, usadas, avisoIaAceptado] = await Promise.all([
+  const [hogar, uso, avisoIaAceptado] = await Promise.all([
     hogares.obtenerHogar(req.hogarId),
-    cuotaIa.llamadasDeHoy(req.usuario.id, req.hogarId),
+    cuotaIa.usoDeHoy(req.usuario.id, req.hogarId),
     usuarios.haAceptadoAvisoIa(req.usuario.id),
   ]);
-  res.json({ usuario: req.usuario, hogar, cuotaIa: { usadas, limite: CUOTA_IA_DIARIA }, avisoIaAceptado });
+  res.json({
+    usuario: req.usuario,
+    hogar,
+    cuotaIa: { usadas: uso.llamadas, limite: CUOTA_IA_DIARIA },
+    cuotaChat: { usadas: uso.mensajesChat, limite: CUOTA_CHAT_DIARIA },
+    avisoIaAceptado,
+  });
 });
 
 // DELETE /api/yo: { contrasena }. Borra la cuenta y la cookie.
