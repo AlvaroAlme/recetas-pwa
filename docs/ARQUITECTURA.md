@@ -152,6 +152,7 @@ CREATE TABLE usuarios (
   nombre                TEXT NOT NULL CHECK (char_length(btrim(nombre)) BETWEEN 1 AND 80),
   hash_contrasena       TEXT NOT NULL,          -- "scrypt$N$r$p$sal$hash" (D-04)
   aviso_ia_aceptado_en  TIMESTAMPTZ,            -- SEC-04: NULL = aún no ha aceptado
+  aviso_chat_aceptado_en TIMESTAMPTZ,           -- D-51: el aviso propio del chat
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -321,11 +322,14 @@ CREATE TABLE avisos_plan_enviados (
   PRIMARY KEY (hogar_id, fecha)
 );
 
--- Cuota diaria de llamadas a Claude por persona (D-05, D-15).
+-- Cuota diaria de IA por persona (D-05, D-15): `llamadas` es la del ticket y
+-- `mensajes_chat` la del chat (D-51), cada una con su límite. La limpieza
+-- diaria borra las filas de más de 30 días.
 CREATE TABLE uso_ia (
-  usuario_id  BIGINT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-  fecha       DATE NOT NULL,          -- en la zona horaria del hogar
-  llamadas    INTEGER NOT NULL CHECK (llamadas >= 0),
+  usuario_id     BIGINT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  fecha          DATE NOT NULL,          -- en la zona horaria del hogar
+  llamadas       INTEGER NOT NULL CHECK (llamadas >= 0),
+  mensajes_chat  INTEGER NOT NULL DEFAULT 0 CHECK (mensajes_chat >= 0),
   PRIMARY KEY (usuario_id, fecha)
 );
 
@@ -339,18 +343,51 @@ CREATE TABLE operaciones (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Recetas sugeridas por Claude que aún no se han guardado (D-31). Se guardan
--- ENTERAS en JSONB porque ya vienen validadas por validarRecetas() y son
--- provisionales: no se consultan por ingrediente ni se planifican. Cada nueva
--- generación sustituye a la anterior del hogar (en una transacción) y la
--- tarea de avisos borra las de más de 7 días.
-CREATE TABLE sugerencias (
-  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  hogar_id    BIGINT NOT NULL REFERENCES hogares(id) ON DELETE CASCADE,
-  posicion    SMALLINT NOT NULL CHECK (posicion BETWEEN 0 AND 4),   -- como mucho 5 (SEC-05)
-  receta      JSONB NOT NULL,          -- { nombre, pasos[], ingredientes[] } = RecetaCompleta
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (hogar_id, posicion)
+-- ===================== Chat ayudante (D-48, D-51) =====================
+-- (La tabla `sugerencias` de D-31 nunca llegó a crearse: las propuestas de
+-- la IA son tarjetas del chat.)
+
+-- UNA conversación activa por persona (UNIQUE usuario_id). Es privada: otra
+-- persona del hogar no la ve. Guarda el hogar en que se empezó: si la persona
+-- cambia de casa, la conversación vieja se borra al abrir el chat (habla de
+-- otro inventario). `preguntas` cuenta los mensajes de la persona y el CHECK
+-- pone el techo (MAX_PREGUNTAS_CONVERSACION = 40). La limpieza diaria borra
+-- las conversaciones cuyo último mensaje tiene más de 30 días; "Nueva
+-- conversación" la borra a mano.
+CREATE TABLE conversaciones (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  usuario_id      BIGINT NOT NULL UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
+  hogar_id        BIGINT NOT NULL REFERENCES hogares(id) ON DELETE CASCADE,
+  preguntas       SMALLINT NOT NULL DEFAULT 0 CHECK (preguntas BETWEEN 0 AND 40),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  actualizada_en  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Los mensajes TAL CUAL los manda y los devuelve la API de Claude: los
+-- bloques de contenido (texto, razonamiento, tool_use, tool_result) en JSONB.
+-- Solo se AÑADEN, nunca se editan: el razonamiento de Sonnet 5.5 solo vale
+-- si el historial se reenvía idéntico (D-51). Un turno (tu pregunta, las
+-- vueltas de herramientas y la respuesta) se guarda entero en una TX al
+-- terminar; si falla a medias, no se guarda nada de él.
+CREATE TABLE mensajes_chat (
+  id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  conversacion_id  BIGINT NOT NULL REFERENCES conversaciones(id) ON DELETE CASCADE,
+  rol              TEXT NOT NULL CHECK (rol IN ('user', 'assistant')),
+  contenido        JSONB NOT NULL CHECK (jsonb_typeof(contenido) = 'array'),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX mensajes_chat_conversacion_idx ON mensajes_chat (conversacion_id, id);
+
+-- Qué se ha hecho con cada tarjeta (un bloque tool_use de proponer_receta o
+-- proponer_huecos). Sin fila = pendiente. Insertarla con ON CONFLICT DO
+-- NOTHING es la forma de "reclamar" la tarjeta: no se guarda dos veces.
+CREATE TABLE tarjetas_chat (
+  conversacion_id  BIGINT NOT NULL REFERENCES conversaciones(id) ON DELETE CASCADE,
+  tool_use_id      TEXT NOT NULL CHECK (char_length(tool_use_id) BETWEEN 1 AND 100),
+  estado           TEXT NOT NULL CHECK (estado IN ('guardada', 'descartada')),
+  resultado        JSONB,             -- { recetaId } o { guardados, saltados }
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (conversacion_id, tool_use_id)
 );
 
 -- Control de migraciones (§4.3).
@@ -387,7 +424,7 @@ CREATE TABLE schema_migrations (
 | Archivos de la app (HTML, CSS, JS, iconos) | Cache Storage del Service Worker | Abrir la app sin red (D-09) |
 | Última respuesta de cada `GET /api/...` | Cache Storage (`api-v1`) | Consultar sin red. **Se borra al cerrar sesión** (privacidad en dispositivos compartidos) |
 | Sesión | Cookie `HttpOnly` | JavaScript no puede leerla (protege de XSS) |
-| Recetas sugeridas sin guardar | **PostgreSQL**, tabla `sugerencias` (D-31) | Cada generación gasta cuota de IA: no se pierden al recargar ni al cambiar de dispositivo, y las ve todo el hogar. Expo las perdía al cerrar la app |
+| Conversación del chat y sus tarjetas | **PostgreSQL**, tablas `conversaciones`, `mensajes_chat` y `tarjetas_chat` (D-51) | Cada mensaje gasta cuota de IA: no se pierde al recargar ni al cambiar de dispositivo. Es **de cada persona**, no del hogar, y se borra a los 30 días. Expo perdía las sugerencias al cerrar la app |
 | API key de Claude, claves VAPID, conexión a la base de datos | **Solo variables de entorno del servidor** | SEC-02 y sección 9.10 |
 
 Nada sensible va a `localStorage`.
@@ -410,8 +447,9 @@ Nada sensible va a `localStorage`.
 | `002_cuentas.sql` | 2 | `usuarios`, `miembros`, `invitaciones`, `sesiones` |
 | `003_tuppers_push.sql` | 4 | `tuppers`, `suscripciones_push`, `ALTER TABLE hogares ADD COLUMN zona_horaria …` |
 | `004_ia.sql` | 5 | `uso_ia`, `operaciones`, `ALTER TABLE usuarios ADD COLUMN aviso_ia_aceptado_en …` |
-| `005_recetas.sql` | 6 | `recetas`, `receta_ingredientes`, `sugerencias` |
+| `005_recetas.sql` | 6 | `recetas`, `receta_ingredientes` (sin `sugerencias`, D-48) |
 | `006_cuadrante.sql` | 7 | `cuadrante`, `avisos_plan_enviados`, `ALTER TABLE hogares ADD COLUMN hora_aviso_plan …` |
+| `007_chat.sql` | 8 | `conversaciones`, `mensajes_chat`, `tarjetas_chat`, `ALTER TABLE usuarios ADD COLUMN aviso_chat_aceptado_en …`, `ALTER TABLE uso_ia ADD COLUMN mensajes_chat …` |
 
 ---
 
@@ -439,7 +477,7 @@ Nada sensible va a `localStorage`.
 | 401 `SIN_SESION` | Falta la sesión o ha caducado |
 | 403 `PROHIBIDO` | Origen no permitido o falta aceptar el aviso de IA |
 | 404 `NO_EXISTE` | No existe o es de otro hogar |
-| 409 `CONFLICTO` | El email ya existe, el inventario ha cambiado o la invitación ya se usó |
+| 409 `CONFLICTO` | El email ya existe, el inventario ha cambiado, la invitación o la tarjeta del chat ya se usó, o la conversación está llena |
 | 413 `DEMASIADO_GRANDE` | Cuerpo o archivo demasiado grande |
 | 415 `TIPO_NO_ADMITIDO` | No es JSON, o el archivo no es imagen ni PDF |
 | 429 `DEMASIADAS_PETICIONES` / `CUOTA_IA` | Límite de peticiones o de IA |
@@ -463,7 +501,7 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | Método y ruta | Cuerpo | Respuesta | Errores | Notas |
 |---|---|---|---|---|
 | `GET /api/salud` | — | 200 `{ ok: true }` | — | No toca la base de datos (para el *health check* de Render) |
-| `POST /api/tareas/avisos` | — | 200 `{ revisado: bool, enviados: n }` | 401 si el secreto no coincide | Cabecera `Authorization: Bearer <CRON_SECRETO>`, comparada con `crypto.timingSafeEqual`. Si no ha llegado la hora del próximo aviso, responde sin tocar la base de datos (§7.3) |
+| `POST /api/tareas/avisos` | — | 200 `{ revisado: bool, enviados: n }` | 401 si el secreto no coincide | Cabecera `Authorization: Bearer <CRON_SECRETO>`, comparada con `crypto.timingSafeEqual`. Si no ha llegado la hora del próximo aviso **ni la de la limpieza diaria** (D-51), responde sin tocar la base de datos (§7.3) |
 
 #### Cuentas y sesión
 
@@ -507,13 +545,12 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | `POST /api/tuppers` 🔑 | `{ nombre, ubicacion, diasMaximos }` | 201 `{ tupper, avisoActivo }` | 400 | Días enteros de 1 a 365. `fecha_limite` = hoy **en la zona del hogar** + días. `avisoActivo` = algún miembro tiene una suscripción push (para el mensaje "Tupper guardado sin aviso"). Recalcula la agenda |
 | `POST /api/tuppers/:id/consumir` 🔑 | — | 200 `{ tupper }` | 404 | **Idempotente**: si ya estaba consumido, devuelve 200 igual. Recalcula la agenda |
 
-#### IA (Claude) — todas: 🔑, cuota diaria (D-15) y una sola petición a la vez por persona
+#### IA (Claude): el ticket — 🔑, cuota diaria (D-15) y una sola petición a la vez por persona
 
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación |
 |---|---|---|---|---|
 | `POST /api/ia/aviso-aceptado` 🔑 | — | 204 | — | SEC-04: guarda `aviso_ia_aceptado_en` |
 | `POST /api/ia/ticket` 🔑 | `{ archivo: { base64, mimeType } }` | 200 `{ productos: ProductoTicket[] }` | 403 `AVISO_IA_PENDIENTE`, 413, 415, 422 `NO_ES_TICKET` / `SIN_ALIMENTOS` / `DEMASIADOS_PRODUCTOS`, 429 `CUOTA_IA`, 502, 503 `IA_NO_CONFIGURADA`, 504 | Sin `ANTHROPIC_API_KEY` (solo puede faltar en desarrollo) da 503 tras validar el archivo y sin gastar cuota. Tipo permitido **y firma del archivo** (los primeros bytes de PDF, JPEG, PNG, GIF o WebP); imagen ≤ 5 MB, PDF ≤ 20 MB (D-47). Prompt y esquema **tal cual**. `validarRespuestaTicket()` portado. El archivo **no se guarda ni se registra** |
-| `POST /api/ia/recetas` 🔑 | `{}` | 200 `{ sugerencias: [{ id, receta }] }` | 422 `INVENTARIO_VACIO`, 429, 502, 504 | El servidor lee el inventario del hogar (no se fía del cliente), usa `describirInventario()` y valida con `validarRecetas()`. **TX:** borra las sugerencias anteriores del hogar e inserta las nuevas (D-31) |
 
 **Cuota atómica en una sola sentencia:**
 
@@ -532,12 +569,9 @@ La llamada se cuenta **antes** de llamar a Claude. Si Claude falla con un error 
 |---|---|---|---|---|
 | `GET /api/recetas` 🔑 | — | 200 `{ recetas: [{ id, nombre, createdAt }] }` | — | — |
 | `GET /api/recetas/:id` 🔑 | — | 200 `{ receta: { id, nombre, pasos, ingredientes } }` | 404 | — |
-| `POST /api/recetas` 🔑 | `{ nombre, pasos, ingredientes }` | 201 `{ id }` | 400 | Mismos límites que `validarRecetas()`. **TX:** receta + ingredientes |
+| `POST /api/recetas` 🔑 | `{ nombre, raciones?, pasos, ingredientes }` | 201 `{ id }` | 400 | `validarReceta()`. **TX:** receta + ingredientes |
 | `PUT /api/recetas/:id` 🔑 | `{ nombre, raciones?, pasos, ingredientes }` | 204 | 400, 404 | `validarReceta()`. **TX:** actualiza la receta, borra sus ingredientes y mete los nuevos en el orden del formulario (D-49) |
 | `DELETE /api/recetas/:id` 🔑 | — | 204 | 404 | `CASCADE` borra los ingredientes y `SET NULL (receta_id)` vacía los huecos del plan. Recalcula la agenda |
-| `GET /api/sugerencias` 🔑 | — | 200 `{ sugerencias: [{ id, receta }] }` | — | Las de la última generación del hogar, ordenadas por `posicion` |
-| `GET /api/sugerencias/:id` 🔑 | — | 200 `{ sugerencia: { id, receta } }` | 404 | — |
-| `POST /api/sugerencias/:id/guardar` 🔑 | — | 201 `{ recetaId }` | 404 (ya guardada o sustituida) | **TX:** inserta receta + ingredientes y **borra la sugerencia**, así no se puede guardar dos veces (como `establecerSugerencias(...filter)` en Expo) |
 | `POST /api/cocinar` 🔑 | `{ clave, descuentos: [{ productoId, cantidad }], tuppersConsumidos: [id] }` | 200 `{ agotados: [nombre] }` | 400, 404, **409 `INVENTARIO_CAMBIADO`** | **TX**, ver abajo. Idempotente por `clave` |
 
 **Transacción de `POST /api/cocinar`:**
@@ -581,6 +615,55 @@ Si la clave se reservara al final (con un `INSERT` en el paso 5), dos peticiones
 | `PUT /api/plan/:fecha/:tipo` 🔑 | `{ recetaId, grupo? }`, `{ texto, grupo? }` o `{ fueraDeCasa: true, texto? }` (una de las tres; con "fuera de casa", `texto` es una nota opcional) | 200 `{ hueco }` | 400, 404 `NO_EXISTE` (receta de otro hogar o borrada) | `validarHueco()`; `INSERT … ON CONFLICT (hogar_id, fecha, tipo_comida) DO UPDATE` (sustituye el hueco entero). Recalcula la agenda |
 | `DELETE /api/plan/:fecha/:tipo` 🔑 | — | 204 | 400 | Recalcula la agenda |
 
+#### Chat ayudante (D-48, D-51) — 🔑, aviso del chat aceptado, cuota propia y una sola petición de IA a la vez por persona
+
+La conversación es **de la persona** (no del hogar). Las herramientas leen siempre **el hogar de la sesión**. El navegador **nunca** recibe los bloques tal cual (ni el razonamiento): el servidor los convierte en una *vista*, `Mensaje` = `{ rol: 'tu' | 'ayudante', texto, tarjetas: Tarjeta[] }` y `Tarjeta` = `{ id, tipo: 'receta' | 'huecos', propuesta, estado: 'pendiente' | 'guardada' | 'descartada', resultado? }`. En las tarjetas de huecos, cada hueco lleva lo que tiene **ahora** el cuadrante (`sustituyeA`, o `fueraDeCasa: true` si ya no se puede tocar).
+
+| Método y ruta | Cuerpo | Respuesta | Errores | Validación / TX |
+|---|---|---|---|---|
+| `POST /api/chat/aviso-aceptado` 🔑 | — | 204 | — | Guarda `aviso_chat_aceptado_en` |
+| `GET /api/chat` 🔑 | — | 200 `{ avisoAceptado, mensajes: Mensaje[], preguntas, quedanHoy }` | — | Sin conversación → `mensajes: []`. Si la conversación es de **otro hogar** (la persona se cambió de casa), se borra antes de responder |
+| `POST /api/chat/mensajes` 🔑 | `{ texto }` | 200, **`application/x-ndjson`** (una línea JSON por evento, ver abajo) | 400 (1 a `MAX_CARACTERES_MENSAJE` = 2000), 403 `AVISO_CHAT_PENDIENTE`, 409 `CONVERSACION_LLENA` (40 preguntas), 429 `CUOTA_IA` / `DEMASIADAS_PETICIONES`, 503 `IA_NO_CONFIGURADA` | Todo lo que puede fallar **antes** de llamar a Claude se responde con un error JSON normal. Cuota: se cuenta antes y se devuelve si Claude falla con un error reintentable (como D-47). El turno entero se guarda en una **TX** al terminar |
+| `POST /api/chat/tarjetas/:id/guardar` 🔑 | receta: `{}` · huecos: `{ elegidos: [0, 2] }` (posiciones de la propuesta) | 200 `{ recetaId }` o `{ guardados: n, saltados: [{ fecha, tipo, motivo }] }` | 400, 404 (no es una tarjeta de tu conversación), 409 `TARJETA_USADA` | **TX:** reclama la tarjeta (`INSERT INTO tarjetas_chat … ON CONFLICT DO NOTHING RETURNING`), **lee la propuesta del historial guardado** (no del navegador), la valida otra vez y usa los servicios de siempre (`crearReceta()`, `guardarHueco()`). Un hueco que **ahora** es "fuera de casa" se salta. Recalcula la agenda si guarda huecos |
+| `POST /api/chat/tarjetas/:id/descartar` 🔑 | — | 204 | 404, 409 `TARJETA_USADA` | Igual que guardar, con `estado = 'descartada'` |
+| `DELETE /api/chat` 🔑 | — | 204 | — | "Nueva conversación": borra la conversación (`CASCADE` a sus mensajes y tarjetas). La cuota del día **no** se devuelve |
+
+**Las líneas del streaming** (`POST /api/chat/mensajes`):
+
+```
+{"tipo":"texto","texto":"Tienes pollo que caduca "}        ← trozos de la respuesta, según llegan
+{"tipo":"herramienta","texto":"Mirando tu inventario…"}   ← mientras se ejecuta una herramienta
+{"tipo":"tarjeta","tarjeta":{ … }}                        ← una propuesta ya validada
+{"tipo":"fin","quedanHoy":27,"preguntas":4}               ← el turno está guardado
+{"tipo":"error","codigo":"IA_TARDA","mensaje":"…","reintentable":true}   ← en vez de "fin"
+```
+
+- Si la respuesta se corta (`error`), **no se guarda nada** de ese turno: la pregunta tampoco. Así el historial no queda a medias.
+- Si el navegador se cierra a mitad, el servidor **termina** el turno y lo guarda (la cuota ya está contada); al volver se ve entero.
+- El servidor manda las líneas con `res.write()` y el navegador las lee con `response.body.getReader()` y `TextDecoder`. Es una función nueva de `api.js` (`api.flujo()`), con los mismos errores en español que `api.post()`.
+
+**El bucle con Claude** (`servicios/chat.js`, con `@anthropic-ai/sdk`; el ticket sigue con su `fetch`, D-47):
+1. Reserva la cuota y, en memoria, el "una petición a la vez".
+2. Lee el historial **tal cual** de `mensajes_chat` y le añade tu mensaje: un bloque con la **fecha de hoy** en la zona del hogar ("Hoy es martes, 17 de noviembre de 2026") y otro con tu texto. La fecha va aquí, y no en las instrucciones, para que estas no cambien nunca (D-51).
+3. `client.messages.stream()` con el modelo `claude-sonnet-5-5`, `thinking: { type: 'adaptive' }`, esfuerzo `low`, `max_tokens` 16 000, las instrucciones y las 5 herramientas (siempre las mismas y en el mismo orden) con `cache_control`. Cada `text_delta` sale como una línea `texto`.
+4. Al terminar (`finalMessage()`):
+   - `stop_reason = 'refusal'` → "No puedo ayudarte con eso." y se guarda así;
+   - `max_tokens` con un `tool_use` → error (la propuesta llegaría cortada);
+   - `tool_use` → valida la entrada y ejecuta la herramienta. Si no es válida, devuelve el error como `tool_result` con `is_error: true` y el modelo lo corrige;
+   - `end_turn` → fin.
+5. Como mucho **5 vueltas** de herramientas por mensaje (`MAX_VUELTAS_HERRAMIENTAS`). A la sexta, se para con "No he podido terminar. Prueba a pedirlo de otra forma.".
+6. Guarda el turno en una TX y suma 1 a `preguntas`.
+
+**Las herramientas** (todas con `strict: true` y `eager_input_streaming: true`; el servidor valida igualmente cada entrada):
+
+| Herramienta | Entrada | Qué devuelve | Validación |
+|---|---|---|---|
+| `leer_inventario` | — | Productos (nombre, cantidad, unidad, ubicación, caducidad) y tuppers sin consumir (nombre, fecha límite), lo que caduca antes primero | — |
+| `leer_recetas` | — | Las recetas guardadas con sus ingredientes y raciones (sin los pasos, para ahorrar) | — |
+| `leer_semana` | `{ lunes? }` | Los huecos de esa semana (la de hoy si no se dice), el equilibrio (`equilibrioSemana()`) y los avisos de cada día (`avisosDia()`) | `lunes`: un lunes dentro del margen |
+| `proponer_receta` | `{ nombre, raciones?, ingredientes, pasos }` | "Tarjeta enseñada" (no guarda nada) | `validarReceta()`, la de P-20 |
+| `proponer_huecos` | `{ huecos: [{ fecha, tipo, recetaId? \| texto?, grupo? }] }` (1 a 14) | "Tarjeta enseñada" (no guarda nada) | `validarHueco()` en cada uno, fecha dentro del margen, receta del hogar, **ningún hueco "fuera de casa"** y sin repetir fecha + tipo |
+
 #### Push
 
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación |
@@ -605,7 +688,9 @@ recetas-nevera-pwa/
 ├── compartido/                Módulos ES PUROS (sin DOM, sin Node): los usan el navegador Y el servidor
 │   ├── constantes.js          UNIDADES, UBICACIONES, TIPOS_COMIDA, GRUPOS_ALIMENTOS, límites SEC-05,
 │   │                          NUMERO_RECETAS = 3, PERSONAS = 2, HORA_AVISO_TUPPER = 10,
-│   │                          HORA_AVISO_PLAN_POR_DEFECTO = '21:00'
+│   │                          HORA_AVISO_PLAN_POR_DEFECTO = '21:00', y los del chat (D-51):
+│   │                          CUOTA_CHAT_DIARIA = 30, MAX_CARACTERES_MENSAJE = 2000,
+│   │                          MAX_PREGUNTAS_CONVERSACION = 40, DIAS_CONVERSACION = 30
 │   ├── texto.js               normalizar()                                ← lib/texto.ts
 │   ├── fechas.js              hoyIso, esFechaIso, isoATexto, sumarDias,
 │   │                          diasHasta (sin textoAIso, D-32)             ← lib/fechas.ts
@@ -638,15 +723,17 @@ recetas-nevera-pwa/
 │   ├── validacion/            Validación de lo que NO comparte el formulario (parámetros de URL, ids…). Los datos de productos, tuppers, etc. se validan con compartido/validacion.js (D-40)
 │   ├── rutas/                 Solo HTTP: leen req, validan, llaman al servicio y responden
 │   │   └── auth.js yo.js hogar.js productos.js tuppers.js recetas.js
-│   │       sugerencias.js cocinar.js plan.js ia.js push.js tareas.js
+│   │       cocinar.js plan.js ia.js chat.js push.js tareas.js
 │   ├── servicios/             Lógica + SQL. No saben nada de HTTP
 │   │   ├── contrasenas.js     scrypt + timingSafeEqual
 │   │   ├── usuarios.js  sesiones.js  hogares.js  invitaciones.js
 │   │   ├── inventario.js  tuppers.js  recetas.js  cocina.js  plan.js
 │   │   ├── claude.js          ← lib/claude.ts (fetch + ErrorClaude), con la key del entorno
 │   │   ├── ticket.js          ← lib/ticket.ts: prompt, esquema y validación TAL CUAL
-│   │   ├── generadorRecetas.js ← lib/recetas.ts: prompt, describirInventario, validarRecetas
-│   │   ├── cuotaIa.js  operaciones.js
+│   │   ├── chat.js            Chat ayudante (D-51): instrucciones, bucle con @anthropic-ai/sdk,
+│   │   │                      streaming, conversación y tarjetas
+│   │   ├── herramientasChat.js Las 5 herramientas: esquemas, validación y lo que devuelven
+│   │   ├── cuotaIa.js  operaciones.js  limpieza.js (la limpieza diaria, D-51)
 │   │   ├── push.js            web-push: enviar(suscripción, mensaje); 404/410 → borrar
 │   │   ├── agenda.js          Próximo aviso en memoria (§7.3)
 │   │   └── avisos.js          Reclamar y enviar avisos de tuppers y del plan
@@ -662,12 +749,13 @@ recetas-nevera-pwa/
     └── js/
         ├── app.js             Arranque: registra el SW, comprueba la sesión, arranca el router
         ├── router.js          Rutas → pantallas; valida los parámetros (SEC-06)
-        ├── api.js             fetch con errores en español, tiempo máximo y "Sin conexión"
+        ├── api.js             fetch con errores en español, tiempo máximo y "Sin conexión";
+        │                      api.flujo() lee las líneas NDJSON del chat (D-51)
         ├── conexion.js        Estado online/offline y aviso "Sin conexión"
         ├── avisos.js          Instalación, permiso, suscripción push (§7.1)
         ├── componentes/       Equivalentes a components/ui (se diseñan en la fase B)
         └── pantallas/         inventario, producto, tupper, ticket, recetas, receta,
-                               sugerencia, cocinar, semana, plan-dia, asignar, ajustes,
+                               cocinar, semana, plan-dia, asignar, ayudante, ajustes,
                                entrar, registro, privacidad
 ```
 
@@ -722,7 +810,9 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 - **Variable:** `proximaRevision` (un instante, o `null` si no hay nada pendiente).
 - **`agenda.recalcular()`**, una consulta que devuelve el mínimo de:
   - los tuppers pendientes: `((fecha_limite - 1) + time '10:00') AT TIME ZONE zona_horaria`;
-  - en cada hogar **que tenga algo planificado para mañana o pasado mañana** (receta o texto; "fuera de casa" no avisa), la próxima vez que llegue su `hora_aviso_plan` local: hoy si aún no ha pasado y el aviso de mañana no está enviado, y si no, mañana.
+  - en cada hogar **que tenga algo planificado para mañana o pasado mañana** (receta o texto; "fuera de casa" no avisa), la próxima vez que llegue su `hora_aviso_plan` local: hoy si aún no ha pasado y el aviso de mañana no está enviado, y si no, mañana;
+  - **la próxima limpieza diaria**, a las 04:00 UTC (D-51).
+- **La limpieza diaria** (`limpieza.js`) borra: las conversaciones del chat sin mensajes desde hace más de 30 días, las claves de `operaciones` y los avisos del plan enviados de más de 7 días, las filas de `uso_ia` de más de 30 días y los huecos del cuadrante de hace más de un año. Antes (fases 5 a 7) esto se hacía solo cuando tocaba un aviso, así que una casa sin tuppers ni plan no limpiaba nunca. Despierta a Neon una vez al día.
 - **Se llama** al arrancar, tras crear o consumir tuppers, en "La he cocinado", al cambiar el plan, la hora o la zona, al borrar una receta y después de cada envío.
 - **El ping** (`POST /api/tareas/avisos`) comprueba `proximaRevision !== null && Date.now() >= proximaRevision`:
   - **no** → responde `{ revisado: false }` sin tocar la base de datos, y Neon sigue dormido;
@@ -787,13 +877,13 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 | ID | Hallazgo original | Cómo queda resuelto en el diseño |
 |---|---|---|
 | SEC-01 | Firewall que abre Node a toda la red | En desarrollo, el servidor escucha **solo en `127.0.0.1`**. El iPhone se prueba contra el despliegue HTTPS de Render (R-16), así que **no hace falta ninguna regla de firewall**. Recomendación pendiente en tu PC: borrar la regla amplia (el comando está en la auditoría) |
-| SEC-02 | API key en el dispositivo, sin límite de gasto | La key está **solo en `ANTHROPIC_API_KEY`** del servidor (D-05); el navegador nunca la ve. Cuenta autenticada, cuota de 10 al día por persona (D-15), una petición de IA a la vez por persona, tamaño de los archivos validado, workspace propio con **límite de gasto mensual** en la consola, y uso registrado en `uso_ia` |
+| SEC-02 | API key en el dispositivo, sin límite de gasto | La key está **solo en `ANTHROPIC_API_KEY`** del servidor (D-05); el navegador nunca la ve. Cuenta autenticada, cuota de 10 tickets al día por persona (D-15) y 30 mensajes del chat (D-51), una petición de IA a la vez por persona, 5 vueltas de herramientas como mucho por mensaje, tamaño de los archivos validado, workspace propio con **límite de gasto mensual** en la consola, y uso registrado en `uso_ia` |
 | SEC-03 | Keychain compartido en Expo Go | **Ya no aplica:** no se guarda ningún secreto en el dispositivo. La sesión va en una cookie `HttpOnly` que JavaScript no puede leer |
-| SEC-04 | Fotos de tickets enviadas a un tercero sin aviso | **Obligatorio:** aviso antes del primer escaneo; el servidor lo **exige** (403 `AVISO_IA_PENDIENTE` sin `aviso_ia_aceptado_en`). Página `/privacidad` enlazada desde Ajustes y el registro. Archivos procesados en memoria, sin guardarlos ni registrarlos. Se recomienda recortar la foto |
+| SEC-04 | Fotos de tickets enviadas a un tercero sin aviso | **Obligatorio:** aviso antes del primer escaneo; el servidor lo **exige** (403 `AVISO_IA_PENDIENTE` sin `aviso_ia_aceptado_en`). Página `/privacidad` enlazada desde Ajustes y el registro. Archivos procesados en memoria, sin guardarlos ni registrarlos. Se recomienda recortar la foto. **El chat tiene su propio aviso** (D-51): los mensajes, y lo que leen las herramientas (inventario, recetas y plan), se envían a Anthropic; la conversación se guarda 30 días y solo la ve quien la escribe (403 `AVISO_CHAT_PENDIENTE` sin `aviso_chat_aceptado_en`) |
 | SEC-05 | Respuestas de la IA sin límites | Los mismos límites (100 productos, 80 caracteres, 100 000, 5 recetas, 30 ingredientes, 30 pasos de 500), en `compartido/constantes.js`, validados en el **servidor** con `validarRespuestaTicket()` y `validarRecetas()` portados, y repetidos como `CHECK` (§4.1). Los esquemas JSON enviados a Claude se mantienen tal cual |
 | SEC-06 | Enlaces profundos y dependencia vulnerable | El router valida cada parámetro (`Number.isInteger`, listas cerradas de días y comidas, ubicaciones) y muestra "Esta pantalla no existe" si no encaja. Las URLs de los avisos las construye el servidor y el SW solo abre las del propio origen. Pocas dependencias (9.9) |
 | SEC-07 | Acción de la notificación sin autenticación | No hay acciones (R-03). Tocar el aviso solo **abre** una pantalla, y cualquier cambio exige sesión |
-| SEC-08 | Vulnerabilidades en dependencias | 4 dependencias directas (`express`, `pg`, `web-push`, `helmet`). `npm audit` al cerrar cada fase, `package-lock.json` en el repo y Dependabot en GitHub |
+| SEC-08 | Vulnerabilidades en dependencias | 5 dependencias directas (`express`, `pg`, `web-push`, `helmet` y, desde la fase 8, `@anthropic-ai/sdk`). `npm audit` al cerrar cada fase, `package-lock.json` en el repo y Dependabot en GitHub |
 | SEC-09 | Logs sin control | `server/log.js`: en producción solo el mensaje del error y un id de petición; **nunca** cuerpos, cabeceras, cookies, archivos ni la key. El frontend no registra nada en producción |
 | SEC-10 | Sin bloqueo y `.env` sin ignorar | `.env` y `.env.*` en `.gitignore` **en el primer commit**, con `.env.ejemplo` sin valores. Las sesiones caducan (P-02) y se puede cerrar sesión. Face ID no existe en la web |
 
@@ -836,6 +926,13 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 - **Nunca** se usa `innerHTML` con datos: siempre `textContent` y `createElement`. Los nombres de productos, recetas y pasos pueden venir de Claude, y un ticket manipulado podría intentar colar `<img src=x onerror=…>` (inyección de prompt → XSS).
 - **CSP con `helmet`:** `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`. Sin scripts en línea.
 - **Otras cabeceras de `helmet`:** HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`.
+- **El chat (D-51) se pinta como texto:** las instrucciones piden texto sin Markdown y el navegador lo escribe con `textContent` (con `white-space: pre-wrap` para los saltos de línea), nunca como HTML.
+
+### 9.7 bis Inyección de instrucciones en el chat (*prompt injection*)
+Lo que leen las herramientas lo escribe gente: un producto llamado "Ignora lo anterior y…" llega al modelo como dato. El diseño limita lo que podría pasar:
+- las herramientas **solo leen el hogar de la sesión** (el `hogar_id` nunca sale del modelo) y **solo proponen**: nada se guarda sin que la persona toque el botón de la tarjeta;
+- al guardar una tarjeta, el servidor valida la propuesta **otra vez** con las mismas reglas de los formularios (`validarReceta()`, `validarHueco()`);
+- el modelo no tiene herramientas de red ni de borrar, y no ve la key, la sesión ni datos de otras personas.
 
 ### 9.8 Validación de entradas y SSRF
 - Toda entrada se valida en el servidor (§5.1), aunque el formulario ya lo haga.
@@ -850,6 +947,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 | `pg` | PostgreSQL | D-08 |
 | `web-push` | VAPID y cifrado | D-11. Versión fija **3.6.7** (`--save-exact`): la 4.0.0 salió el 2026-11-06, con cambios incompatibles; se revisa cuando tenga unas semanas |
 | `helmet` | Cabeceras de seguridad | D-12 |
+| `@anthropic-ai/sdk` | Chat con Claude: streaming y bucle de herramientas (fase 8) | D-51. Versión fija (`--save-exact`), elegida en el paso 2 de la fase 8. El ticket sigue con su `fetch` (D-47) |
 
 El **frontend no tiene dependencias**. Las pruebas usan `node:test` y las variables de entorno se cargan con `node --env-file`, ambos incluidos en Node. Cada instalación se hace **tras preguntarte**, como hasta ahora.
 
@@ -985,11 +1083,13 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - borrar una receta asignada deja su hueco vacío sin error.
 
 ### Fase 8 — Chat ayudante con IA
-- `007_chat.sql`: conversaciones y mensajes **por persona**, borrados solos a los N días (propuesta: 30) y a mano.
-- Respuesta en **streaming**; **herramientas** (*tool use*) que ejecuta el servidor: leer el inventario y la semana, proponer una receta, proponer huecos del cuadrante. Lo que propone sale como **tarjetas** ("Guardar receta", "Añadir al cuadrante"): nada se guarda sin confirmar.
+- `007_chat.sql`: una conversación **por persona** (D-51), con sus mensajes guardados tal cual y el estado de sus tarjetas; se borra sola a los 30 días sin usarla y a mano con "Nueva conversación".
+- Respuesta en **streaming** (NDJSON hasta el navegador); **5 herramientas** que ejecuta el servidor: leer el inventario, las recetas y la semana, proponer una receta y proponer huecos del cuadrante. Lo que propone sale como **tarjetas** ("Guardar receta", "Añadir al cuadrante"): nada se guarda sin confirmar.
 - Al sugerir huecos, la IA recibe la semana, los grupos que faltan y lo que caduca antes, y propone un grupo distinto cada día; nunca rellena un hueco "fuera de casa".
-- **Cuota propia del chat** (propuesta: 30 mensajes/día/persona); aviso de privacidad ampliado (los mensajes se envían a Anthropic y se guardan N días).
-- Verificar en la documentación actual de Claude: *tool use*, streaming y límites antes de escribir código (como R-17).
+- **Cuota propia del chat**: 30 mensajes al día por persona (`CUOTA_CHAT_DIARIA`); 40 preguntas por conversación; aviso de privacidad propio del chat.
+- Pestaña nueva **Ayudante** (P-21; 5 pestañas). **Limpieza diaria** en la agenda.
+- Documentación de Claude comprobada el 2026-11-17 (*tool use*, streaming, razonamiento de Sonnet 5.5): ver D-51.
+- Pasos: 1 documentación (este cambio); 2 `007_chat.sql`, constantes de `compartido/` e instalar `@anthropic-ai/sdk` (versión fija, preguntando antes); 3 las herramientas con pruebas; 4 `/api/chat` (streaming, bucle, cuota, guardar el turno, tarjetas, "Nueva conversación") y la limpieza diaria; 5 pantalla Ayudante y tarjetas; 6 probar el "Hecho cuando" en desarrollo (gasta cuota y céntimos: preguntando antes); 7 `sw.js`, desplegar e iPhone.
 
 **Hecho cuando:**
 - responde una duda de cocina con la respuesta apareciendo mientras se escribe;
@@ -997,7 +1097,9 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - "rellena las cenas de esta semana" propone huecos variados (grupos distintos, primero lo que caduca) y se añaden solo los que aceptas;
 - un hueco "fuera de casa" no se toca;
 - el mensaje siguiente al último de la cuota → 429; la conversación sigue al recargar y otra persona del hogar no la ve;
-- en la pestaña Red no aparece la key en ninguna petición.
+- guardar dos veces la misma tarjeta (dos pestañas) → la segunda da 409 y no se duplica nada;
+- "Nueva conversación" la borra, y una conversación de más de 30 días desaparece con la limpieza diaria;
+- en la pestaña Red no aparece la key en ninguna petición, ni el razonamiento del modelo.
 
 ### Fase 9 — Cierre
 - Recuperar la contraseña por email (P-10; decisión del proveedor en ese momento).
@@ -1055,7 +1157,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-28 | 2026-10-19 | Pantallas que eran modales (fase B) | **Páginas con URL propia y "‹ Atrás"**; solo las confirmaciones (los `Alert` de Expo) usan `<dialog>` con `showModal()` | Funcionan el gesto atrás y el botón del navegador, se abren desde un aviso y el navegador gestiona el foco, `Esc` y el fondo inerte. |
 | D-29 | 2026-10-19 | Tipografía (fase B) | **Fuente del sistema** (`system-ui`, San Francisco en iPhone) con los tamaños de `tema.ts` y el tamaño de texto de iOS | 0 KB, funciona sin red y no envía datos a terceros. *Ampliada por D-45: los títulos y la marca usan Bricolage Grotesque; el texto sigue con la del sistema.* |
 | D-30 | 2026-10-19 | Iconos (fase B) | **SVG propios en línea** con `currentColor`, siempre con texto y `aria-hidden` | Toman el color del tema y no hay dependencias. |
-| D-31 | 2026-10-19 | Recetas sugeridas sin guardar (fase B, era P-12) | **En el servidor**: tabla `sugerencias` (JSONB) por hogar; cada generación sustituye a la anterior; caducan a los 7 días | Cada generación gasta cuota de IA: no se pierden al recargar, se ven en todos los dispositivos y las comparte el hogar. **Cambiada por D-48:** las propuestas de la IA son tarjetas del chat (guardadas con la conversación, por persona); la tabla `sugerencias` se revisa en la fase 8. |
+| D-31 | 2026-10-19 | Recetas sugeridas sin guardar (fase B, era P-12) | **En el servidor**: tabla `sugerencias` (JSONB) por hogar; cada generación sustituye a la anterior; caducan a los 7 días | Cada generación gasta cuota de IA: no se pierden al recargar, se ven en todos los dispositivos y las comparte el hogar. **Cambiada por D-48:** las propuestas de la IA son tarjetas del chat (guardadas con la conversación, por persona); la tabla `sugerencias` se revisa en la fase 8. **Cerrada por D-51:** la tabla no se crea. |
 | D-32 | 2026-10-19 | Fecha de caducidad (fase B, era P-12) | **`<input type="date">` nativo** + botón "Quitar fecha"; validación igual en el servidor | Rueda nativa en iOS, sin errores de formato ni librerías; el motivo de Expo (no añadir dependencias de calendario) desaparece en la web. |
 | D-33 | 2026-10-22 | Nombre de la carpeta del backend (fase 0) | **`server/`** en lugar de `servidor/`; las subcarpetas y los archivos siguen en español | Preferencia del autor. Se actualizan los scripts de `package.json` y las rutas de esta documentación. |
 | D-34 | 2026-10-22 | Dónde guardar los secretos de desarrollo para usarlos en varios ordenadores | **Bitwarden** (plan gratuito), nota segura con el `.env`, contraseña maestra única y verificación en dos pasos con app de autenticación | Gestor probado y auditado en lugar de uno propio; sincroniza entre los PC y el iPhone; los secretos nunca pasan por git, el email ni la mensajería. |
@@ -1075,6 +1177,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-48 | 2026-11-13 | La IA como ayudante de cocina: chat, recetas y cuadrante (replantea las fases 6 a 9; cambia D-15 y D-31; adelanta V2-01) | **Chat ayudante con acciones**: resuelve dudas y, con herramientas (*tool use*), propone recetas y huecos del cuadrante como **tarjetas que se confirman** ("Guardar receta", "Añadir al cuadrante"); nunca guarda nada sin confirmar. Conversaciones **en el servidor, por persona**, borradas solas a los N días (propuesta: 30). **Cuota propia del chat** (propuesta: 30 mensajes/día/persona); el ticket sigue con `CUOTA_IA_DIARIA`. **Cuadrante por fechas**: semanas de lunes a domingo que empiezan vacías ("Semana del 23 al 29 de noviembre"); cada hueco (fecha + comida/cena) lleva receta, texto libre o **"fuera de casa"**, y un **grupo de alimentos** (lista cerrada en `compartido/`). El navegador calcula sin IA los avisos de caducidad y el **equilibrio semanal** frente a frecuencias de una fuente española verificada (AESAN). Al sugerir, la IA elige un grupo distinto cada día, cubre los que faltan y usa primero lo que caduca. Orden: recetario (6) y cuadrante (7) sin IA, chat (8), cierre (9). Importar el calendario queda como V2-03 | El autor quiere la IA como **ayudante para planificar**, no como botones sueltos. Lo que se puede calcular (caducidad, equilibrio) no gasta IA y funciona sin red. Con 10 llamadas al día no da para conversar. Una semana fija que se repite no sirve: cada semana se planifica de cero y hay eventos de un día. El chat va al final porque sus acciones necesitan el recetario y el cuadrante; así, si la IA falla o se acaba la cuota, la app sigue sirviendo. Las cifras (cuota, días, frecuencias) se fijan en su fase |
 | D-49 | 2026-11-13 | Recetas escritas a mano (fase 6) | **Crear, editar y borrar** (`PUT /api/recetas/:id`: actualiza la receta y sustituye sus ingredientes en una TX). **Ingredientes en filas** (nombre, cantidad y unidad, con "Añadir ingrediente" y "Quitar"), **pasos en un área de texto** (un paso por línea, guardados juntos en `instrucciones`) y **raciones opcionales** (1 a 20, solo informan). Formulario de receta como pantalla nueva | Corregir una cantidad no debe obligar a rehacer la receta. "Qué me falta" y "La he cocinado" necesitan nombre, cantidad y unidad por separado: las filas evitan errores de formato. Los pasos como texto se escriben y se pegan cómodamente en el móvil. Las raciones las usará también el chat (fase 8) |
 | D-50 | 2026-11-16 | Cuadrante por fechas: grupos, equilibrio y rutas (fase 7) | Tabla **`cuadrante`** (sustituye a `planificador_semanal`, que nunca llegó a crearse): una fila por hogar + **fecha** + comida/cena con receta, texto libre o "fuera de casa". **8 grupos** en una lista cerrada (`GRUPOS_ALIMENTOS`): legumbres, pescado, huevos, carne blanca, carne roja, verduras, pasta o arroz, otro; **opcional** en cada hueco y nunca en "fuera de casa". **Equilibrio** frente al informe de AESAN 2022 (comprobado en aesan.gob.es el 2026-11-16): por semana, **legumbres ≥ 4**, **pescado ≥ 3**, **huevos ≤ 4** y **carne ≤ 3** (la blanca y la roja suman juntas; se recomienda priorizar aves y conejo). Los demás grupos se cuentan sin objetivo. **Avisos junto al día** (`avisosDia()`): el mismo grupo en la comida y en la cena ("mejor variar"; "otro" no avisa) y el día en que se pasa de un máximo ("Cuarta vez de carne esta semana"); el bloque del equilibrio se queda abajo como resumen (lo que falta no es de ningún día). **"Fuera de casa" con nota opcional** en `texto_libre` ("Comida aniversario": una cita no es un plato). **Rutas con la fecha en la ruta**: `/semana` (la actual), `/semana/2026-11-23` (lunes), `/plan/2026-11-24` y `/plan/2026-11-24/cena`. **Margen**: un año atrás y uno adelante (400 fuera de él); las filas de hace más de un año se borran en la tarea de avisos | Separar la carne blanca y la roja permite el matiz de AESAN sin cambiar el máximo. Un grupo obligatorio no encaja con "Comida aniversario". Las cifras diarias de AESAN (hortalizas, fruta, cereales) no se pueden contar con un hueco por comida, así que no se usan. Contar huecos no es contar raciones: por eso es "orientativo". La fecha en la ruta se lee bien y cabe en el router actual. Sin margen, la tabla crecería sin control |
+| D-51 | 2026-11-17 | Chat ayudante con IA (fase 8; fija las cifras de D-48 y cierra D-31) | **Modelo** `claude-sonnet-5-5` (el del ticket) con razonamiento adaptativo y esfuerzo `low`, con **`@anthropic-ai/sdk`** (versión fija; el ticket sigue con su `fetch`, D-47). **Una conversación activa por persona**, privada, con "Nueva conversación" (borra la anterior); se borra sola **30 días** después de su último mensaje; como mucho **40 preguntas**. **Cuota: 30 mensajes al día por persona** (`mensajes_chat` en `uso_ia`), contada antes y devuelta si Claude falla con un error reintentable; mensajes de 1 a 2000 caracteres; **5 vueltas** de herramientas por mensaje; una petición de IA a la vez. **Historial guardado tal cual** (los bloques de la API en JSONB, solo se añade) y **reenviado sin cambios**; las instrucciones y las herramientas **no cambian nunca** y la fecha de hoy va en cada mensaje de la persona. **5 herramientas** con `strict` y `eager_input_streaming`: `leer_inventario`, `leer_recetas`, `leer_semana`, `proponer_receta` y `proponer_huecos`; las propuestas se validan con `validarReceta()` y `validarHueco()` y nunca tocan un hueco "fuera de casa". **Tarjetas**: se guardan con `POST /api/chat/tarjetas/:id/guardar`, que lee la propuesta del historial (no del navegador) y la reclama en `tarjetas_chat` en una TX, así no se guarda dos veces; en "Añadir al cuadrante" se eligen los huecos y la tarjeta avisa de lo que sustituye. **Streaming** NDJSON hasta el navegador (`api.flujo()`); si se corta, no se guarda nada del turno. Rechazo del modelo (`refusal`) → "No puedo ayudarte con eso." **Aviso de privacidad propio** (`aviso_chat_aceptado_en`). Pestaña nueva **Ayudante** (5 pestañas, P-21). **Limpieza diaria** a las 04:00 UTC en la agenda. La tabla `sugerencias` (D-31) no se crea | Con Sonnet 5.5, el razonamiento de cada respuesta va ligado a la conversación exacta: si se edita el historial, o cambian las instrucciones o las herramientas, se pierde (y la caché también). Por eso se guarda todo tal cual y la fecha no va en las instrucciones. Sonnet 5.5 no deja obligar a usar una herramienta (`tool_choice` forzado da 400): las instrucciones la piden y el servidor valida. El esfuerzo `low` es el recomendado para un chat: responde antes y gasta menos. Una sola conversación es más simple de entender y de borrar (RGPD) que una lista. Leer la propuesta del historial y no del navegador impide guardar algo que la IA no propuso. Las 40 preguntas acotan el coste de reenviar el historial y lo que se guarda. La limpieza dependía de que tocara un aviso: una casa sin tuppers ni plan no limpiaba nunca |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

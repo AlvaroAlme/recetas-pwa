@@ -5,7 +5,7 @@
 | **Estado** | Fase B **aprobada** el 19 de octubre de 2026 |
 | **Fecha** | 19 de octubre de 2026 |
 | **Basado en** | `docs/COMPONENTES.md`, `constants/tema.ts` y `app/**/*.tsx` de la app Expo; `docs/ARQUITECTURA.md` (decisiones D-01 a D-32) |
-| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad crema y salvia (30-10-2026, sustituida) · D-45 identidad Vigía (07-11-2026) (registro en `ARQUITECTURA.md` §11) |
+| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad crema y salvia (30-10-2026, sustituida) · D-45 identidad Vigía (07-11-2026) · D-50 cuadrante por fechas · D-51 chat ayudante (registro en `ARQUITECTURA.md` §11) |
 
 **[sin verificar]** marca lo que se comprueba en el iPhone en la fase indicada antes de darlo por bueno.
 
@@ -271,7 +271,7 @@ html {
 | `EstadoVacio` | `crearVacio()` | `<section>` + `<h2>` |
 | `Aviso` | `crearAviso()` | `<div role="alert">` o `role="status"` |
 | `TituloSeccion` | `crearTituloSeccion()` | `<h2>` |
-| *(nuevo)* | `crearNavegacion()` | `<nav>` con las 4 pestañas |
+| *(nuevo)* | `crearNavegacion()` | `<nav>` con las 5 pestañas (Ayudante desde la fase 8, D-51) |
 | *(nuevo)* | `crearCabecera()` | `<header>` con "‹ Atrás", título y acción |
 | *(nuevo, sustituye a `Alert`)* | `confirmar()` | `<dialog>` + `showModal()` |
 | *(nuevo)* | `crearFranjaConexion()` | `<div role="status">` "Sin conexión" |
@@ -438,13 +438,14 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
     <li><a href="/" aria-current="page"><svg aria-hidden="true">…</svg><span>Inventario</span></a></li>
     <li><a href="/recetas"><svg aria-hidden="true">…</svg><span>Recetas</span></a></li>
     <li><a href="/semana">…<span>Semana</span></a></li>
+    <li><a href="/ayudante">…<span>Ayudante</span></a></li>
     <li><a href="/ajustes">…<span>Ajustes</span></a></li>
   </ul>
 </nav>
 ```
 - **Pestaña activa:** `aria-current="page"` + color `primario` + **texto en negrita y una barrita encima** (abajo) o a la izquierda (lateral). No depende solo del color.
-- Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30).
-- **Se muestra en las 4 pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
+- Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30). Con 5 pestañas, en un iPhone de 375 px caben 75 px por pestaña: el texto va en `--texto-pequeno` y en una sola línea ("Ayudante" es la más larga). Icono de Ayudante: un bocadillo de conversación.
+- **Se muestra en las 5 pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
 
 #### Cabecera
 `<header class="cabecera"><a class="cabecera__atras" href="/">‹ Atrás</a><h1>Nuevo producto</h1><a class="cabecera__accion" href="/ticket">…Ticket</a></header>`
@@ -481,6 +482,9 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 | `FormularioReceta` | Alta y edición de una receta (P-20, D-49): nombre, raciones opcionales, filas de ingredientes (autocompletado de Producto y `<select>` de unidad) con "Añadir" y "Quitar", y pasos en un `<textarea>`; validación por campo con `validarReceta()` | `{ inicial?, textoBoton, alGuardar(datos) => Promise, buscarHistorial? }` → `{ formulario, boton }` (como `FormularioProducto`) |
 | `FilaCocinar` | Un ingrediente en "La he cocinado": "¿De cuál lo has usado?", la cantidad a descontar, "Quedarán…", "No descontar" | `{ fila, alCambiar }` → `<article>` |
 | `Hueco` | Un hueco del cuadrante (Comida/Cena) que se puede pulsar: el plato y su grupo en tono tenue, "Fuera de casa" o "+ Añadir" | `{ fecha, tipo, hueco \| null }` → `<a href="/plan/:fecha/:tipo">` |
+| `MensajeChat` | Un mensaje del chat (D-51): el tuyo a la derecha con fondo `superficie-2`; el del ayudante a la izquierda, sin burbuja, a todo el ancho. Texto con `textContent` y `white-space: pre-wrap`. Mientras llega, `aria-busy="true"` y una línea tenue con lo que hace ("Mirando tu inventario…") | `{ rol, texto, tarjetas }` → `<article>`; `agregarTexto(trozo)` y `ponerEstado(texto)` para el streaming |
+| `TarjetaReceta` | La receta que propone el ayudante: nombre, "Para 2 personas · Te falta 1 ingrediente" (con `VistaReceta` y el inventario recién pedido), `‹Ver ingredientes y pasos›` (un `<details>`), `[Guardar receta]` y `‹Descartar›`. Guardada: "✓ Guardada en Recetas" + `‹Ver receta›`; descartada: "Descartada", en tono tenue | `{ tarjeta, productos, tuppers, alGuardar, alDescartar }` → `<article>` |
+| `TarjetaHuecos` | Los huecos que propone: una casilla por hueco ("Lun 23 · Cena: Lentejas con chorizo · Legumbres"), marcadas de inicio; "Sustituye a «Pizza»" en tono aviso si el hueco ya tiene algo; un hueco que ahora es "fuera de casa" sale sin casilla ("Ya no se puede: fuera de casa"). `[Añadir 2 al cuadrante]` (cuenta las marcadas; deshabilitado con 0) y `‹Descartar›`. Guardada: "✓ Añadidos 2 huecos" + `‹Ver la semana›` | `{ tarjeta, alGuardar(elegidos), alDescartar }` → `<article>` |
 | `EquilibrioSemana` | Cuántas veces sale cada grupo frente a AESAN 2022 (`equilibrioSemana()`, D-50): "Legumbres · 2 de 4 o más" con su tono y su texto, nunca solo el color; los grupos sin objetivo, en una línea; y "Orientativo, no sustituye el consejo de un profesional." con la fuente | `{ huecos }` → `<section>` |
 
 Igual que en Expo: **no llaman a la API**. Reciben datos y avisan con *callbacks*; quien llama a `api.js` es la pantalla.
@@ -591,7 +595,7 @@ Paso 2, "Instala la app" (instrucciones de iOS o un botón en Chrome); paso 3, "
 │──────────────────────────────│
 │ [ + Tupper ]° [ + Producto ]  │  ← pie
 ├──────────────────────────────┤
-│ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │  ← navegación
+│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│  ← navegación
 └──────────────────────────────┘
 ```
 El selector de ubicación se recuerda en la URL (`/?ubicacion=despensa`), así que "Atrás" vuelve a la misma.
@@ -704,7 +708,7 @@ La primera vez, antes de "Elegir", aparece el **aviso de privacidad** (SEC-04, �
 │──────────────────────────────│
 │ [        + Receta         ]   │
 ├──────────────────────────────┤
-│ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │
+│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│
 └──────────────────────────────┘
 ```
 - Lista con `crearFila`, **las más recientes primero** (el orden de `GET /api/recetas`). Subtítulo "Para N personas" solo si la receta tiene raciones.
@@ -712,8 +716,8 @@ La primera vez, antes de "Elegir", aparece el **aviso de privacidad** (SEC-04, �
 - Vacía: `EstadoVacio` "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte." + `[+ Receta]`.
 - `[+ Receta]` en el pie → `/receta/nueva` (P-20).
 
-#### P-10 · Sugerencia — pasa a la fase 8 (D-48)
-Las recetas propuestas por la IA llegan con el chat ayudante, como tarjetas que se confirman. Esta pantalla se rediseñará entonces.
+#### P-10 · Sugerencia — sustituida por las tarjetas del Ayudante (D-48, D-51)
+Las recetas que propone la IA son tarjetas de P-21 (`TarjetaReceta`). Esta pantalla no se hace.
 
 #### P-11 · Receta — `/receta/:id` · E-2
 ```
@@ -868,7 +872,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │  no las raciones. Fuente:     │
 │  ‹AESAN 2022›                 │  enlace externo
 ├──────────────────────────────┤
-│ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │
+│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│
 └──────────────────────────────┘
 ```
 - `/semana` muestra la semana de hoy (en la zona del navegador); `/semana/:lunes` tiene que ser un lunes dentro del margen de un año (si no, "Semana no válida" + `‹Ir a esta semana›`).
@@ -926,6 +930,50 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 - Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `buscarProductos()` por el nombre, o "✗ No hay nada con ese nombre en el inventario." "Fuera de casa": eso y su nota, si la tiene.
 - Nada planificado: "Nada planificado" / "No hay comida ni cena para el martes 24." + `[Planificar comida]°` (→ `/plan/:fecha/comida`).
 
+#### P-21 · Ayudante — `/ayudante` · E-1 (D-48, D-51)
+```
+┌──────────────────────────────┐
+│  Ayudante  ‹Nueva conversación›
+│                               │
+│        ┌───────────────────┐  │
+│        │ ¿Qué ceno hoy con │  │  tu mensaje, a la derecha
+│        │ lo que tengo?     │  │
+│        └───────────────────┘  │
+│  Mirando tu inventario…       │  tenue, mientras usa una herramienta
+│  Tienes pollo que caduca      │  la respuesta aparece mientras se escribe
+│  mañana. Te propongo esto:    │
+│ ┌──────────────────────────┐ │
+│ │ RECETA PROPUESTA         │ │  TarjetaReceta
+│ │ Pollo al ajillo          │ │
+│ │ Para 2 · Te falta 1 ingr.│ │
+│ │ ‹Ver ingredientes y pasos›│ │
+│ │ [Guardar receta] ‹Descartar›│
+│ └──────────────────────────┘ │
+│ ┌──────────────────────────┐ │
+│ │ AÑADIR AL CUADRANTE      │ │  TarjetaHuecos
+│ │ ☑ Lun 23 · Cena          │ │
+│ │   Lentejas · Legumbres   │ │
+│ │ ☑ Mar 24 · Cena          │ │
+│ │   Merluza · Pescado      │ │
+│ │   Sustituye a «Pizza»    │ │
+│ │ [Añadir 2 al cuadrante]  │ │
+│ │ ‹Descartar›              │ │
+│ └──────────────────────────┘ │
+│──────────────────────────────│
+│ [Escribe tu pregunta…   ][➤] │  pie: área de texto + Enviar
+│ Te quedan 27 mensajes hoy.   │
+├──────────────────────────────┤
+│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│
+└──────────────────────────────┘
+```
+- **Primera vez** (sin `avisoAceptado`): en lugar de la conversación, un `Aviso` *info*: "Tus mensajes, y lo que el ayudante lea de tu inventario, tus recetas y tu plan, se envían a Anthropic (la empresa de Claude) para responderte. La conversación se guarda 30 días y solo la ves tú." + `‹Más información›` (→ P-18) + `[Empezar]`. El pie no se ve hasta aceptarlo.
+- **Vacía:** `EstadoVacio` "Pregúntame lo que quieras de cocina" / "Puedo ver tu inventario, tus recetas y tu semana, y proponerte recetas y platos. Nada se guarda sin que lo confirmes." + 3 ejemplos como botones secundarios que **escriben** el texto en el área (no lo envían): "¿Qué ceno hoy con lo que tengo?", "Rellena las cenas de esta semana", "¿Cuánto dura el arroz cocido en la nevera?".
+- **El pie** (como en E-2, pegado encima de la navegación): `<textarea>` de 1 a 4 líneas que crece al escribir, con la etiqueta flotante "Escribe tu pregunta"; contador "1980 / 2000" solo a partir de 1800 caracteres; botón Enviar de 44 × 44 px con `aria-label="Enviar"`. **Intro** hace un salto de línea (en el iPhone no hay Mayús + Intro cómodo); se envía con el botón. Debajo, "Te quedan N mensajes hoy." en tono tenue.
+- **Mientras responde:** el área y Enviar se deshabilitan ("Respondiendo…"), la página baja sola mientras llega texto **solo si ya estabas abajo** (si has subido a leer, no te mueve) y, al acabar, un `role="status"` oculto dice "Respuesta lista" (el texto que llega a trozos no se anuncia: el lector lo leería palabra a palabra).
+- **Al guardar una tarjeta:** el botón pasa a "Guardando…" y después la tarjeta cambia a su estado final. Las demás tarjetas y el chat siguen usables.
+- `‹Nueva conversación›` → `confirmar()` "¿Empezar una conversación nueva? La de ahora se borrará y no se puede recuperar." `[Empezar de nuevo]` (peligro) → `DELETE /api/chat` → vacía.
+- **Conversación llena** (40 preguntas): el pie se sustituye por "Esta conversación ha llegado al máximo." + `[Nueva conversación]`.
+
 #### P-16 · Ajustes — `/ajustes` · E-1
 ```
 ┌──────────────────────────────┐
@@ -945,13 +993,15 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │  [ Invitar a alguien ]°       │
 │  ‹Tengo un código›            │
 │  INTELIGENCIA ARTIFICIAL      │
-│  Te quedan 9 de 10 hoy.       │
+│  Tickets: te quedan 9 de 10.  │
+│  Ayudante: te quedan 28 de 30 │
+│  mensajes hoy.                │
 │  CUENTA                       │
 │  alvaro@…   ‹Cerrar sesión›   │
 │  ‹Privacidad›  ‹Borrar cuenta›│
 │  Modelo: claude-sonnet-5-5    │
 ├──────────────────────────────┤
-│ [▢]Inv  [⑂]Rec [▦]Sem [⚙]Aj  │
+│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│
 └──────────────────────────────┘
 ```
 La sección de avisos cambia según el estado (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Vigía" **[sin verificar]** la ruta exacta (fase 4).
@@ -975,7 +1025,7 @@ INVITAR                             UNIRSE
 "Compartir…" usa `navigator.share()` si existe.
 
 #### P-18 · Privacidad — `/privacidad` · E-3
-Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los tickets se envían a Anthropic** para leerlas y no se guardan, la cuota de IA, cómo borrar la cuenta y el contacto. Se puede abrir sin sesión.
+Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los tickets se envían a Anthropic** para leerlas y no se guardan, que **los mensajes del Ayudante** (y lo que lee de tu inventario, tus recetas y tu plan) también se envían a Anthropic y la conversación se guarda 30 días, solo la ve quien la escribe y se borra con "Nueva conversación" o al borrar la cuenta (D-51), la cuota de IA, cómo borrar la cuenta y el contacto. Se puede abrir sin sesión.
 
 #### P-19 · No existe — cualquier ruta desconocida · E-1/E-3
 `EstadoVacio` centrado: "Esta pantalla no existe" + `[Ir al inventario]°`. Igual para los parámetros no válidos ("Día no válido", "Este producto ya no existe").
@@ -985,7 +1035,7 @@ Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los ti
 ## 5. Navegación y rutas
 
 ### 5.1 Pestañas
-**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ajustes** (`/ajustes`). Barra inferior en el móvil y lateral desde 48em (D-27).
+**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`), **Ayudante** (`/ayudante`, fase 8, D-51) y **Ajustes** (`/ajustes`). Barra inferior en el móvil y lateral desde 48em (D-27).
 
 ### 5.2 Rutas (History API: URLs normales, sin `#`)
 
@@ -1005,11 +1055,12 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/receta/nueva` | P-20 | Recetas | — (va antes que `/receta/:id`) | `/recetas` |
 | `/receta/:id` | P-11 | Recetas | `id` entero > 0 | `/recetas` |
 | `/receta/:id/editar` | P-20 | Recetas | `id` entero > 0 | `/receta/:id` |
-| `/cocinar` | P-12 | Recetas | `?receta` entero > 0 (la sugerencia, en la fase 8) | `/receta/:id` |
+| `/cocinar` | P-12 | Recetas | `?receta` entero > 0 | `/receta/:id` |
 | `/semana` | P-13 | Semana | — (la semana de hoy) | — |
 | `/semana/:lunes` | P-13 | Semana | `lunes`: fecha ISO, lunes, dentro del margen de un año (D-50) | — |
 | `/plan/:fecha` | P-15 | Semana | `fecha`: fecha ISO dentro del margen | `/semana/:lunes` de esa fecha |
 | `/plan/:fecha/:tipo` | P-14 | Semana | `fecha` igual, `tipo` ∈ `TIPOS_COMIDA` | `/semana/:lunes` de esa fecha |
+| `/ayudante` | P-21 | Ayudante | — | — |
 | `/ajustes` | P-16 | Ajustes | — | — |
 | `/hogar/invitar`, `/hogar/unirse` | P-17 | Ajustes | `?codigo` opcional, formato del código | `/ajustes` |
 | `/cuenta/borrar` | Borrar cuenta (fase 2): aviso de lo que se borra + contraseña | Ajustes | — | `/ajustes` |
@@ -1136,6 +1187,14 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 5. **`‹Saltar›`** en cualquier paso → Inventario. Lo pendiente se recuerda con un aviso *info* en Ajustes, no con ventanas emergentes.
 6. **Un dispositivo nuevo de la misma persona** (por ejemplo, el PC): tras entrar, Ajustes muestra el estado de los avisos **de ese dispositivo**.
 
+### 7.7 Preguntar al Ayudante → tarjeta → guardar (fase 8, D-51)
+1. **Ayudante** (`/ayudante`) → la primera vez, el aviso de privacidad → `[Empezar]`.
+2. Escribe "Rellena las cenas de esta semana" → Enviar → aparece su mensaje y, debajo, "Mirando tu semana…", "Mirando tu inventario…" mientras el ayudante usa las herramientas.
+3. La respuesta llega a trozos y termina con una `TarjetaHuecos`: los días que faltan, con grupos distintos, lo que caduca antes primero y nunca un hueco "fuera de casa".
+4. Desmarca uno → `[Añadir 3 al cuadrante]` → "Guardando…" → "✓ Añadidos 3 huecos" + `‹Ver la semana›` (→ P-13, con el equilibrio recalculado).
+5. Si mientras tanto alguien de la casa marcó uno de esos huecos como "fuera de casa", se salta y la tarjeta lo dice: "Añadidos 2 huecos. El jueves 26 ya no se podía: fuera de casa."
+6. **Al recargar** o desde otro dispositivo de la misma persona, la conversación y el estado de las tarjetas siguen ahí; otra persona de la casa ve **su** conversación, no esta.
+
 ---
 
 ## 8. Estados de cada pantalla
@@ -1161,6 +1220,7 @@ Comunes a todas:
 | Semana | "Cargando el plan…" | No existe: los 7 días siempre se ven, con "+ Añadir" · Fecha mala: "Semana no válida" + `‹Ir a esta semana›` | "No se ha podido cargar el plan." + `[Reintentar]` | — | Cuadrante + equilibrio |
 | Planificar hueco | Recetas: indicador en línea | "Aún no tienes recetas guardadas." + `‹Escribir una›` · Parámetro malo: "Hueco no válido" | — | "Guardando…" → "No se ha guardado. Ha fallado el cambio en el plan. Inténtalo de nuevo." | Formulario + recetas |
 | Plan del día | "Comprobando ingredientes…" | "Nada planificado" + `[Planificar comida]°` · Fecha mala: "Día no válido" | `[Reintentar]` | — | Platos con ✓/✗ |
+| Ayudante | "Cargando la conversación…" | "Pregúntame lo que quieras de cocina" + 3 ejemplos · Primera vez: el aviso de privacidad | Cuota: "Has usado los 30 mensajes de hoy. Mañana podrás seguir." · Respuesta cortada: "La respuesta se ha cortado. No se ha gastado el mensaje." + `[Reintentar]` (vuelve a enviar el mismo texto) si es reintentable · Rechazo: "No puedo ayudarte con eso." · Sin conexión: el pie con `aria-disabled` y "Necesitas conexión para hablar con el ayudante" | "Respondiendo…" · Tarjeta: "Guardando…" → "No se ha guardado. Inténtalo de nuevo." · 409: "Esta propuesta ya se había guardado." (y se recarga) | Mensajes y tarjetas |
 | Ajustes | Cada sección con su indicador en línea | — | Hora: "Escribe la hora como HH:MM, por ejemplo 21:00." · Avisos: "No se han podido activar los avisos. Inténtalo de nuevo." | "Guardando…" → "Hora guardada: 21:30." / "No se ha podido guardar la hora." | Secciones |
 | Invitar / Unirse | "Creando código…" | — | "Ese código no existe o ha caducado." · "Ese código ya se ha usado." | "Uniéndote…" → "No se ha podido unir. Inténtalo de nuevo." | Código / formulario |
 
