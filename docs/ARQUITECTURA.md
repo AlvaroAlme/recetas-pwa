@@ -640,6 +640,7 @@ La conversación es **de la persona** (no del hogar). Las herramientas leen siem
 
 - Si la respuesta se corta (`error`), **no se guarda nada** de ese turno: la pregunta tampoco. Así el historial no queda a medias.
 - Si el navegador se cierra a mitad, el servidor **termina** el turno y lo guarda (la cuota ya está contada); al volver se ve entero.
+- Las cabeceras (200 y `application/x-ndjson`) salen con `res.flushHeaders()` **en cuanto la cuota está reservada**, antes de llamar a Claude: si esperaran al primer trozo, mientras el modelo piensa el navegador diría "Despertando el servidor…" (comprobado el 2026-11-17).
 - El servidor manda las líneas con `res.write()` y el navegador las lee con `response.body.pipeThrough(new TextDecoderStream()).getReader()` (un trozo puede traer media línea: se guarda para el siguiente). Es una función nueva de `api.js` (`api.flujo()`), con los mismos errores en español que `api.post()`. En vez de un tiempo máximo total tiene uno de **silencio**: 90 s sin recibir nada. Si la conexión se corta después de empezar a llegar la respuesta, la pantalla recarga la conversación (el servidor puede haberla guardado) y te devuelve la pregunta al área de texto; con cualquier otro error, el turno no se ha guardado y quita los dos mensajes.
 
 **El bucle con Claude** (`servicios/chat.js`, con `@anthropic-ai/sdk`; el ticket sigue con su `fetch`, D-47):

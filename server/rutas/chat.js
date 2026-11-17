@@ -59,17 +59,25 @@ rutasChat.post('/mensajes', exigirAvisoChat, async (req, res) => {
   conversaciones.comprobarHueco(conversacion);
 
   let empezado = false;
-  /** Escribo una línea. La primera vez, las cabeceras. Si el navegador se ha ido, no escribo nada. */
+  /**
+   * Mando las cabeceras (200 y NDJSON) YA, sin esperar al primer trozo de
+   * Claude: así el navegador sabe que la respuesta está en camino y no dice
+   * "Despertando el servidor…" mientras el modelo piensa.
+   */
+  const empezar = () => {
+    if (empezado || res.destroyed || res.writableEnded) return;
+    res.status(200);
+    res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+    // Que nadie (el SW, un proxy) la guarde ni la retenga: tiene que llegar según sale.
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+    empezado = true;
+  };
+  /** Escribo una línea. Si el navegador se ha ido, no escribo nada. */
   const enviar = (evento) => {
     if (res.destroyed || res.writableEnded) return;
-    if (!empezado) {
-      res.status(200);
-      res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
-      // Que nadie (el SW, un proxy) la guarde ni la retenga: tiene que llegar según sale.
-      res.setHeader('Cache-Control', 'no-store');
-      res.setHeader('X-Accel-Buffering', 'no');
-      empezado = true;
-    }
+    empezar();
     res.write(`${JSON.stringify(evento)}\n`);
   };
 
@@ -77,6 +85,8 @@ rutasChat.post('/mensajes', exigirAvisoChat, async (req, res) => {
     let usadas = 0;
     const { preguntas } = await cuotaIa.conCuotaChat(req.usuario.id, req.hogarId, (cuantas) => {
       usadas = cuantas;
+      // La cuota ya está reservada: desde aquí, los errores van como línea.
+      empezar();
       return chat.responder({
         apiKey: config.anthropicApiKey,
         usuarioId: req.usuario.id,
