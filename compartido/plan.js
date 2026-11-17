@@ -62,7 +62,7 @@ function partes(iso) {
  * @param {string} hasta
  * @returns {number}
  */
-function diasEntre(desde, hasta) {
+export function diasEntre(desde, hasta) {
   const [a1, m1, d1] = partes(desde);
   const [a2, m2, d2] = partes(hasta);
   return (Date.UTC(a2, m2 - 1, d2) - Date.UTC(a1, m1 - 1, d1)) / MS_POR_DIA;

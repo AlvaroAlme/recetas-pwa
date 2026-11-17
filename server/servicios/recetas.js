@@ -56,6 +56,51 @@ export async function obtenerReceta(hogarId, id) {
 }
 
 /**
+ * Las recetas más recientes CON sus ingredientes (sin los pasos), para la
+ * herramienta leer_recetas del chat (D-51), y cuántas tiene la casa en total.
+ * Todo en UNA consulta: json_agg junta los ingredientes de cada receta en
+ * una lista, y count(*) OVER () cuenta todas antes de aplicar el LIMIT.
+ * @param {number} hogarId
+ * @param {number} limite
+ * @returns {Promise<{ recetas: { id: number, nombre: string, raciones: number | null, ingredientes: { nombre: string, cantidad: number, unidad: string }[] }[], total: number }>}
+ */
+export async function listarRecetasConIngredientes(hogarId, limite) {
+  const { rows } = await pool.query(
+    `SELECT r.id, r.nombre, r.raciones, count(*) OVER () AS total,
+            (SELECT json_agg(json_build_object('nombre', i.nombre, 'cantidad', i.cantidad, 'unidad', i.unidad) ORDER BY i.id)
+               FROM receta_ingredientes i WHERE i.receta_id = r.id) AS ingredientes
+       FROM recetas r
+      WHERE r.hogar_id = $1
+      ORDER BY r.created_at DESC
+      LIMIT $2`,
+    [hogarId, limite]
+  );
+  return {
+    recetas: rows.map((fila) => ({
+      id: Number(fila.id),
+      nombre: fila.nombre,
+      raciones: fila.raciones,
+      // En JSON, NUMERIC llega como número; lo paso por Number() por si acaso.
+      ingredientes: (fila.ingredientes ?? []).map((i) => ({ nombre: i.nombre, cantidad: Number(i.cantidad), unidad: i.unidad })),
+    })),
+    total: rows.length > 0 ? Number(rows[0].total) : 0,
+  };
+}
+
+/**
+ * Los nombres de unas recetas DE ESTA CASA (las que no son suyas no salen).
+ * Para comprobar los recetaId que propone el chat.
+ * @param {number} hogarId
+ * @param {number[]} ids
+ * @returns {Promise<Map<number, string>>} id → nombre.
+ */
+export async function nombresDeRecetas(hogarId, ids) {
+  if (ids.length === 0) return new Map();
+  const { rows } = await pool.query('SELECT id, nombre FROM recetas WHERE hogar_id = $1 AND id = ANY($2::bigint[])', [hogarId, ids]);
+  return new Map(rows.map((fila) => [Number(fila.id), fila.nombre]));
+}
+
+/**
  * Inserto los ingredientes de una receta en UNA sola consulta, en el orden
  * de la lista. Va dentro de la transacción de quien me llama.
  * @param {import('pg').PoolClient} cliente

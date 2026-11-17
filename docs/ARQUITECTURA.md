@@ -732,7 +732,8 @@ recetas-nevera-pwa/
 │   │   ├── ticket.js          ← lib/ticket.ts: prompt, esquema y validación TAL CUAL
 │   │   ├── chat.js            Chat ayudante (D-51): instrucciones, bucle con @anthropic-ai/sdk,
 │   │   │                      streaming, conversación y tarjetas
-│   │   ├── herramientasChat.js Las 5 herramientas: esquemas, validación y lo que devuelven
+│   │   ├── herramientasChat.js Las 5 herramientas: esquemas, validación y resúmenes (sin SQL)
+│   │   ├── usarHerramienta.js Ejecuta una herramienta: lee la base de datos del hogar de la sesión
 │   │   ├── cuotaIa.js  operaciones.js  limpieza.js (la limpieza diaria, D-51)
 │   │   ├── push.js            web-push: enviar(suscripción, mensaje); 404/410 → borrar
 │   │   ├── agenda.js          Próximo aviso en memoria (§7.3)

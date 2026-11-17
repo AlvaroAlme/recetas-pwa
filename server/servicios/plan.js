@@ -101,6 +101,25 @@ export async function obtenerDia(hogarId, fecha) {
 }
 
 /**
+ * Los huecos con algo de unas fechas sueltas: lo que hay ahora donde el
+ * chat propone poner algo (D-51).
+ * @param {number} hogarId
+ * @param {string[]} fechas AAAA-MM-DD, ya comprobadas.
+ * @returns {Promise<Hueco[]>}
+ */
+export async function huecosDeFechas(hogarId, fechas) {
+  if (fechas.length === 0) return [];
+  const { rows } = await pool.query(
+    `SELECT ${COLUMNAS}
+       FROM cuadrante c
+       LEFT JOIN recetas r ON r.id = c.receta_id
+      WHERE c.hogar_id = $1 AND c.fecha = ANY($2::date[]) AND ${NO_VACIO}`,
+    [hogarId, fechas]
+  );
+  return rows.map(aHueco);
+}
+
+/**
  * Guardo un hueco: si ya tenía algo, lo SUSTITUYO entero (por eso el
  * DO UPDATE pone las cuatro columnas, también las que vienen a null).
  * @param {number} hogarId
