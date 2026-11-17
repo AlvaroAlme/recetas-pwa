@@ -35,8 +35,24 @@ export const MAX_DIAS_TUPPER = 365;
 /** Productos que se pueden guardar de una vez desde un ticket. SEC-05. */
 export const MAX_PRODUCTOS_TICKET = 100;
 
-/** Llamadas a Claude al día por persona (D-15). */
+/** Llamadas a Claude al día por persona para el ticket (D-15). */
 export const CUOTA_IA_DIARIA = 10;
+
+/** Mensajes al chat ayudante al día por persona: su propia cuota (D-51). */
+export const CUOTA_CHAT_DIARIA = 30;
+
+/** Lo que puede medir un mensaje que escribo en el chat (D-51). */
+export const MAX_CARACTERES_MENSAJE = 2000;
+
+/**
+ * Preguntas de una conversación: al llegar, hay que empezar otra. Pone techo
+ * a lo que se reenvía en cada mensaje y a lo que se guarda (D-51). Coincide
+ * con el CHECK de `conversaciones.preguntas`.
+ */
+export const MAX_PREGUNTAS_CONVERSACION = 40;
+
+/** Días que se guarda una conversación desde su último mensaje (D-51). */
+export const DIAS_CONVERSACION = 30;
 
 /** Tamaño máximo de la foto del ticket: el límite de la API por imagen. */
 export const MAX_BYTES_IMAGEN_TICKET = 5 * 1024 * 1024;

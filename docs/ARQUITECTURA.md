@@ -947,7 +947,7 @@ Lo que leen las herramientas lo escribe gente: un producto llamado "Ignora lo an
 | `pg` | PostgreSQL | D-08 |
 | `web-push` | VAPID y cifrado | D-11. Versión fija **3.6.7** (`--save-exact`): la 4.0.0 salió el 2026-11-06, con cambios incompatibles; se revisa cuando tenga unas semanas |
 | `helmet` | Cabeceras de seguridad | D-12 |
-| `@anthropic-ai/sdk` | Chat con Claude: streaming y bucle de herramientas (fase 8) | D-51. Versión fija (`--save-exact`), elegida en el paso 2 de la fase 8. El ticket sigue con su `fetch` (D-47) |
+| `@anthropic-ai/sdk` | Chat con Claude: streaming y bucle de herramientas (fase 8) | D-51. Versión fija **1.4.0** (`--save-exact`, 2026-11-02: con más de dos semanas, como `web-push`). Desde la 1.0.0 envía la versión de la API **2026-10-21** (prohíbe `temperature`, `top_p` y `top_k`, que el chat no usa). El ticket sigue con su `fetch` y la 2023-06-01 (D-47) |
 
 El **frontend no tiene dependencias**. Las pruebas usan `node:test` y las variables de entorno se cargan con `node --env-file`, ambos incluidos en Node. Cada instalación se hace **tras preguntarte**, como hasta ahora.
 
