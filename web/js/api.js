@@ -94,7 +94,16 @@ async function peticion(metodo, ruta, cuerpo) {
     avisarDespertando(true);
   }, AVISO_DESPERTANDO_MS);
   try {
-    respuesta = await fetch(`/api${ruta}`, opciones);
+    try {
+      respuesta = await fetch(`/api${ruta}`, opciones);
+    } catch (error) {
+      // A veces la primera petición tras un rato falla sin respuesta y la
+      // segunda va bien (una conexión vieja que ya estaba cerrada). Si
+      // repetirla es seguro, lo intento UNA vez más, con su propio reloj.
+      if (error.name === 'TimeoutError' || !sePuedeRepetir(metodo, cuerpo)) throw error;
+      opciones.signal = AbortSignal.timeout(TIEMPO_MAXIMO_MS);
+      respuesta = await fetch(`/api${ruta}`, opciones);
+    }
   } catch (error) {
     throw errorSinRespuesta(error);
   } finally {
@@ -119,6 +128,19 @@ async function peticion(metodo, ruta, cuerpo) {
 
   if (!respuesta.ok) throw await errorDeRespuesta(respuesta, datos);
   return datos;
+}
+
+/**
+ * ¿Puedo repetir la petición sin miedo a hacer algo dos veces? Una lectura
+ * (GET) sí. Una escritura, solo si lleva clave (P-06): si la primera llegó,
+ * el servidor no la aplica otra vez y me da la misma respuesta
+ * ("Guardar ticket" y "La he cocinado").
+ * @param {string} metodo
+ * @param {unknown} cuerpo
+ * @returns {boolean}
+ */
+function sePuedeRepetir(metodo, cuerpo) {
+  return metodo === 'GET' || (typeof cuerpo === 'object' && cuerpo !== null && 'clave' in cuerpo);
 }
 
 /**

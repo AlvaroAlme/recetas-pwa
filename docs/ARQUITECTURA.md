@@ -859,6 +859,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
 | Situación | Detección | Mensaje y acción |
 |---|---|---|
 | Sin red | `fetch` lanza `TypeError` | "No hay conexión a internet. Comprueba la red e inténtalo de nuevo." (texto de `claude.ts`) + **Reintentar** |
+| Conexión vieja | `fetch` lanza `TypeError` en la primera petición tras un rato y la segunda va bien (2026-11-17) | Se repite **una vez** sola, sin avisar, si es seguro: un `GET` o una escritura con `clave` (§8.4). Si vuelve a fallar, "Sin red" |
 | Servidor dormido | No responde en 3 s | Mientras se espera: "Despertando el servidor… puede tardar un minuto" (R-09) |
 | Tiempo agotado | `AbortController` (75 s, para que Render pueda despertar; 120 s en las rutas de IA, como `TIEMPO_MAXIMO_MS`) | "El servidor está tardando demasiado." + Reintentar |
 | 401 | Código | Va a `/entrar` y, al entrar, vuelve a la pantalla en la que estaba |

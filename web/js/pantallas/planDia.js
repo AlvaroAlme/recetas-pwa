@@ -4,7 +4,7 @@
  * calculado aquí con TODO el inventario recién pedido (como la receta, P-11).
  */
 import { formatearCantidad } from '/compartido/formato.js';
-import { buscarProductos } from '/compartido/cocina.js';
+import { productosDelPlato } from '/compartido/cocina.js';
 import { TIPOS_COMIDA } from '/compartido/constantes.js';
 import { esFechaIso, hoyIso, sumarDias } from '/compartido/fechas.js';
 import { ETIQUETAS_TIPO, dentroDelMargen, lunesDe, textoDia, textoDiaLargo } from '/compartido/plan.js';
@@ -128,21 +128,21 @@ export function pantallaPlanDia({ parametros }) {
 
 /**
  * Un plato escrito a mano no tiene ingredientes: enseño lo que hay en casa
- * con ese nombre (como plan/[dia].tsx de la app Expo), con buscarProductos().
+ * para ese plato (como plan/[dia].tsx de la app Expo), con productosDelPlato().
  * @param {string} plato
  * @param {any[]} productos
  * @returns {HTMLElement[]}
  */
 function crearLoQueHay(plato, productos) {
-  const encontrados = buscarProductos({ nombre: plato }, productos);
+  const encontrados = productosDelPlato(plato, productos);
   if (encontrados.length === 0) {
     return [
       el('p', { class: 'tono--tenue' }, 'Plato escrito a mano: no tiene lista de ingredientes.'),
-      el('p', { class: 'tono--peligro' }, '✗ No hay nada con ese nombre en el inventario.'),
+      el('p', { class: 'tono--peligro' }, '✗ No hay nada para este plato en el inventario.'),
     ];
   }
   return [
-    el('p', { class: 'tono--tenue' }, 'Plato escrito a mano: no tiene lista de ingredientes. Esto es lo que hay en casa con ese nombre:'),
+    el('p', { class: 'tono--tenue' }, 'Plato escrito a mano: no tiene lista de ingredientes. Esto es lo que hay en casa para este plato:'),
     el(
       'ul',
       { class: 'receta__ingredientes' },

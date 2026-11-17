@@ -48,8 +48,9 @@ Proyecto de portfolio de un estudiante de DAW.
 
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
-3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15) y 7
-(2026-11-16). El detalle de cada paso está en los commits (`git log`).
+3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15), 7
+(2026-11-16) y 8 (2026-11-17). El detalle de cada paso está en los
+commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
 ayudante con acciones (tarjetas que se confirman), el cuadrante va por
@@ -57,9 +58,35 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Siguiente: fase 8 (chat ayudante con IA).** Antes de empezar, leer
-ARQUITECTURA §10 (fase 8) y D-48, y proponer el plan por pasos (las cifras
-de la cuota del chat y los días de las conversaciones se fijan en la fase).
+**Siguiente: fase 9 (cierre).** Antes de empezar, leer ARQUITECTURA §10
+(fase 9) y P-10, y proponer el plan por pasos (recuperar la contraseña por
+email: el proveedor de correo se decide entonces, preguntando antes de
+crear la cuenta).
+
+**Fase 8 (chat ayudante con IA): aprobada.** Los 7 pasos (2026-11-17),
+desplegada en Render (`app-v28`, con `007_chat` aplicada en producción) y
+probada en el iPhone. Lo que conviene recordar:
+- D-51: `claude-sonnet-5-5`, razonamiento adaptativo con esfuerzo `low`,
+  `@anthropic-ai/sdk` 1.4.0 fija. Una conversación por persona (40
+  preguntas, se borra a los 30 días), 30 mensajes al día por persona, 5
+  vueltas de herramientas. El historial se guarda y se reenvía TAL CUAL
+  y las instrucciones no cambian nunca (la fecha va en cada mensaje,
+  `bloqueFecha()`): si no, se pierden el razonamiento y la caché.
+- Servidor: `rutas/chat.js` (`res.flushHeaders()` en cuanto se reserva la
+  cuota, así no sale "Despertando…" mientras Claude piensa),
+  `servicios/chat.js` (bucle e `INSTRUCCIONES`), `herramientasChat.js`
+  (las 5 herramientas) y `vistaChat.js` (lo que ve la persona: nunca el
+  razonamiento ni los bloques de herramientas).
+- Navegador: `api.flujo()` (NDJSON, 90 s de silencio como mucho),
+  `pantallas/ayudante.js`, `mensajeChat.js`, `tarjetaReceta.js` y
+  `tarjetaHuecos.js`. Si se corta a media respuesta, el texto vuelve al
+  área de texto.
+- Las tarjetas se guardan leyendo la propuesta del historial (no del
+  navegador) y se reclaman en `tarjetas_chat` (la segunda vez, 409).
+- Probar el chat en desarrollo gasta cuota y céntimos: preguntar antes y
+  al acabar, `aviso_chat_aceptado_en = NULL` y borrar `uso_ia`.
+- Campos de fecha y hora en el iPhone: `appearance: none` y `min-width: 0`
+  (si no, el control de Safari se sale de la pantalla).
 
 **Fase 7 (cuadrante por fechas, sin IA): aprobada.** Los 7 pasos
 (2026-11-16), desplegada en Render (`app-v26`, con `006_cuadrante`
@@ -146,19 +173,18 @@ pruebas en el límite). Lo que conviene recordar:
   `idPeticion` (cabecera `X-Id-Peticion`, el mismo id que en el log del
   500) y `web/js/log.js`, que solo escribe en `localhost`.
 
-**Pendiente de otras fases:**
-- A veces la PRIMERA petición tras un rato (Chrome en el PC y el iPhone en
-  producción) da "No hay conexión…" y la segunda funciona. No se
-  reproduce (2026-11-11): Neon despertando, el pool, IPv6 y el SW
-  (solo toca los GET) descartados. La próxima vez, recoger pruebas: en
-  Chrome, F12 › Network, el *Status* de la petición que falla
-  (`net::ERR_…`) y la terminal de `npm.cmd run dev`; en el iPhone, la
-  hora y qué hacía (¿volvía a la app?) para mirar los Logs de Render.
-  Si es una conexión reutilizada muerta, la idea es reintentar una vez
-  en `api.js` (seguro en GET, `/lote` y `/cocinar`).
-- `buscarProductos()` compara el nombre entero: en el Plan del día,
-  "Pollo asado" no encuentra "Pechuga de pollo". Idea: buscar palabra a
-  palabra (con cuidado de no dar falsos positivos en la fase 6).
+**Hecho el 2026-11-17 (pendientes de fases anteriores):**
+- La primera petición tras un rato que daba "No hay conexión…": `api.js`
+  la repite UNA vez sola si es seguro (un GET o una escritura con
+  `clave`: "Guardar ticket" y "La he cocinado"; `sePuedeRepetir()`).
+  Probado simulando el fallo; si vuelve a pasar en el iPhone, mirar los
+  Logs de Render a esa hora.
+- Plan del día: `productosDelPlato()` (`compartido/cocina.js`) busca
+  palabra a palabra, sin contar "asado", "frito"…: "Pollo asado" ya
+  encuentra "Pechuga de pollo". Las recetas siguen con
+  `buscarProductos()` (más estricta, para no dar falsos positivos).
+- Borrada la cena del 19 de Ana que solo tenía grupo (resto de pruebas).
+- `sw.js` en `app-v29`.
 
 **Fase 4 (tuppers y avisos Web Push): aprobada.** Tuppers, Web Push
 (`web-push` 3.6.7 fija; la 4.0.0 salió el 2026-11-06), agenda en memoria

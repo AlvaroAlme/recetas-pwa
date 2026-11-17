@@ -916,7 +916,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │  Plato escrito a mano: no     │
 │  tiene lista de ingredientes. │
 │  Esto es lo que hay en casa   │
-│  con ese nombre:              │
+│  para este plato:             │
 │  ✓ Lentejas: 1 kg             │
 │  CENA                         │
 │  Tortilla de patatas  ‹Ver›   │  ‹Ver› → /receta/:id
@@ -927,7 +927,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 ```
 - Título: "Hoy (martes 24)", "Mañana (martes 24)" o "Martes 24 de noviembre".
 - Cada plato con `‹Cambiar›` (→ P-14); una receta, además, con `‹Ver receta›` (→ P-11). Un hueco sin nada: "Sin planificar." + `‹Planificar›`. En la Semana, `‹Ver día›` junto a cada día que tenga algo.
-- Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `buscarProductos()` por el nombre, o "✗ No hay nada con ese nombre en el inventario." "Fuera de casa": eso y su nota, si la tiene.
+- Una receta: el resumen y los ingredientes de `VistaReceta` (sin los pasos). Un plato escrito a mano: `productosDelPlato()` (los productos que comparten una palabra con el plato, sin contar "asado", "frito"…), o "✗ No hay nada para este plato en el inventario." "Fuera de casa": eso y su nota, si la tiene.
 - Nada planificado: "Nada planificado" / "No hay comida ni cena para el martes 24." + `[Planificar comida]°` (→ `/plan/:fecha/comida`).
 
 #### P-21 · Ayudante — `/ayudante` · E-1 (D-48, D-51)
@@ -1169,7 +1169,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 2. Elige "Una receta guardada" y pulsa una, o "Escribir un plato" ("Lentejas con chorizo"), o "Fuera de casa" (con una nota, si quiere: "Comida aniversario"); si quiere, el grupo de alimentos → `[Guardar]` → "Guardando…" → vuelve a esa semana con el hueco relleno y el equilibrio recalculado.
 3. **Si este dispositivo no tiene avisos:** "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
 4. **El lunes 23 a las 21:00** (hora de Ajustes; ≤ 5 min tarde): "Mañana cenas tortilla de patatas" / "¿Tienes todos los ingredientes? Toca para comprobarlo." Solo una vez; "fuera de casa" no avisa.
-5. **Toque** → `/plan/2026-11-24` → título "Mañana (martes 24)" → por cada plato: receta con "Tienes todo" / "Te faltan 2 ingredientes" y la lista con ✓/✗; o, si es un plato escrito a mano, "Esto es lo que hay en casa con ese nombre:" + ✓ o "✗ No hay nada con ese nombre en el inventario."
+5. **Toque** → `/plan/2026-11-24` → título "Mañana (martes 24)" → por cada plato: receta con "Tienes todo" / "Te faltan 2 ingredientes" y la lista con ✓/✗; o, si es un plato escrito a mano, "Esto es lo que hay en casa para este plato:" + ✓ o "✗ No hay nada para este plato en el inventario."
 6. **Nada planificado** (por ejemplo, alguien vació el hueco o borró la receta): "Nada planificado · No hay comida ni cena para el martes 24." + `[Planificar comida]°`.
 
 ### 7.6 Primer uso: cuenta, instalación y permiso de avisos

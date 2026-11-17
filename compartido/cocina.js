@@ -106,6 +106,34 @@ export function buscarTupper(ingrediente, tuppers) {
   );
 }
 
+/**
+ * Palabras que dicen CÓMO está hecho un plato, no de qué. No me sirven para
+ * buscar: "Pollo asado" no tiene nada que ver con "Pimientos asados".
+ */
+const PALABRAS_DE_COCINA = new Set([
+  'asado', 'asada', 'frito', 'frita', 'cocido', 'cocida', 'guisado', 'guisada', 'plancha', 'horno',
+  'casero', 'casera', 'fresco', 'fresca', 'natural', 'entero', 'entera', 'picado', 'picada', 'rallado', 'rallada',
+]);
+
+/**
+ * Lo que hay en casa para un plato escrito a mano (el Plan del día). Aquí no
+ * busco el ingrediente entero como en buscarProductos(): me vale con que el
+ * producto y el plato compartan una palabra con significado, así
+ * "Pollo asado" encuentra "Pechuga de pollo". Primero los que comparten más
+ * palabras y, a igualdad, los que caducan antes.
+ * @param {string} plato
+ * @param {Producto[]} productos
+ * @returns {Producto[]}
+ */
+export function productosDelPlato(plato, productos) {
+  const delPlato = palabrasClave(plato).filter((palabra) => !PALABRAS_DE_COCINA.has(palabra));
+  return productos
+    .map((producto) => ({ producto, comunes: palabrasClave(producto.nombre).filter((palabra) => delPlato.includes(palabra)).length }))
+    .filter(({ comunes }) => comunes > 0)
+    .sort((x, y) => y.comunes - x.comunes || (x.producto.fechaCaducidad ?? '9999').localeCompare(y.producto.fechaCaducidad ?? '9999'))
+    .map(({ producto }) => producto);
+}
+
 // --- Qué tengo y qué me falta ---
 
 /**

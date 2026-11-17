@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { formatearCantidad } from '../../compartido/formato.js';
 import { normalizar } from '../../compartido/texto.js';
 import { ubicacionesPosibles } from '../../compartido/ubicaciones.js';
-import { cantidadPropuesta, convertir, estadoIngrediente } from '../../compartido/cocina.js';
+import { cantidadPropuesta, convertir, estadoIngrediente, productosDelPlato } from '../../compartido/cocina.js';
 
 describe('normalizar', () => {
   it('pasa a minúsculas y quita los espacios de los extremos', () => {
@@ -97,5 +97,28 @@ describe('cocina: qué me falta', () => {
     assert.equal(cantidadPropuesta({ nombre: 'Pollo', cantidad: 300, unidad: 'g' }, pollo), 0.3);
     assert.equal(cantidadPropuesta({ nombre: 'Pollo', cantidad: 2, unidad: 'kg' }, pollo), 0.5);
     assert.equal(cantidadPropuesta({ nombre: 'Huevos', cantidad: 2, unidad: 'unidades' }, huevos), null);
+  });
+});
+
+describe('cocina: lo que hay para un plato escrito a mano', () => {
+  const pechuga = { id: 1, nombre: 'Pechuga de pollo', cantidad: 0.5, unidad: 'kg', fechaCaducidad: '2026-11-20' };
+  const patatas = { id: 2, nombre: 'Patatas', cantidad: 2, unidad: 'kg', fechaCaducidad: null };
+  const pimientos = { id: 3, nombre: 'Pimientos asados', cantidad: 1, unidad: 'unidades', fechaCaducidad: null };
+  const muslos = { id: 4, nombre: 'Muslos de pollo', cantidad: 4, unidad: 'unidades', fechaCaducidad: '2026-11-18' };
+
+  it('"Pollo asado" encuentra "Pechuga de pollo" (palabra a palabra)', () => {
+    assert.deepEqual(productosDelPlato('Pollo asado', [pechuga, patatas]), [pechuga]);
+  });
+
+  it('no busca por cómo está hecho: "asado" no trae "Pimientos asados"', () => {
+    assert.deepEqual(productosDelPlato('Pollo asado', [pimientos]), []);
+  });
+
+  it('primero los que comparten más palabras y luego los que caducan antes', () => {
+    assert.deepEqual(productosDelPlato('Pechuga de pollo con patatas', [patatas, muslos, pechuga]), [pechuga, muslos, patatas]);
+  });
+
+  it('sin palabras en común, nada', () => {
+    assert.deepEqual(productosDelPlato('Lentejas', [pechuga, patatas]), []);
   });
 });
