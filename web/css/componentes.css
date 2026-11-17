@@ -565,6 +565,7 @@ input:focus-visible + .chip {
 .campo:focus-within .campo__etiqueta,
 .campo:has(.campo__entrada:not(:placeholder-shown)) .campo__etiqueta,
 .campo:has(.campo__entrada[type='date']) .campo__etiqueta,
+.campo:has(.campo__entrada[type='time']) .campo__etiqueta,
 .campo:has(select.campo__entrada) .campo__etiqueta,
 .campo:has(textarea.campo__entrada) .campo__etiqueta {
   top: calc(var(--espacio-xs) + 1px);
@@ -576,6 +577,23 @@ input:focus-visible + .chip {
 }
 .campo:focus-within .campo__etiqueta {
   color: var(--color-primario-texto);
+}
+/* Fecha y hora en el iPhone (Safari): el control nativo tiene su propio
+   ancho mínimo y, con el relleno del campo, se sale de la pantalla (y la
+   página se puede mover de lado). Le quito el aspecto nativo y le dejo
+   encoger; al tocarlo sigue saliendo la rueda del sistema. */
+.campo__entrada[type='date'],
+.campo__entrada[type='time'] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+}
+/* Safari centra el valor: lo pongo a la izquierda, como en los demás campos.
+   Sin la altura mínima, una fecha vacía dejaría el campo aplastado. */
+.campo__entrada::-webkit-date-and-time-value {
+  min-height: calc(1em * var(--linea-cuerpo));
+  text-align: left;
 }
 /* El placeholder (qué hay que poner) solo se ve con el campo enfocado:
    si no, se pisaría con la etiqueta. */
