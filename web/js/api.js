@@ -22,6 +22,9 @@ const TIEMPO_MAXIMO_MS = 75_000;
 /** Si en 3 s no hay respuesta, aviso de que el servidor puede estar despertando. */
 const AVISO_DESPERTANDO_MS = 3_000;
 
+/** En el chat (flujo()), lo que espero sin que llegue nada antes de darlo por perdido. */
+const SILENCIO_MAXIMO_MS = 90_000;
+
 /** La copia de la API que guarda el Service Worker. Mismo nombre que en sw.js. */
 const CACHE_API = 'api-v1';
 
@@ -93,14 +96,7 @@ async function peticion(metodo, ruta, cuerpo) {
   try {
     respuesta = await fetch(`/api${ruta}`, opciones);
   } catch (error) {
-    // fetch solo falla así si NO llega respuesta: o se agotó el tiempo o no hay red.
-    if (error.name === 'TimeoutError') {
-      throw new ErrorApi(0, 'TIEMPO_AGOTADO', 'El servidor está tardando demasiado.', { reintentable: true });
-    }
-    avisarConexion(false);
-    throw new ErrorApi(0, 'SIN_CONEXION', 'No hay conexión a internet. Comprueba la red e inténtalo de nuevo.', {
-      reintentable: true,
-    });
+    throw errorSinRespuesta(error);
   } finally {
     // Haya ido bien o mal, la espera ha terminado: paro el reloj y quito el aviso.
     clearTimeout(temporizador);
@@ -121,22 +117,136 @@ async function peticion(metodo, ruta, cuerpo) {
   // Si el cuerpo no es JSON (no debería pasar en /api), sigo con null.
   const datos = await respuesta.json().catch(() => null);
 
-  if (!respuesta.ok) {
-    const error = datos?.error;
-    // Sin sesión (o caducada): a Entrar, y al entrar vuelvo aquí (DISENO_UI §5.3).
-    // Solo con SIN_SESION: el 401 del login ("contraseña mal") NO es esto.
-    if (respuesta.status === 401 && error?.codigo === 'SIN_SESION' && location.pathname !== '/entrar') {
-      await borrarCopiaDeDatos();
-      navegar(`/entrar?volver=${encodeURIComponent(location.pathname + location.search)}`, { reemplazar: true });
-    }
-    throw new ErrorApi(
-      respuesta.status,
-      error?.codigo ?? 'INTERNO',
-      error?.mensaje ?? 'Algo ha fallado en el servidor.',
-      { campos: error?.campos, reintentable: error?.reintentable ?? respuesta.status >= 500 }
-    );
-  }
+  if (!respuesta.ok) throw await errorDeRespuesta(respuesta, datos);
   return datos;
+}
+
+/**
+ * El error cuando fetch falla SIN respuesta: o se agotó el tiempo o no hay red.
+ * @param {Error} error El que lanza fetch.
+ * @returns {ErrorApi}
+ */
+function errorSinRespuesta(error) {
+  if (error.name === 'TimeoutError') {
+    return new ErrorApi(0, 'TIEMPO_AGOTADO', 'El servidor está tardando demasiado.', { reintentable: true });
+  }
+  avisarConexion(false);
+  return new ErrorApi(0, 'SIN_CONEXION', 'No hay conexión a internet. Comprueba la red e inténtalo de nuevo.', {
+    reintentable: true,
+  });
+}
+
+/**
+ * El error de una respuesta que no es 2xx, con lo que diga el JSON de error
+ * del servidor (§5.1). Si es que no hay sesión, además llevo a Entrar.
+ * @param {Response} respuesta
+ * @param {any} datos El JSON de la respuesta (o null).
+ * @returns {Promise<ErrorApi>}
+ */
+async function errorDeRespuesta(respuesta, datos) {
+  const error = datos?.error;
+  // Sin sesión (o caducada): a Entrar, y al entrar vuelvo aquí (DISENO_UI §5.3).
+  // Solo con SIN_SESION: el 401 del login ("contraseña mal") NO es esto.
+  if (respuesta.status === 401 && error?.codigo === 'SIN_SESION' && location.pathname !== '/entrar') {
+    await borrarCopiaDeDatos();
+    navegar(`/entrar?volver=${encodeURIComponent(location.pathname + location.search)}`, { reemplazar: true });
+  }
+  return new ErrorApi(
+    respuesta.status,
+    error?.codigo ?? 'INTERNO',
+    error?.mensaje ?? 'Algo ha fallado en el servidor.',
+    { campos: error?.campos, reintentable: error?.reintentable ?? respuesta.status >= 500 }
+  );
+}
+
+/**
+ * Un POST que contesta por STREAMING (el chat, D-51): una línea JSON por
+ * evento (NDJSON). Llamo a alEvento con cada línea según llega y termino con
+ * la de { tipo: 'fin' }. Si llega { tipo: 'error' }, lanzo un ErrorApi con
+ * su código y su mensaje. Si el servidor contesta antes con un error normal
+ * (la cuota, el aviso sin aceptar…), lo lanzo igual que peticion().
+ *
+ * No pongo un tiempo máximo total (con las herramientas, la respuesta puede
+ * tardar), sino de SILENCIO: si en 90 s no llega nada, la doy por perdida.
+ * @param {string} ruta
+ * @param {unknown} cuerpo
+ * @param {(evento: any) => void} alEvento
+ * @returns {Promise<void>}
+ * @throws {ErrorApi} Si se corta por el camino: RESPUESTA_CORTADA (estado 0).
+ */
+async function flujo(ruta, cuerpo, alEvento) {
+  const control = new AbortController();
+  let reloj;
+  // Cada vez que llega algo, el reloj del silencio vuelve a empezar.
+  const vigilar = () => {
+    clearTimeout(reloj);
+    reloj = setTimeout(() => control.abort(new DOMException('Sin respuesta', 'TimeoutError')), SILENCIO_MAXIMO_MS);
+  };
+
+  let avisado = false;
+  const temporizador = setTimeout(() => {
+    avisado = true;
+    avisarDespertando(true);
+  }, AVISO_DESPERTANDO_MS);
+  vigilar();
+  try {
+    let respuesta;
+    try {
+      respuesta = await fetch(`/api${ruta}`, {
+        method: 'POST',
+        headers: { Accept: 'application/x-ndjson, application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(cuerpo),
+        signal: control.signal,
+      });
+    } catch (error) {
+      throw errorSinRespuesta(error);
+    } finally {
+      clearTimeout(temporizador);
+      if (avisado) avisarDespertando(false);
+    }
+    avisarConexion(true);
+
+    if (!respuesta.ok) {
+      throw await errorDeRespuesta(respuesta, await respuesta.json().catch(() => null));
+    }
+
+    // Leo el cuerpo a trozos. Un trozo puede traer media línea: lo que queda
+    // detrás del último salto de línea lo guardo para el trozo siguiente.
+    const lector = respuesta.body.pipeThrough(new TextDecoderStream()).getReader();
+    let pendiente = '';
+    while (true) {
+      let trozo;
+      try {
+        trozo = await lector.read();
+      } catch (error) {
+        if (error.name === 'TimeoutError') {
+          throw new ErrorApi(0, 'TIEMPO_AGOTADO', 'El ayudante ha dejado de contestar.', { reintentable: true });
+        }
+        break; // la conexión se ha cortado (la red, la app en segundo plano…)
+      }
+      if (trozo.done) break;
+      vigilar();
+      pendiente += trozo.value;
+      const lineas = pendiente.split('\n');
+      pendiente = lineas.pop();
+      for (const linea of lineas) {
+        if (linea.trim() === '') continue;
+        const evento = JSON.parse(linea);
+        if (evento.tipo === 'error') {
+          // La respuesta HTTP fue un 200: el error ha llegado dentro.
+          throw new ErrorApi(200, evento.codigo, evento.mensaje, { reintentable: evento.reintentable });
+        }
+        alEvento(evento);
+        if (evento.tipo === 'fin') return;
+      }
+    }
+    // Se ha cerrado sin 'fin' ni 'error': se ha cortado por el camino.
+    throw new ErrorApi(0, 'RESPUESTA_CORTADA', 'Se ha cortado la conexión mientras el ayudante respondía.', {
+      reintentable: true,
+    });
+  } finally {
+    clearTimeout(reloj);
+  }
 }
 
 /** Atajos para cada método. "delete" es palabra reservada: lo llamo borrar. */
@@ -146,6 +256,7 @@ export const api = {
   put: (ruta, cuerpo) => peticion('PUT', ruta, cuerpo),
   patch: (ruta, cuerpo) => peticion('PATCH', ruta, cuerpo),
   borrar: (ruta, cuerpo) => peticion('DELETE', ruta, cuerpo),
+  flujo,
 };
 
 /**

@@ -1,9 +1,10 @@
 /**
  * @file Pantalla Privacidad (P-18, SEC-04): qué datos guardo, dónde y para
- * qué, que las fotos de los tickets van a Anthropic, la cuota de IA y cómo
- * borrarlo todo. Es pública (se abre sin sesión) y no llama a la API.
+ * qué, que las fotos de los tickets y los mensajes del Ayudante van a
+ * Anthropic, la cuota de IA y cómo borrarlo todo. Es pública (se abre sin
+ * sesión) y no llama a la API.
  */
-import { CUOTA_IA_DIARIA } from '/compartido/constantes.js';
+import { CUOTA_CHAT_DIARIA, CUOTA_IA_DIARIA, DIAS_CONVERSACION } from '/compartido/constantes.js';
 import { el } from '../dom.js';
 
 // Donde me pueden escribir (P-18).
@@ -28,7 +29,7 @@ export function pantallaPrivacidad() {
       'article',
       { class: 'privacidad' },
       el('p', {}, 'Vigía es un proyecto personal. Aquí te cuento qué datos guarda, dónde y para qué.'),
-      el('p', { class: 'tono--tenue' }, 'Última actualización: 11 de noviembre de 2026.'),
+      el('p', { class: 'tono--tenue' }, 'Última actualización: 17 de noviembre de 2026.'),
 
       apartado(
         'Qué datos guardo',
@@ -38,7 +39,8 @@ export function pantallaPrivacidad() {
           el('li', {}, 'Tu cuenta: tu nombre, tu email y tu contraseña cifrada (nadie puede leerla, tampoco yo).'),
           el('li', {}, 'Tu casa: su nombre, su zona horaria, quién vive en ella y sus productos y tuppers. Lo ve todo el que viva en tu casa.'),
           el('li', {}, 'Si activas los avisos, la dirección que da tu navegador para mandártelos.'),
-          el('li', {}, 'Cuántas veces usas la IA cada día y cuándo aceptaste el aviso de privacidad.')
+          el('li', {}, 'Tu conversación con el Ayudante, mientras no la borres (más abajo te cuento cuánto dura).'),
+          el('li', {}, 'Cuántas veces usas la IA cada día y cuándo aceptaste cada aviso de privacidad.')
         ),
         el('p', {}, 'Uso una sola cookie, «sesion», para saber que eres tú durante 30 días. No hay cookies de publicidad ni de seguimiento, ni estadísticas de uso.'),
         el('p', {}, 'Para que la app funcione sin conexión, tu móvil guarda una copia de lo último que has visto. Se borra al cerrar sesión.')
@@ -64,12 +66,25 @@ export function pantallaPrivacidad() {
           el('a', { href: 'https://www.anthropic.com/legal/privacy', target: '_blank', rel: 'noopener' }, 'política de privacidad'),
           '. Te recomiendo recortar la foto para que solo salga la lista de productos.'
         ),
-        el('p', {}, `Cada persona puede usar la IA ${CUOTA_IA_DIARIA} veces al día: así controlo lo que cuesta.`)
+        el('p', {}, `Cada persona puede escanear ${CUOTA_IA_DIARIA} tickets al día: así controlo lo que cuesta.`)
+      ),
+
+      apartado(
+        'El Ayudante',
+        el('p', {}, 'Cuando le escribes al Ayudante, tu mensaje se envía a Anthropic (Claude) para responderte, junto con lo que el Ayudante necesite leer de tu inventario, tus recetas y tu plan de comidas.'),
+        el(
+          'p',
+          {},
+          `La conversación se guarda ${DIAS_CONVERSACION} días desde tu último mensaje y solo la ves tú (no el resto de tu casa). `,
+          'Se borra antes si pulsas «Nueva conversación» o si borras tu cuenta, y no te sigue si te cambias de casa.'
+        ),
+        el('p', {}, 'Las recetas y los platos que te propone no se guardan hasta que tú los confirmas.'),
+        el('p', {}, `Cada persona puede enviar ${CUOTA_CHAT_DIARIA} mensajes al día.`)
       ),
 
       apartado(
         'Borrar tus datos',
-        el('p', {}, 'En Ajustes › Borrar cuenta se borra al momento tu cuenta, tus sesiones y tus avisos. Si eras la única persona de tu casa, también la casa con sus productos y tuppers; si no, la casa sigue para los demás.')
+        el('p', {}, 'En Ajustes › Borrar cuenta se borra al momento tu cuenta, tus sesiones, tus avisos y tu conversación con el Ayudante. Si eras la única persona de tu casa, también la casa con sus productos y tuppers; si no, la casa sigue para los demás.')
       ),
 
       apartado(

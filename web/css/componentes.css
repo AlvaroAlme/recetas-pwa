@@ -131,7 +131,7 @@
 }
 .navegacion ul {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding: 0;
   list-style: none;
 }
@@ -1350,5 +1350,150 @@ textarea.campo__entrada {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--espacio-s);
+}
+
+/* ============ Ayudante (P-21, D-51) ============ */
+.chat__mensajes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.chat__mensajes:empty {
+  display: none;
+}
+/* Mi mensaje: a la derecha, en una burbuja. El del ayudante: a todo el ancho. */
+.mensaje {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+}
+.mensaje--tu {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: var(--espacio-s) var(--espacio-m);
+  border-radius: var(--radio-l);
+  background: var(--color-superficie-2);
+}
+/* La IA escribe con saltos de línea (y sin Markdown): los respeto. */
+.mensaje__texto {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.mensaje__tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-m);
+}
+.mensaje__tarjetas:empty {
+  display: none;
+}
+.chat__ejemplos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+  width: 100%;
+}
+
+/* Tarjetas de las propuestas (TarjetaReceta, TarjetaHuecos) */
+.tarjeta-chat {
+  gap: var(--espacio-s);
+}
+.tarjeta-chat__tipo {
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-pequeno);
+  line-height: var(--linea-pequeno);
+  font-weight: var(--peso-fuerte);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tarjeta-chat__titulo {
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+}
+.tarjeta-chat__detalle summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tactil);
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-fuerte);
+  cursor: pointer;
+}
+.tarjeta-chat__detalle[open] summary {
+  margin-bottom: var(--espacio-s);
+}
+.tarjeta-chat__huecos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+  padding: 0;
+  list-style: none;
+}
+.tarjeta-chat__hueco {
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--espacio-xs);
+}
+label.tarjeta-chat__hueco {
+  flex-direction: row;
+  align-items: flex-start;
+}
+label.tarjeta-chat__hueco .casilla__entrada {
+  margin-top: 0.15em;
+}
+.tarjeta-chat__textos {
+  display: flex;
+  flex-direction: column;
+}
+.tarjeta-chat__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-s);
+}
+.tarjeta-chat__pie > p {
+  flex-basis: 100%;
+}
+.tarjeta-chat__pie > p:focus {
+  outline: none;
+}
+
+/* El pie del chat: el área de texto y Enviar en una fila, y debajo la cuota. */
+.chat__pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+}
+.chat__formulario {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espacio-s);
+}
+.chat__formulario .campo {
+  flex: 1;
+  min-width: 0;
+}
+/* De 1 a 4 líneas: crece con el JavaScript y aquí le pongo el tope. */
+.chat__formulario textarea.campo__entrada {
+  min-height: 0;
+  max-height: calc(var(--linea-cuerpo) * 4em + 2.5em);
+  resize: none;
+}
+.chat__enviar {
+  flex: none;
+  width: var(--tactil);
+  min-height: var(--tactil);
+  height: var(--tactil);
+  padding: 0;
+  margin-bottom: 2px;
+}
+.chat__bajo {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-s);
+}
+.chat__llena {
+  display: flex;
+  flex-direction: column;
   gap: var(--espacio-s);
 }

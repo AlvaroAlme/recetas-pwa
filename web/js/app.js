@@ -7,6 +7,7 @@ import { iniciarConexion } from './conexion.js';
 import { logError } from './log.js';
 import { iniciarRouter } from './router.js';
 import { pantallaAjustes } from './pantallas/ajustes.js';
+import { pantallaAyudante } from './pantallas/ayudante.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
 import { pantallaCocinar } from './pantallas/cocinar.js';
@@ -42,6 +43,8 @@ iniciarRouter({
     // Privadas: si no hay sesión, la API da 401 y api.js lleva a /entrar.
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
     { patron: '/ajustes', pestana: '/ajustes', pantalla: pantallaAjustes },
+    // El chat con la IA (P-21, D-51).
+    { patron: '/ayudante', pestana: '/ayudante', pantalla: pantallaAyudante },
     { patron: '/recetas', pestana: '/recetas', pantalla: pantallaRecetas },
     // La semana de hoy, o la que empieza en ese lunes (la pantalla comprueba la fecha, D-50).
     { patron: '/semana', pestana: '/semana', pantalla: pantallaSemana },

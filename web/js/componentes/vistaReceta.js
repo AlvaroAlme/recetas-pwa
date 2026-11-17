@@ -60,16 +60,18 @@ function textoRaciones(raciones) {
  *   productos: import('/compartido/cocina.js').Producto[],
  *   tuppers: import('/compartido/cocina.js').Tupper[],
  *   conPasos?: boolean,
- *   nivel?: 'h2' | 'h3',
+ *   nivel?: 'h2' | 'h3' | 'h4',
  *   sufijo?: string
  * }} opciones productos y tuppers: TODO el inventario de la casa, recién pedido.
  *   En el Plan del día (P-15) puede haber dos recetas: sin pasos (solo
  *   miro qué me falta), con títulos h3 (van dentro de "Comida"/"Cena") y
- *   un sufijo para que los id no se repitan.
+ *   un sufijo para que los id no se repitan. En el Ayudante (P-21), cada
+ *   tarjeta de receta lleva la suya, con títulos h4.
  * @returns {HTMLElement}
  */
 export function crearVistaReceta({ receta, productos, tuppers, conPasos = true, nivel = 'h2', sufijo = '' }) {
   const idIngredientes = `titulo-ingredientes${sufijo}`;
+  const idPasos = `titulo-pasos${sufijo}`;
   const estados = receta.ingredientes.map((ingrediente) => estadoIngrediente(ingrediente, productos, tuppers));
   // "Te faltan" cuenta lo que no tengo y lo que no me llega. "Otra unidad"
   // no: sí lo tengo, y "La he cocinado" preguntará cuánto he gastado.
@@ -113,8 +115,8 @@ export function crearVistaReceta({ receta, productos, tuppers, conPasos = true, 
     conPasos &&
       el(
         'section',
-        { class: 'receta__seccion', 'aria-labelledby': 'titulo-pasos' },
-        el('h2', { class: 'titulo-seccion', id: 'titulo-pasos' }, 'Pasos'),
+        { class: 'receta__seccion', 'aria-labelledby': idPasos },
+        el(nivel, { class: 'titulo-seccion', id: idPasos }, 'Pasos'),
         el('ol', { class: 'receta__pasos' }, receta.pasos.map((paso) => el('li', {}, paso)))
       )
   );

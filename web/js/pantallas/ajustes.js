@@ -1,6 +1,7 @@
 /**
  * @file Pantalla Ajustes (P-16): los avisos de este dispositivo (fase 4),
- * la hora del aviso del plan (fase 7), tu casa y tu cuenta.
+ * la hora del aviso del plan (fase 7), tu casa, lo que te queda hoy de IA
+ * (fase 8) y tu cuenta.
  */
 import { validarHora } from '/compartido/horas.js';
 import { validarNombreCasa } from '/compartido/validacion.js';
@@ -30,11 +31,12 @@ export function pantallaAjustes() {
   async function cargar() {
     zona.replaceChildren(crearCarga('Cargando…'));
     try {
-      const { usuario, hogar } = await api.get('/yo');
+      const { usuario, hogar, cuotaIa, cuotaChat } = await api.get('/yo');
       zona.replaceChildren(
         crearSeccionAvisos(),
         crearSeccionPlan(hogar),
         crearSeccionCasa(usuario, hogar),
+        crearSeccionIa(cuotaIa, cuotaChat),
         crearSeccionCuenta(usuario)
       );
     } catch (error) {
@@ -47,6 +49,23 @@ export function pantallaAjustes() {
             })
       );
     }
+  }
+
+  /**
+   * "Inteligencia artificial": lo que me queda hoy de cada cuota (D-15, D-51).
+   * Son de cada persona, no de la casa.
+   * @param {{ usadas: number, limite: number }} cuotaIa La del ticket.
+   * @param {{ usadas: number, limite: number }} cuotaChat La del ayudante.
+   */
+  function crearSeccionIa(cuotaIa, cuotaChat) {
+    const quedan = ({ usadas, limite }) => Math.max(0, limite - usadas);
+    return el(
+      'section',
+      { class: 'seccion', 'aria-labelledby': 'titulo-ia' },
+      el('h2', { class: 'titulo-seccion', id: 'titulo-ia' }, 'Inteligencia artificial'),
+      el('p', {}, `Tickets: te quedan ${quedan(cuotaIa)} de ${cuotaIa.limite} hoy.`),
+      el('p', {}, `Ayudante: te quedan ${quedan(cuotaChat)} de ${cuotaChat.limite} mensajes hoy.`)
+    );
   }
 
   /** "Avisos en este dispositivo": cada dispositivo los activa por su cuenta (§7.6). */

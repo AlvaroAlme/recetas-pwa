@@ -29,7 +29,7 @@ const SVG = 'http://www.w3.org/2000/svg';
  * @param {...SVGElement} hijos
  * @returns {SVGElement}
  */
-function elSvg(etiqueta, atributos, ...hijos) {
+export function elSvg(etiqueta, atributos, ...hijos) {
   const elemento = document.createElementNS(SVG, etiqueta);
   for (const [nombre, valor] of Object.entries(atributos)) elemento.setAttribute(nombre, valor);
   elemento.append(...hijos);
