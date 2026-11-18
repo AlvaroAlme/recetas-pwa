@@ -112,3 +112,32 @@ export const limiteContrasena = crearLimite({
   ventanaMs: QUINCE_MINUTOS,
   clave: (req) => `usuario:${req.usuario.id}`,
 });
+
+/**
+ * "¿Has olvidado la contraseña?" (§9.5, D-53): 5 por hora y por IP, y 3 por
+ * hora y por email. Además del abuso, cuidan la cuota de correos de Resend
+ * y que nadie llene de correos el buzón de otra persona.
+ */
+export const limiteOlvideIp = crearLimite({
+  maximo: 5,
+  ventanaMs: UNA_HORA,
+  clave: porIp,
+  mensaje: 'Has pedido demasiados enlaces. Espera un rato.',
+});
+export const limiteOlvideEmail = crearLimite({
+  maximo: 3,
+  ventanaMs: UNA_HORA,
+  clave: emailDelLogin,
+  mensaje: 'Has pedido demasiados enlaces. Espera un rato.',
+});
+
+/** Usar un enlace del correo (restablecer, confirmar el email): 10 cada 15 minutos por IP. */
+export const limiteEnlaces = crearLimite({ maximo: 10, ventanaMs: QUINCE_MINUTOS, clave: porIp });
+
+/** Pedir el cambio de email: 5 por hora y por persona. Va detrás de exigirSesion. */
+export const limiteCambioEmail = crearLimite({
+  maximo: 5,
+  ventanaMs: UNA_HORA,
+  clave: (req) => `usuario:${req.usuario.id}`,
+  mensaje: 'Has pedido demasiados cambios de email. Espera un rato.',
+});

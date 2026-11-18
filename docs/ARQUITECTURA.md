@@ -762,7 +762,9 @@ recetas-nevera-pwa/
 │   ├── servicios/             Lógica + SQL. No saben nada de HTTP
 │   │   ├── contrasenas.js     scrypt + timingSafeEqual
 │   │   ├── usuarios.js  sesiones.js  hogares.js  invitaciones.js
-│   │   ├── enlaces.js  correo.js  (D-53: enlaces por correo y envío con Resend)
+│   │   ├── recuperacion.js  (D-53: recuperar la contraseña y cambiar el email, con la BD)
+│   │   ├── enlaces.js  mensajesCorreo.js  (token, URL y textos de los correos: sin BD, se prueban)
+│   │   ├── correo.js          enviarCorreo(): Resend o, en desarrollo sin key, el buzón de la terminal
 │   │   ├── inventario.js  tuppers.js  recetas.js  cocina.js  plan.js
 │   │   ├── claude.js          ← lib/claude.ts (fetch + ErrorClaude), con la key del entorno
 │   │   ├── ticket.js          ← lib/ticket.ts: prompt, esquema y validación TAL CUAL

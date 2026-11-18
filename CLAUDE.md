@@ -62,11 +62,25 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 Recuperar la contraseña y cambiar el email (Resend + dominio propio;
 Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
 su paso 1) y 12 cierre.
-**Siguiente: fase 10, paso 2** (el autor compra el dominio, crea la
-cuenta de Resend, verifica el dominio con SPF y DKIM y crea las keys
-`vigia-desarrollo` y `vigia-produccion`, con guía; NUNCA pegarlas en el
-chat). Paso 1 (documentación: D-53, `enlaces_correo`, rutas `olvide`,
-`restablecer`, `confirmar-email` y `yo/email`, P-27 a P-29) hecho.
+**Siguiente: fase 10, paso 4** (`correo.js` con la API de Resend:
+`RESEND_API_KEY` y `CORREO_REMITENTE` en `config.js` y `.env.ejemplo`;
+primer correo de verdad a la dirección del autor, preguntando antes).
+Paso 3 hecho: `009_correo.sql` (aplicada solo en desarrollo),
+`enlaces.js` y `mensajesCorreo.js` (sin BD, con pruebas),
+`recuperacion.js`, `correo.js` (de momento solo el buzón: en producción
+lanza un error) y las rutas `auth/olvide` (202 siempre, sin esperar al
+correo), `auth/restablecer`, `auth/confirmar-email` y `yo/email`, con
+sus límites. Probado contra el servidor con Ana (28 comprobaciones; su
+email y su contraseña quedan como estaban). Ojo: `--watch` se reinicia
+al cargar `pg` desde un script (cambio en `node_modules`): esperar a
+`/api/salud`. Hechos antes: paso 1 (documentación: D-53, `enlaces_correo`,
+rutas `olvide`, `restablecer`, `confirmar-email` y `yo/email`, P-27 a
+P-29) y paso 2 (2026-11-18): dominio `alvaroalme.dev` en Cloudflare
+(renovación automática), `correo.alvaroalme.dev` verificado en Resend
+(región Ireland, eu-west-1) con DMARC `p=none` en `_dmarc`; keys con
+"Sending access": `vigia-desarrollo` (`.env` y Bitwarden) y
+`vigia-produccion` (nota `vigia-produccion`; a Render en el paso 7, ANTES
+del push). `CORREO_REMITENTE=Vigía <no-responder@correo.alvaroalme.dev>`.
 
 **Fase 9 (Perfil y avatar): aprobada** (2026-11-18, "ok" del autor tras
 desplegar `app-v30`). Paso 4

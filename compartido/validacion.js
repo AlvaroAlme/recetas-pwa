@@ -304,6 +304,63 @@ export function validarCambioContrasena(entrada) {
   return { ok: true, datos: { actual, nueva } };
 }
 
+// ============ Correo: recuperar la contraseña y cambiar el email (fase 10, D-53) ============
+
+/**
+ * Comprueba un email suelto ("¿Has olvidado la contraseña?").
+ * @param {unknown} valor
+ * @returns {{ ok: true, datos: string } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarEmail(valor) {
+  const email = limpiarEmail(valor);
+  const fallo = errorDeEmail(email);
+  return fallo ? { ok: false, errores: { email: fallo } } : { ok: true, datos: email };
+}
+
+/**
+ * Comprueba la contraseña nueva de "Contraseña nueva" (P-28): las reglas del
+ * registro (P-02).
+ * @param {unknown} valor
+ * @returns {{ ok: true, datos: string } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarContrasenaNueva(valor) {
+  const contrasena = typeof valor === 'string' ? valor : '';
+  if (contrasena.length < MIN_LONGITUD_CONTRASENA) {
+    return { ok: false, errores: { contrasena: `La contraseña tiene que tener al menos ${MIN_LONGITUD_CONTRASENA} caracteres.` } };
+  }
+  if (contrasena.length > MAX_LONGITUD_CONTRASENA) {
+    return { ok: false, errores: { contrasena: `La contraseña puede tener como mucho ${MAX_LONGITUD_CONTRASENA} caracteres.` } };
+  }
+  return { ok: true, datos: contrasena };
+}
+
+/**
+ * Comprueba el formulario de "Cambiar email" (Datos personales). De la
+ * contraseña solo miro que esté escrita: si no es la tuya, lo dice el servidor.
+ * @param {unknown} entrada { emailNuevo, contrasena }
+ * @param {string} emailActual El que tienes ahora: el nuevo tiene que ser otro.
+ * @returns {{ ok: true, datos: { emailNuevo: string, contrasena: string } } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarCambioEmail(entrada, emailActual) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Escribe tu email nuevo y tu contraseña.' } };
+  }
+  const emailNuevo = limpiarEmail(entrada.emailNuevo);
+  const contrasena = typeof entrada.contrasena === 'string' ? entrada.contrasena : '';
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  const fallo = errorDeEmail(emailNuevo);
+  if (fallo) errores.emailNuevo = fallo === 'Escribe tu email.' ? 'Escribe tu email nuevo.' : fallo;
+  else if (emailNuevo === emailActual) errores.emailNuevo = 'Ese ya es tu email.';
+
+  if (contrasena === '') errores.contrasena = 'Escribe tu contraseña para confirmar.';
+  else if (contrasena.length > MAX_LONGITUD_CONTRASENA) errores.contrasena = 'La contraseña no es correcta.';
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { emailNuevo, contrasena } };
+}
+
 // ============ Hogar ============
 
 /**

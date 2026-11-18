@@ -9,6 +9,7 @@ import { pool } from '../bd/pool.js';
 import * as conversaciones from './conversaciones.js';
 import * as operaciones from './operaciones.js';
 import * as plan from './plan.js';
+import * as recuperacion from './recuperacion.js';
 
 /** Días que guardo la cuota de cada día: luego no la mira nadie. */
 const DIAS_USO_IA = 30;
@@ -20,11 +21,13 @@ const DIAS_USO_IA = 30;
  * - los huecos del cuadrante de hace más de un año y los avisos del plan
  *   enviados hace más de 7 días (plan);
  * - las conversaciones del chat sin mensajes desde hace más de 30 días;
- * - la cuota de IA de hace más de 30 días.
+ * - la cuota de IA de hace más de 30 días;
+ * - los enlaces por correo caducados hace más de 7 días (D-53).
  */
 export async function limpiar() {
   await operaciones.borrarAntiguas();
   await plan.borrarAntiguos();
   await conversaciones.borrarAntiguas();
   await pool.query('DELETE FROM uso_ia WHERE fecha < current_date - $1::int', [DIAS_USO_IA]);
+  await recuperacion.borrarAntiguos();
 }

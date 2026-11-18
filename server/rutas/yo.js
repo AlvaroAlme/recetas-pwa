@@ -7,8 +7,9 @@ import { borrarCookieSesion, leerCookie, NOMBRE_COOKIE } from '../cookies.js';
 import { ErrorApi } from '../errores.js';
 import * as hogares from '../servicios/hogares.js';
 import * as usuarios from '../servicios/usuarios.js';
-import { leerBorrarCuenta, leerCambioContrasena, leerCambioNombre } from '../validacion/auth.js';
-import { limiteContrasena } from '../middlewares/limite.js';
+import { leerBorrarCuenta, leerCambioContrasena, leerCambioEmail, leerCambioNombre } from '../validacion/auth.js';
+import { limiteCambioEmail, limiteContrasena } from '../middlewares/limite.js';
+import * as recuperacion from '../servicios/recuperacion.js';
 import { CUOTA_CHAT_DIARIA, CUOTA_IA_DIARIA } from '../../compartido/constantes.js';
 import * as cuotaIa from '../servicios/cuotaIa.js';
 
@@ -70,4 +71,22 @@ rutasYo.put('/contrasena', limiteContrasena, async (req, res) => {
 rutasYo.delete('/sesiones', async (req, res) => {
   const cerradas = await usuarios.cerrarMisOtrasSesiones(req.usuario.id, leerCookie(req, NOMBRE_COOKIE));
   res.json({ cerradas });
+});
+
+// POST /api/yo/email: { emailNuevo, contrasena }. Envía el enlace al email
+// nuevo y un aviso al actual (D-53). El email no cambia hasta confirmar.
+rutasYo.post('/email', limiteCambioEmail, async (req, res) => {
+  const datos = leerCambioEmail(req.body, req.usuario.email);
+  const resultado = await recuperacion.pedirCambioEmail(req.usuario, datos);
+  if (resultado === 'contrasena') {
+    throw new ErrorApi(401, 'CONTRASENA_INCORRECTA', 'La contraseña no es correcta.', {
+      campos: { contrasena: 'La contraseña no es correcta.' },
+    });
+  }
+  if (resultado === 'en uso') {
+    throw new ErrorApi(409, 'EMAIL_EN_USO', 'Ese email ya lo usa otra cuenta.', {
+      campos: { emailNuevo: 'Ese email ya lo usa otra cuenta.' },
+    });
+  }
+  res.status(202).json({ enviado: true });
 });
