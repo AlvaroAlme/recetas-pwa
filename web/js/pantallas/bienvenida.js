@@ -30,26 +30,6 @@ const TAMANO_AVATAR = 120;
  */
 let yaHaNacido = false;
 
-/** Lo que tarda la transición de pantalla (--duracion-media) y un poco más. */
-const ESPERA_TRAS_TRANSICION_MS = 350;
-
-/**
- * Espera a que un nodo esté de verdad en la página (el router puede tardar:
- * espera a los datos y hace la transición) y a que acabe la transición.
- * Así la ruleta flotante no sale encima de la pantalla anterior.
- * @param {Element} nodo
- * @returns {Promise<boolean>} false si no ha llegado a estar (te has ido antes).
- */
-async function esperarEnPantalla(nodo) {
-  const hasta = Date.now() + 3000;
-  while (!nodo.isConnected && Date.now() < hasta) {
-    await new Promise((resolver) => requestAnimationFrame(resolver));
-  }
-  if (!nodo.isConnected) return false;
-  await new Promise((resolver) => setTimeout(resolver, ESPERA_TRAS_TRANSICION_MS));
-  return nodo.isConnected;
-}
-
 /** "Saltar" en cualquier paso: al inventario (§7.6). */
 const crearSaltar = () => el('a', { class: 'boton boton--fantasma', href: '/' }, 'Saltar');
 
@@ -102,6 +82,7 @@ function pasoTu() {
     const marco = el('div', { class: 'bienvenida__avatar', 'aria-hidden': 'true' });
     const estado = el('p', { class: 'solo-lector', role: 'status' });
     const aviso = el('div');
+    const texto = el('p', {}, 'Así te verán en tu casa. Si no te convence:');
     const otro = el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', 'data-escribe': true }, 'Otro avatar');
     /** @type {SVGSVGElement | null} */
     let avatar = null;
@@ -119,7 +100,7 @@ function pasoTu() {
     }
 
     otro.addEventListener('click', async () => {
-      if (otro.disabled) return;
+      if (otro.disabled || !yaHaNacido) return;
       aviso.replaceChildren();
       estado.textContent = '';
       ponerCargando(otro, true, 'Barajando…');
@@ -140,22 +121,29 @@ function pasoTu() {
       }
     });
 
-    /**
-     * Al llegar (D-56): la primera vez, la misma ruleta flotante que "Otro
-     * avatar" (2026-11-18: la de dentro de la tarjeta no se veía al crear la
-     * cuenta); después, el tuyo aparece en la tarjeta.
-     * @param {string} semilla
-     */
-    async function nacer(semilla) {
-      otro.disabled = true;
-      if (!yaHaNacido && (await esperarEnPantalla(marco))) {
+    // La primera vez, tu avatar está escondido y lo descubres tú con un botón
+    // (2026-11-18): al crear la cuenta, iOS tapa la pantalla con "¿Guardar
+    // contraseña?" y una ruleta que empezara sola giraría debajo, sin verse.
+    /** @type {HTMLButtonElement | null} */
+    let descubrir = null;
+    if (yaHaNacido) {
+      girar(usuario.avatarSemilla, 0);
+    } else {
+      descubrir = el('button', { class: 'boton boton--primario boton--ajustado', type: 'button' }, 'Descubrir mi avatar');
+      marco.append(el('span', { class: 'bienvenida__misterio' }, '?'));
+      texto.textContent = '¿Quién serás en tu casa?';
+      otro.hidden = true;
+      descubrir.addEventListener('click', async () => {
+        if (descubrir.disabled) return;
+        descubrir.disabled = true;
         yaHaNacido = true;
-        await barajarFlotante(semilla, { textoFinal: 'Este es tu avatar' });
-      }
-      await girar(semilla, 0);
+        await barajarFlotante(usuario.avatarSemilla, { textoFinal: 'Este es tu avatar' });
+        await girar(usuario.avatarSemilla, 0);
+        texto.textContent = 'Así te verán en tu casa. Si no te convence:';
+        descubrir.replaceWith(otro);
+        otro.hidden = false;
+      });
     }
-
-    nacer(usuario.avatarSemilla);
     return [
       el('p', { class: 'bienvenida__saludo' }, `Hola, ${usuario.nombre}. Vamos a dejarlo todo listo en un minuto.`),
       crearEncabezado(1, 'Este eres tú'),
@@ -163,7 +151,8 @@ function pasoTu() {
         'section',
         { class: 'tarjeta bienvenida__tu', 'aria-label': 'Tu avatar' },
         marco,
-        el('p', {}, 'Así te verán en tu casa. Si no te convence:'),
+        texto,
+        descubrir,
         otro,
         estado,
         aviso

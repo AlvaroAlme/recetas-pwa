@@ -61,9 +61,12 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (desplegar `app-v43` y probar en el
-iPhone la ruleta al crear la cuenta y el gesto de deslizar desde el
-borde izquierdo para volver, `gestoAtras.js`, solo en la app instalada; tercera prueba con `app-v41`: todo
+**Siguiente: fase 11, paso 6** (desplegar `app-v44` y probar en el
+iPhone "Descubrir mi avatar" al crear la cuenta y el gesto de deslizar
+desde el borde izquierdo para volver, `gestoAtras.js`, solo en la app
+instalada; con `app-v43`, la ruleta al crear la cuenta giraba debajo del
+"¿Guardar contraseña?" de iOS: ahora empieza al pulsar "Descubrir mi
+avatar"; tercera prueba con `app-v41`: todo
 bien salvo que al crear la cuenta no salía la ruleta. Arreglado en
 `app-v42`: Bienvenida usa la ruleta flotante al llegar, solo la primera
 vez, `esperarEnPantalla`. La app instalada en iOS NO tiene gesto de

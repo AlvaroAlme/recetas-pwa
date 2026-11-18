@@ -1141,6 +1141,22 @@ input:focus-visible + .chip {
   width: 120px;
   height: 120px;
 }
+/* El avatar escondido hasta pulsar "Descubrir mi avatar": un círculo con
+   una "?", del tamaño del avatar (así no salta al aparecer). */
+.bienvenida__misterio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 108px;
+  height: 108px;
+  border: 2px dashed var(--color-borde);
+  border-radius: 50%;
+  background: var(--color-superficie-2);
+  color: var(--color-texto-tenue);
+  font-family: var(--fuente-titulos);
+  font-size: calc(48rem / 17);
+  font-weight: var(--peso-titulo);
+}
 .bienvenida__saludo {
   font-size: var(--texto-subtitulo);
   line-height: var(--linea-subtitulo);
