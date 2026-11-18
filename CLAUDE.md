@@ -62,8 +62,17 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 Recuperar la contraseña y cambiar el email (Resend + dominio propio;
 Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
 su paso 1) y 12 cierre.
-**Siguiente: fase 10, paso 5** (pantallas Recuperar contraseña y
-Contraseña nueva, el enlace en Entrar y Resend en Privacidad). Paso 4
+**Siguiente: fase 10, paso 6** (cambiar el email: formulario en Datos
+personales y pantalla Confirmar email, P-29). Paso 5 hecho:
+"¿Has olvidado la contraseña?" en Entrar (lleva el email escrito con
+`recordarEmail()`), `recuperar.js` (P-27) y `restablecer.js` (P-28: lee
+`#t=`, lo quita de la barra y lo guarda en memoria; en Safari de iOS
+avisa de que la app instalada es otra sesión), Resend en Privacidad,
+`sw.js` en `app-v31`. Probado en el navegador con Ana. Cambios del
+autor en D-53 (2026-11-18): "Recuperar" SÍ dice si el email no tiene
+cuenta (404 `EMAIL_NO_REGISTRADO`, con enlace a Crear cuenta; Crear
+cuenta ya lo revelaba) y tras la contraseña nueva NO se entra: se
+cierran todas las sesiones y se va a Entrar con el email puesto. Paso 4
 hecho: `resend.js` (POST a la API con `fetch`, sin config: pruebas con
 un fetch falso), `correo.js` (Resend con key; sin key, buzón; las
 direcciones `.test` NUNCA se envían, van al buzón), `config.js` y

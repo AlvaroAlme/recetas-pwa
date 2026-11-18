@@ -58,24 +58,37 @@ rutasAuth.post('/logout', async (req, res) => {
   res.status(204).end();
 });
 
-// POST /api/auth/olvide: { email }. Contesto SIEMPRE lo mismo y en el acto,
-// exista la cuenta o no: así nadie puede averiguar qué emails están
-// registrados, ni por el mensaje ni por lo que tarda. Por eso el correo se
-// envía sin esperarlo, y si falla solo queda en el log.
-rutasAuth.post('/olvide', limiteOlvideIp, limiteOlvideEmail, (req, res) => {
+// POST /api/auth/olvide: { email }. Si hay cuenta, envío el enlace (202);
+// si no, lo digo (404). Decisión del autor (D-53): Crear cuenta ya revelaba
+// qué emails existen, y los límites (5 por hora por IP, 3 por email)
+// impiden ir probando emails en masa.
+rutasAuth.post('/olvide', limiteOlvideIp, limiteOlvideEmail, async (req, res) => {
   const email = leerOlvide(req.body);
-  recuperacion.pedirRecuperacion(email).catch((error) => logError('No se ha podido enviar el correo de recuperación', error, req.id));
+  let existe;
+  try {
+    existe = await recuperacion.pedirRecuperacion(email);
+  } catch (error) {
+    logError('No se ha podido enviar el correo de recuperación', error, req.id);
+    throw new ErrorApi(502, 'CORREO_NO_ENVIADO', 'No se ha podido enviar el correo. Inténtalo dentro de un rato.', { reintentable: true });
+  }
+  if (!existe) {
+    throw new ErrorApi(404, 'EMAIL_NO_REGISTRADO', 'No hay ninguna cuenta con ese email.', {
+      campos: { email: 'No hay ninguna cuenta con ese email.' },
+    });
+  }
   res.status(202).json({ enviado: true });
 });
 
 // POST /api/auth/restablecer: { token, contrasena }. Si el enlace vale, la
-// contraseña nueva, todas las sesiones cerradas y una nueva para entrar ya.
+// contraseña nueva y TODAS las sesiones cerradas, también la de este
+// navegador si la tenía: hay que volver a entrar (D-53). Devuelvo el email
+// para ponerlo en Entrar.
 rutasAuth.post('/restablecer', limiteEnlaces, async (req, res) => {
   const { token, contrasena } = leerRestablecer(req.body);
-  const entrada = await recuperacion.restablecer(token, contrasena);
-  if (!entrada) throw ENLACE_NO_VALIDO();
-  ponerCookieSesion(res, entrada.sesion);
-  res.json({ usuario: entrada.usuario, hogar: entrada.hogar });
+  const resultado = await recuperacion.restablecer(token, contrasena);
+  if (!resultado) throw ENLACE_NO_VALIDO();
+  borrarCookieSesion(res);
+  res.json(resultado);
 });
 
 // POST /api/auth/confirmar-email: { token }. Sin sesión: el enlace puede

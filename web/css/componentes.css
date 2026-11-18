@@ -1596,3 +1596,13 @@ label.tarjeta-chat__hueco .casilla__entrada {
 .perfil__email {
   overflow-wrap: anywhere;
 }
+
+/* ============ ¿Has olvidado la contraseña? (D-53) ============ */
+/* Debajo de la contraseña, a la derecha, con su zona de 44 px para el dedo. */
+.acceso__olvide {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tactil);
+  margin-block: calc(var(--espacio-s) * -1) 0;
+}

@@ -27,7 +27,9 @@ import { pantallaPrivacidad } from './pantallas/privacidad.js';
 import { pantallaProducto } from './pantallas/producto.js';
 import { pantallaReceta } from './pantallas/receta.js';
 import { pantallaRecetas } from './pantallas/recetas.js';
+import { pantallaRecuperar } from './pantallas/recuperar.js';
 import { pantallaRegistro } from './pantallas/registro.js';
+import { pantallaRestablecer } from './pantallas/restablecer.js';
 import { pantallaSemana } from './pantallas/semana.js';
 import { pantallaTicket } from './pantallas/ticket.js';
 import { pantallaTupper } from './pantallas/tupper.js';
@@ -45,6 +47,9 @@ iniciarRouter({
     { patron: '/entrar', publica: true, pantalla: pantallaEntrar },
     { patron: '/registro', publica: true, pantalla: pantallaRegistro },
     { patron: '/privacidad', publica: true, pantalla: pantallaPrivacidad },
+    // "¿Has olvidado la contraseña?" (D-53). /restablecer la abre el enlace del correo.
+    { patron: '/recuperar', publica: true, pantalla: pantallaRecuperar },
+    { patron: '/restablecer', publica: true, pantalla: pantallaRestablecer },
     // Privadas: si no hay sesión, la API da 401 y api.js lleva a /entrar.
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
     // Perfil (P-16) y sus apartados (D-52): se abren con el avatar de la cabecera.

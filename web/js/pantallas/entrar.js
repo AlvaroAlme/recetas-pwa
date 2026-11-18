@@ -8,6 +8,7 @@ import { api, mensajeDeError } from '../api.js';
 import { crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar, tomarMensaje } from '../router.js';
+import { emailRecordadoActual, recordarEmail } from './recuperar.js';
 
 /**
  * A dónde vuelvo al entrar: SOLO a rutas de mi app. Tiene que empezar por
@@ -32,6 +33,8 @@ export function pantallaEntrar({ consulta }) {
   const email = crearCampo({
     etiqueta: 'Email',
     nombre: 'email',
+    // Si vengo de cambiar la contraseña, mi email ya está puesto.
+    valor: emailRecordadoActual(),
     atributos: { type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', placeholder: 'nombre@correo.com' },
   });
   const contrasena = crearCampo({
@@ -39,6 +42,13 @@ export function pantallaEntrar({ consulta }) {
     nombre: 'contrasena',
     atributos: { type: 'password', autocomplete: 'current-password' },
   });
+  // "¿Has olvidado la contraseña?" (D-53): me llevo el email que hayas
+  // escrito, para que no tengas que escribirlo otra vez.
+  const olvide = el(
+    'a',
+    { class: 'acceso__olvide', href: '/recuperar', onclick: () => recordarEmail(leerCampo(email)) },
+    '¿Has olvidado la contraseña?'
+  );
   const boton = el('button', { class: 'boton boton--primario', type: 'submit', 'data-escribe': true }, 'Entrar');
   let enviando = false;
 
@@ -82,7 +92,7 @@ export function pantallaEntrar({ consulta }) {
       { class: 'acceso' },
       mensaje && crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` }),
       el('p', { class: 'acceso__lema' }, 'Controla lo que tienes, no desperdicies'),
-      el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, email, contrasena, boton),
+      el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, email, contrasena, olvide, boton),
       el(
         'p',
         { class: 'acceso__pie' },

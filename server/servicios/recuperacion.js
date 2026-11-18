@@ -11,7 +11,6 @@ import { comprobarContrasena, hashearContrasena } from './contrasenas.js';
 import { enviarCorreo } from './correo.js';
 import { crearToken, esFormatoToken, hashDeToken, MINUTOS_ENLACE, urlDeEnlace } from './enlaces.js';
 import { correoAvisoCambioEmail, correoConfirmarEmail, correoRecuperar } from './mensajesCorreo.js';
-import { crearSesion } from './sesiones.js';
 
 /**
  * Guardo un enlace nuevo y borro los pendientes del mismo tipo de esa
@@ -60,27 +59,32 @@ async function reclamarEnlace(cliente, token, tipo) {
 
 /**
  * "¿Has olvidado la contraseña?". Si hay una cuenta con ese email, le envío
- * el enlace; si no, no hago nada. La ruta NO me espera (responde lo mismo y
- * a la vez exista o no la cuenta): por eso los errores los registra ella.
+ * el enlace. Si no, lo digo (decisión del autor, D-53: Crear cuenta ya lo
+ * revelaba, y el límite de intentos impide probar emails en masa).
  * @param {string} email Ya validado y en minúsculas.
+ * @returns {Promise<boolean>} false si no hay ninguna cuenta con ese email.
+ * @throws {Error} Si no se ha podido enviar el correo.
  */
 export async function pedirRecuperacion(email) {
   const { rows } = await pool.query('SELECT id, nombre, email FROM usuarios WHERE email = $1', [email]);
-  if (rows.length === 0) return;
+  if (rows.length === 0) return false;
   const usuario = rows[0];
   const token = await guardarEnlace(Number(usuario.id), 'recuperar', null);
   await enviarCorreo(
     correoRecuperar({ nombre: usuario.nombre, email: usuario.email, url: urlDeEnlace(config.appOrigen, '/restablecer', token) })
   );
+  return true;
 }
 
 /**
- * "Contraseña nueva": si el enlace vale, cambio la contraseña, cierro TODAS
- * las sesiones (si alguien me había quitado la cuenta, lo echo) y abro una
- * nueva, para que entre directamente.
+ * "Contraseña nueva": si el enlace vale, cambio la contraseña y cierro TODAS
+ * las sesiones (si alguien me había quitado la cuenta, lo echo). NO abro una
+ * nueva: hay que volver a entrar con la contraseña nueva (decisión del
+ * autor, D-53: así se comprueba que la recuerdas).
  * @param {string} token
  * @param {string} contrasena Ya validada (de 10 a 128).
- * @returns {Promise<import('./usuarios.js').Entrada | null>} null si el enlace no vale.
+ * @returns {Promise<{ email: string } | null>} El email de la cuenta (para
+ *   ponerlo en Entrar), o null si el enlace no vale.
  */
 export async function restablecer(token, contrasena) {
   if (!esFormatoToken(token)) return null;
@@ -93,22 +97,8 @@ export async function restablecer(token, contrasena) {
     await cliente.query('UPDATE usuarios SET hash_contrasena = $2 WHERE id = $1', [usuarioId, hash]);
     await cliente.query('DELETE FROM sesiones WHERE usuario_id = $1', [usuarioId]);
     await cliente.query("DELETE FROM enlaces_correo WHERE usuario_id = $1 AND tipo = 'recuperar' AND usada_en IS NULL", [usuarioId]);
-    const sesion = await crearSesion(cliente, usuarioId);
-    const {
-      rows: [fila],
-    } = await cliente.query(
-      `SELECT u.id, u.email, u.nombre, u.avatar_semilla, m.rol, h.id AS hogar_id, h.nombre AS hogar_nombre
-         FROM usuarios u
-         JOIN miembros m ON m.usuario_id = u.id
-         JOIN hogares h ON h.id = m.hogar_id
-        WHERE u.id = $1`,
-      [usuarioId]
-    );
-    return {
-      usuario: { id: Number(fila.id), email: fila.email, nombre: fila.nombre, rol: fila.rol, avatarSemilla: fila.avatar_semilla },
-      hogar: { id: Number(fila.hogar_id), nombre: fila.hogar_nombre },
-      sesion,
-    };
+    const { rows } = await cliente.query('SELECT email FROM usuarios WHERE id = $1', [usuarioId]);
+    return { email: rows[0].email };
   });
 }
 

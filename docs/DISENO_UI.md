@@ -1082,14 +1082,13 @@ Lo que era la sección de IA de Ajustes: "Tickets: te quedan 9 de 10 hoy." · "A
 │  [      Enviar enlace      ]  │
 └──────────────────────────────┘
           ↓ al enviar
-│  ✓ Si hay una cuenta con      │
-│  ana@ejemplo.es, te hemos     │
-│  enviado un enlace. Caduca en │
+│  ✓ Te hemos enviado un enlace │
+│  a ana@ejemplo.es. Caduca en  │
 │  30 minutos. Mira también en  │
 │  la carpeta de spam.          │
 │  ‹Volver a Entrar›            │
 ```
-Pública. Si en Entrar ya habías escrito tu email, sale puesto (pasa en `history.state`, nunca en la URL). La respuesta es la misma exista o no la cuenta. Con 429: "Has pedido demasiados enlaces. Espera un rato."
+Pública. Si en Entrar ya habías escrito tu email, sale puesto (se pasa en memoria con `recordarEmail()`, nunca en la URL: acabaría en el historial y en los logs). Si el email no tiene cuenta (404, decisión del autor en D-53): error en el campo y aviso "No hay ninguna cuenta con ese email. Revisa que esté bien escrito o crea una cuenta." con `[Crear cuenta]`. Con 429: "Has pedido demasiados enlaces. Espera un rato."; con 502: "No se ha podido enviar el correo. Inténtalo dentro de un rato."
 
 #### P-28 · Contraseña nueva — `/restablecer#t=…` · E-3 (D-53)
 ```
@@ -1098,10 +1097,11 @@ Pública. Si en Entrar ya habías escrito tu email, sale puesto (pasa en `histor
 │  Contraseña nueva             │
 │  [••••••••••••] Mostrar       │
 │  De 10 a 128 caracteres.      │
-│  [   Guardar y entrar      ]  │
+│  [   Guardar contraseña    ]  │
 └──────────────────────────────┘
 ```
-Pública; la abre el enlace del correo. El token se lee de `location.hash` y se borra de la barra de direcciones (`history.replaceState`) al llegar. `autocomplete="new-password"`. Al guardar: entra y va al Inventario con "✓ Contraseña cambiada. Hemos cerrado la sesión en tus otros dispositivos." Enlace que no sirve (usado, caducado o mal copiado): "Este enlace ya no sirve. Pide otro." + `[Pedir otro enlace]` (→ `/recuperar`).
+Pública; la abre el enlace del correo. El token se lee de `location.hash` y se borra de la barra de direcciones (`history.replaceState`) al llegar. `autocomplete="new-password"`. Al guardar: se cierran todas las sesiones y va a **Entrar**, con el email puesto y "✓ Contraseña cambiada. Entra con tu contraseña nueva. Hemos cerrado la sesión en todos tus dispositivos." (decisión del autor en D-53: no se entra directamente). Enlace que no sirve (usado, caducado o mal copiado): "Este enlace ya no sirve: puede que ya lo hayas usado o que hayan pasado más de 30 minutos." + `[Pedir otro enlace]` (→ `/recuperar`). El token se guarda en memoria por si la pantalla se vuelve a pintar (al volver la conexión).
+- **En el iPhone, el enlace del correo se abre en Safari, no en la app instalada** (iOS no deja abrir una app web desde un enlace), y son sesiones distintas. Por eso, en Safari de iOS y fuera de la app, sale en tono tenue: "Si usas Vigía instalada en la pantalla de inicio, entra también en ella con tu contraseña nueva."
 
 #### P-29 · Confirmar email — `/confirmar-email#t=…` · E-3 (D-53)
 Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-email` con el token (y lo borra de la barra de direcciones). "Confirmando…" → "✓ Tu email ahora es nuevo@….", con `[Ir a Vigía]`; o "Este enlace ya no sirve. Vuelve a pedir el cambio desde Perfil › Datos personales." / "Ese email ya lo usa otra cuenta."

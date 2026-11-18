@@ -29,7 +29,7 @@ export function pantallaPrivacidad() {
       'article',
       { class: 'privacidad' },
       el('p', {}, 'Vigía es un proyecto personal. Aquí te cuento qué datos guarda, dónde y para qué.'),
-      el('p', { class: 'tono--tenue' }, 'Última actualización: 17 de noviembre de 2026.'),
+      el('p', { class: 'tono--tenue' }, 'Última actualización: 18 de noviembre de 2026.'),
 
       apartado(
         'Qué datos guardo',
@@ -52,7 +52,8 @@ export function pantallaPrivacidad() {
           'ul',
           {},
           el('li', {}, 'La base de datos (Neon) y el servidor (Render), en Frankfurt, dentro de la Unión Europea.'),
-          el('li', {}, 'Los avisos los entrega el servicio de tu navegador (Apple, Google o Mozilla).')
+          el('li', {}, 'Los avisos los entrega el servicio de tu navegador (Apple, Google o Mozilla).'),
+          el('li', {}, 'Los correos (para recuperar tu contraseña o cambiar tu email) los envía Resend desde Irlanda. Recibe tu email y el texto del correo; los datos de su cuenta están en Estados Unidos. Solo te escribo cuando tú lo pides, nunca publicidad.')
         )
       ),
 
