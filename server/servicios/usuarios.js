@@ -6,14 +6,14 @@ import { randomBytes } from 'node:crypto';
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
 import { comprobarContrasena, hashearContrasena } from './contrasenas.js';
-import { crearSesion } from './sesiones.js';
+import { cerrarOtrasSesiones, crearSesion } from './sesiones.js';
 import { dejarHogar, nombreDeCasa } from './hogares.js';
 
 /**
  * Lo que devuelven el registro y el login: quién eres, tu hogar y la
  * sesión nueva (con el token para la cookie).
  * @typedef {Object} Entrada
- * @property {{ id: number, email: string, nombre: string, rol: string }} usuario
+ * @property {{ id: number, email: string, nombre: string, rol: string, avatarSemilla: string }} usuario
  * @property {{ id: number, nombre: string }} hogar
  * @property {{ token: string, caducaEn: Date }} sesion
  */
@@ -42,7 +42,7 @@ export async function registrar({ email, nombre, contrasena }) {
       const {
         rows: [usuario],
       } = await cliente.query(
-        'INSERT INTO usuarios (email, nombre, hash_contrasena) VALUES ($1, $2, $3) RETURNING id, email, nombre',
+        'INSERT INTO usuarios (email, nombre, hash_contrasena) VALUES ($1, $2, $3) RETURNING id, email, nombre, avatar_semilla',
         [email, nombre, hash]
       );
       const {
@@ -56,7 +56,13 @@ export async function registrar({ email, nombre, contrasena }) {
       const sesion = await crearSesion(cliente, usuario.id);
 
       return {
-        usuario: { id: Number(usuario.id), email: usuario.email, nombre: usuario.nombre, rol: 'propietario' },
+        usuario: {
+          id: Number(usuario.id),
+          email: usuario.email,
+          nombre: usuario.nombre,
+          rol: 'propietario',
+          avatarSemilla: usuario.avatar_semilla,
+        },
         hogar: { id: Number(hogar.id), nombre: hogar.nombre },
         sesion,
       };
@@ -76,7 +82,7 @@ export async function registrar({ email, nombre, contrasena }) {
  */
 export async function iniciarSesion({ email, contrasena }) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.nombre, u.hash_contrasena, m.rol, h.id AS hogar_id, h.nombre AS hogar_nombre
+    `SELECT u.id, u.email, u.nombre, u.avatar_semilla, u.hash_contrasena, m.rol, h.id AS hogar_id, h.nombre AS hogar_nombre
        FROM usuarios u
        JOIN miembros m ON m.usuario_id = u.id
        JOIN hogares h ON h.id = m.hogar_id
@@ -91,7 +97,7 @@ export async function iniciarSesion({ email, contrasena }) {
 
   const sesion = await crearSesion(pool, Number(fila.id));
   return {
-    usuario: { id: Number(fila.id), email: fila.email, nombre: fila.nombre, rol: fila.rol },
+    usuario: { id: Number(fila.id), email: fila.email, nombre: fila.nombre, rol: fila.rol, avatarSemilla: fila.avatar_semilla },
     hogar: { id: Number(fila.hogar_id), nombre: fila.hogar_nombre },
     sesion,
   };
@@ -119,6 +125,66 @@ export async function borrarCuenta(usuarioId, hogarId, contrasena) {
     await cliente.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
   });
   return true;
+}
+
+// ============ Perfil (fase 9, D-52) ============
+
+/**
+ * Cambio mi nombre (Datos personales).
+ * @param {number} usuarioId
+ * @param {string} nombre Ya validado.
+ * @returns {Promise<string>} El nombre guardado.
+ */
+export async function cambiarNombre(usuarioId, nombre) {
+  const { rows } = await pool.query('UPDATE usuarios SET nombre = $2 WHERE id = $1 RETURNING nombre', [usuarioId, nombre]);
+  return rows[0].nombre;
+}
+
+/**
+ * "Otro avatar": le pido a la base de datos una semilla nueva con el MISMO
+ * DEFAULT de la columna (008_perfil.sql), así la regla está en un solo sitio.
+ * @param {number} usuarioId
+ * @returns {Promise<string>} La semilla nueva.
+ */
+export async function nuevoAvatar(usuarioId) {
+  const { rows } = await pool.query(
+    'UPDATE usuarios SET avatar_semilla = DEFAULT WHERE id = $1 RETURNING avatar_semilla',
+    [usuarioId]
+  );
+  return rows[0].avatar_semilla;
+}
+
+/**
+ * Cambio mi contraseña, pidiendo la actual (que nadie la cambie con mi
+ * móvil desbloqueado). Si la cambio, cierro mis OTRAS sesiones: si alguien
+ * la conocía, es justo lo que quiero. La de este dispositivo sigue abierta.
+ * @param {number} usuarioId
+ * @param {{ actual: string, nueva: string }} datos Ya validados.
+ * @param {string} tokenActual El de la cookie de esta petición.
+ * @returns {Promise<number | null>} Cuántas sesiones he cerrado, o null si la actual no es la suya.
+ */
+export async function cambiarContrasena(usuarioId, { actual, nueva }, tokenActual) {
+  const {
+    rows: [fila],
+  } = await pool.query('SELECT hash_contrasena FROM usuarios WHERE id = $1', [usuarioId]);
+  if (!fila || !(await comprobarContrasena(actual, fila.hash_contrasena))) return null;
+
+  // Igual que en el registro: el hash, FUERA de la transacción (tarda).
+  const hash = await hashearContrasena(nueva);
+  return conTransaccion(async (cliente) => {
+    await cliente.query('UPDATE usuarios SET hash_contrasena = $2 WHERE id = $1', [usuarioId, hash]);
+    return cerrarOtrasSesiones(cliente, usuarioId, tokenActual);
+  });
+}
+
+/**
+ * "Cerrar las demás sesiones" (Seguridad): todas menos la de este dispositivo.
+ * @param {number} usuarioId
+ * @param {string} tokenActual El de la cookie de esta petición.
+ * @returns {Promise<number>} Cuántas he cerrado.
+ */
+export function cerrarMisOtrasSesiones(usuarioId, tokenActual) {
+  return cerrarOtrasSesiones(pool, usuarioId, tokenActual);
 }
 
 /**

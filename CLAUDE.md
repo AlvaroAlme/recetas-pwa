@@ -63,8 +63,11 @@ avatar, y 10 Lista de la compra (D-53 se fija en su paso 1). El cierre
 pasa a ser la 11 (recuperar la contraseña y cambiar el email: el
 proveedor de correo se decide entonces; en Render gratis el SMTP está
 bloqueado, hace falta una API HTTPS como Brevo o Resend).
-**Siguiente: fase 9, paso 2** (`008_perfil.sql` y la API del perfil, con
-pruebas). Paso 1 (documentación: D-52, P-16 Perfil y P-22 a P-26) hecho.
+**Siguiente: fase 9, paso 3** (`compartido/avatar.js`, de la semilla a la
+carita, con pruebas). Hechos: paso 1 (documentación: D-52, P-16 Perfil y
+P-22 a P-26) y paso 2 (`008_perfil.sql`, aplicada solo en desarrollo, y
+`PATCH /api/yo`, `POST /api/yo/avatar`, `PUT /api/yo/contrasena` y
+`DELETE /api/yo/sesiones`, probadas contra el servidor con Ana).
 
 **Fase 8 (chat ayudante con IA): aprobada.** Los 7 pasos (2026-11-17),
 desplegada en Render (`app-v28`, con `007_chat` aplicada en producción) y

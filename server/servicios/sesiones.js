@@ -24,7 +24,7 @@ function hashDeToken(token) {
 /**
  * Lo que la app sabe de quien ha iniciado sesión.
  * @typedef {Object} Sesion
- * @property {{ id: number, email: string, nombre: string, rol: string }} usuario
+ * @property {{ id: number, email: string, nombre: string, rol: string, avatarSemilla: string }} usuario
  * @property {number} hogarId
  */
 
@@ -56,7 +56,7 @@ export async function crearSesion(bd, usuarioId) {
  */
 export async function buscarSesion(token) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.nombre, m.rol, m.hogar_id
+    `SELECT u.id, u.email, u.nombre, u.avatar_semilla, m.rol, m.hogar_id
        FROM sesiones s
        JOIN usuarios u ON u.id = s.usuario_id
        JOIN miembros m ON m.usuario_id = u.id
@@ -66,7 +66,7 @@ export async function buscarSesion(token) {
   if (rows.length === 0) return null;
   const fila = rows[0];
   return {
-    usuario: { id: Number(fila.id), email: fila.email, nombre: fila.nombre, rol: fila.rol },
+    usuario: { id: Number(fila.id), email: fila.email, nombre: fila.nombre, rol: fila.rol, avatarSemilla: fila.avatar_semilla },
     hogarId: Number(fila.hogar_id),
   };
 }
@@ -77,4 +77,23 @@ export async function buscarSesion(token) {
  */
 export async function borrarSesion(token) {
   await pool.query('DELETE FROM sesiones WHERE token_hash = $1', [hashDeToken(token)]);
+}
+
+/**
+ * Cierra todas mis sesiones MENOS la de este dispositivo ("Cerrar las demás
+ * sesiones" y, de paso, al cambiar la contraseña). Recibe dónde hacer la
+ * consulta, como crearSesion(): el cambio de contraseña va en una transacción.
+ * @param {import('pg').Pool | import('pg').PoolClient} bd
+ * @param {number} usuarioId
+ * @param {string} tokenActual El de la cookie de esta petición: esa se queda.
+ * @returns {Promise<number>} Cuántas he cerrado (sin contar las ya caducadas).
+ */
+export async function cerrarOtrasSesiones(bd, usuarioId, tokenActual) {
+  const { rows } = await bd.query(
+    `DELETE FROM sesiones
+      WHERE usuario_id = $1 AND token_hash <> $2
+      RETURNING caduca_en > now() AS viva`,
+    [usuarioId, hashDeToken(tokenActual)]
+  );
+  return rows.filter((fila) => fila.viva).length;
 }

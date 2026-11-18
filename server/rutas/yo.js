@@ -1,12 +1,14 @@
 /**
- * @file Rutas de /api/yo: quién soy y borrar mi cuenta (con sesión).
+ * @file Rutas de /api/yo: quién soy, mi perfil (nombre, avatar, contraseña y
+ * sesiones, D-52) y borrar mi cuenta. Todas con sesión.
  */
 import { Router } from 'express';
-import { borrarCookieSesion } from '../cookies.js';
+import { borrarCookieSesion, leerCookie, NOMBRE_COOKIE } from '../cookies.js';
 import { ErrorApi } from '../errores.js';
 import * as hogares from '../servicios/hogares.js';
 import * as usuarios from '../servicios/usuarios.js';
-import { leerBorrarCuenta } from '../validacion/auth.js';
+import { leerBorrarCuenta, leerCambioContrasena, leerCambioNombre } from '../validacion/auth.js';
+import { limiteContrasena } from '../middlewares/limite.js';
 import { CUOTA_CHAT_DIARIA, CUOTA_IA_DIARIA } from '../../compartido/constantes.js';
 import * as cuotaIa from '../servicios/cuotaIa.js';
 
@@ -37,4 +39,35 @@ rutasYo.delete('/', async (req, res) => {
   if (!borrada) throw new ErrorApi(401, 'CREDENCIALES', 'La contraseña no es correcta.');
   borrarCookieSesion(res);
   res.status(204).end();
+});
+
+// PATCH /api/yo: { nombre }. Cambio mi nombre (Datos personales).
+rutasYo.patch('/', async (req, res) => {
+  const nombre = await usuarios.cambiarNombre(req.usuario.id, leerCambioNombre(req.body));
+  res.json({ usuario: { ...req.usuario, nombre } });
+});
+
+// POST /api/yo/avatar: "Otro avatar", con una semilla nueva.
+rutasYo.post('/avatar', async (req, res) => {
+  const avatarSemilla = await usuarios.nuevoAvatar(req.usuario.id);
+  res.json({ usuario: { ...req.usuario, avatarSemilla } });
+});
+
+// PUT /api/yo/contrasena: { actual, nueva }. Cierra mis otras sesiones;
+// la de esta cookie sigue abierta.
+rutasYo.put('/contrasena', limiteContrasena, async (req, res) => {
+  const datos = leerCambioContrasena(req.body);
+  const cerradas = await usuarios.cambiarContrasena(req.usuario.id, datos, leerCookie(req, NOMBRE_COOKIE));
+  if (cerradas === null) {
+    throw new ErrorApi(401, 'CONTRASENA_INCORRECTA', 'La contraseña actual no es correcta.', {
+      campos: { actual: 'La contraseña actual no es correcta.' },
+    });
+  }
+  res.status(204).end();
+});
+
+// DELETE /api/yo/sesiones: "Cerrar las demás sesiones". La mía se queda.
+rutasYo.delete('/sesiones', async (req, res) => {
+  const cerradas = await usuarios.cerrarMisOtrasSesiones(req.usuario.id, leerCookie(req, NOMBRE_COOKIE));
+  res.json({ cerradas });
 });

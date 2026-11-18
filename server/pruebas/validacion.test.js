@@ -1,9 +1,19 @@
 /**
- * @file Pruebas de compartido/validacion.js: validarProducto(), validarTupper(), validarRegistro() y validarLogin().
+ * @file Pruebas de compartido/validacion.js: validarProducto(), validarTupper(),
+ * validarRegistro(), validarLogin(), validarReceta() y las del perfil (D-52).
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarLogin, validarProducto, validarRegistro, validarTupper, validarReceta } from '../../compartido/validacion.js';
+import {
+  validarCambioContrasena,
+  validarLogin,
+  validarNombrePersona,
+  validarProducto,
+  validarRegistro,
+  validarTupper,
+  validarReceta,
+} from '../../compartido/validacion.js';
+import { leerCambioContrasena, leerCambioNombre } from '../validacion/auth.js';
 import { MAX_INGREDIENTES_RECETA, MAX_LONGITUD_PASO, MAX_PASOS_RECETA } from '../../compartido/constantes.js';
 
 /** Un producto válido del que parten las pruebas. */
@@ -180,5 +190,61 @@ describe('validarReceta', () => {
   it('rechaza un paso con un salto de línea dentro e ignora campos que no conoce', () => {
     assert.ok(validarReceta({ ...RECETA, pasos: ['uno\ndos'] }).errores.pasos);
     assert.equal('hogarId' in validarReceta({ ...RECETA, hogarId: 99 }).datos, false);
+  });
+});
+
+describe('validarNombrePersona() (Datos personales)', () => {
+  it('limpia los espacios de los lados', () => {
+    assert.deepEqual(validarNombrePersona('  Ana  '), { ok: true, datos: 'Ana' });
+  });
+
+  it('rechaza un nombre vacío, de más de 80 o que no es texto', () => {
+    assert.equal(validarNombrePersona('   ').errores.nombre, 'Escribe tu nombre.');
+    assert.equal(validarNombrePersona('a'.repeat(81)).ok, false);
+    assert.equal(validarNombrePersona(42).ok, false);
+    assert.equal(validarNombrePersona('a'.repeat(80)).ok, true);
+  });
+});
+
+describe('validarCambioContrasena() (Seguridad)', () => {
+  it('acepta la actual y una nueva de 10 a 128, tal cual (los espacios cuentan)', () => {
+    assert.deepEqual(validarCambioContrasena({ actual: 'una clave larga', nueva: ' otra clave larga ' }), {
+      ok: true,
+      datos: { actual: 'una clave larga', nueva: ' otra clave larga ' },
+    });
+  });
+
+  it('pide la actual, aunque sea corta no la juzga (eso lo hace el servidor)', () => {
+    assert.equal(validarCambioContrasena({ actual: '', nueva: 'otra clave larga' }).errores.actual, 'Escribe tu contraseña actual.');
+    assert.equal(validarCambioContrasena({ actual: 'corta', nueva: 'otra clave larga' }).ok, true);
+  });
+
+  it('la nueva: de 10 a 128 y distinta de la actual', () => {
+    assert.ok(validarCambioContrasena({ actual: 'una clave larga', nueva: 'corta' }).errores.nueva);
+    assert.ok(validarCambioContrasena({ actual: 'una clave larga', nueva: 'a'.repeat(129) }).errores.nueva);
+    assert.equal(
+      validarCambioContrasena({ actual: 'una clave larga', nueva: 'una clave larga' }).errores.nueva,
+      'La contraseña nueva tiene que ser distinta de la actual.'
+    );
+  });
+
+  it('rechaza lo que no es un objeto', () => {
+    assert.ok(validarCambioContrasena(null).errores.general);
+    assert.ok(validarCambioContrasena('una clave larga').errores.general);
+  });
+});
+
+describe('leerCambioNombre() y leerCambioContrasena() (PATCH /api/yo y PUT /api/yo/contrasena)', () => {
+  it('devuelven los datos limpios', () => {
+    assert.equal(leerCambioNombre({ nombre: ' Carla ' }), 'Carla');
+    assert.deepEqual(leerCambioContrasena({ actual: 'una clave larga', nueva: 'otra clave larga' }), {
+      actual: 'una clave larga',
+      nueva: 'otra clave larga',
+    });
+  });
+
+  it('lanzan un 400 VALIDACION con el campo que falla', () => {
+    assert.throws(() => leerCambioNombre({}), (error) => error.estado === 400 && error.codigo === 'VALIDACION' && Boolean(error.campos.nombre));
+    assert.throws(() => leerCambioContrasena({ actual: 'x', nueva: 'x' }), (error) => error.estado === 400 && Boolean(error.campos.nueva));
   });
 });

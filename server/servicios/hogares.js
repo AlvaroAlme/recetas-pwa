@@ -153,7 +153,7 @@ export function nombreDeCasa(nombre) {
 export async function obtenerHogar(hogarId) {
   // La hora como texto HH:MM (pg me daría '21:00:00').
   const { rows } = await pool.query(
-    `SELECT h.id, h.nombre, h.zona_horaria, to_char(h.hora_aviso_plan, 'HH24:MI') AS hora_aviso_plan, u.id AS usuario_id, u.nombre AS usuario_nombre, m.rol
+    `SELECT h.id, h.nombre, h.zona_horaria, to_char(h.hora_aviso_plan, 'HH24:MI') AS hora_aviso_plan, u.id AS usuario_id, u.nombre AS usuario_nombre, u.avatar_semilla, m.rol
        FROM hogares h
        JOIN miembros m ON m.hogar_id = h.id
        JOIN usuarios u ON u.id = m.usuario_id
@@ -166,7 +166,12 @@ export async function obtenerHogar(hogarId) {
     nombre: rows[0].nombre,
     zonaHoraria: rows[0].zona_horaria,
     horaAvisoPlan: rows[0].hora_aviso_plan,
-    miembros: rows.map((fila) => ({ id: Number(fila.usuario_id), nombre: fila.usuario_nombre, rol: fila.rol })),
+    miembros: rows.map((fila) => ({
+      id: Number(fila.usuario_id),
+      nombre: fila.usuario_nombre,
+      rol: fila.rol,
+      avatarSemilla: fila.avatar_semilla,
+    })),
   };
 }
 

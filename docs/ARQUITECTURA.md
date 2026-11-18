@@ -520,9 +520,9 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | `POST /api/auth/logout` 🔑 | — | 204 + cookie borrada | — | Borra la fila de `sesiones` |
 | `GET /api/yo` 🔑 | — | 200 `{ usuario, hogar, miembros, cuotaIa: { usadas, limite }, cuotaChat: { usadas, limite }, avisoIaAceptado }` | 401 | `usuario` y cada miembro llevan `avatarSemilla` (fase 9, D-52) |
 | `PATCH /api/yo` 🔑 | `{ nombre }` | 200 `{ usuario }` | 400 | Fase 9 (D-52). Nombre de 1 a 80, como en el registro. El email todavía no se cambia (fase 11: hay que confirmarlo por correo) |
-| `POST /api/yo/avatar` 🔑 | — | 200 `{ usuario }` | — | Fase 9. "Otro avatar": semilla nueva con `crypto.randomBytes(16)` |
+| `POST /api/yo/avatar` 🔑 | — | 200 `{ usuario }` | — | Fase 9. "Otro avatar": `UPDATE … SET avatar_semilla = DEFAULT` (el mismo `gen_random_uuid()` de la columna: la regla, en un solo sitio) |
 | `PUT /api/yo/contrasena` 🔑 | `{ actual, nueva }` | 204 | 400, 401 `CONTRASENA_INCORRECTA`, 429 | Fase 9. `nueva` de 10 a 128 (P-02) y distinta de la actual. **TX:** hash nuevo y **se borran las demás sesiones** (la de este dispositivo sigue). Límite: 5 intentos / 15 min por persona |
-| `DELETE /api/yo/sesiones` 🔑 | — | 200 `{ cerradas: n }` | — | Fase 9. "Cerrar las demás sesiones": borra las filas de `sesiones` de la persona menos la de su cookie |
+| `DELETE /api/yo/sesiones` 🔑 | — | 200 `{ cerradas: n }` | — | Fase 9. "Cerrar las demás sesiones": borra las filas de `sesiones` de la persona menos la de su cookie (`n` no cuenta las que ya habían caducado) |
 | `DELETE /api/yo` 🔑 | `{ contrasena }` | 204 | 400, 401 | **TX:** si la persona era la única del hogar, se borra el hogar (`CASCADE` borra sus datos); si había más y era propietaria, se pasa la propiedad al miembro más antiguo. Después se borra el usuario |
 
 #### Hogar

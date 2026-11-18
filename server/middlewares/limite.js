@@ -101,3 +101,14 @@ export const limitePruebaPush = crearLimite({
   clave: (req) => `usuario:${req.usuario.id}`,
   mensaje: 'Ya has enviado 3 avisos de prueba esta hora. Espera un poco.',
 });
+
+/**
+ * Como mucho 5 intentos de cambiar la contraseña cada 15 minutos y por
+ * persona (§9.5, D-52): como el login por email, que nadie con mi móvil
+ * desbloqueado pueda ir probando contraseñas. Va detrás de exigirSesion.
+ */
+export const limiteContrasena = crearLimite({
+  maximo: 5,
+  ventanaMs: QUINCE_MINUTOS,
+  clave: (req) => `usuario:${req.usuario.id}`,
+});

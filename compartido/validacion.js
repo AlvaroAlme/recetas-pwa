@@ -256,6 +256,54 @@ export function validarLogin(entrada) {
   return { ok: true, datos: { email, contrasena } };
 }
 
+// ============ Perfil (fase 9, D-52) ============
+
+/**
+ * Comprueba tu nombre (Datos personales). Las mismas reglas que al crear
+ * la cuenta: de 1 a 80 caracteres, sin contar los espacios de los lados.
+ * @param {unknown} valor
+ * @returns {{ ok: true, datos: string } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarNombrePersona(valor) {
+  const nombre = typeof valor === 'string' ? valor.trim() : '';
+  if (nombre === '') return { ok: false, errores: { nombre: 'Escribe tu nombre.' } };
+  if (nombre.length > MAX_LONGITUD_NOMBRE) {
+    return { ok: false, errores: { nombre: `Tu nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.` } };
+  }
+  return { ok: true, datos: nombre };
+}
+
+/**
+ * Comprueba el formulario de "Cambiar la contraseña" (Seguridad). De la
+ * actual solo miro que esté escrita (si no coincide, lo dice el servidor);
+ * la nueva sigue las reglas del registro (P-02) y no puede ser la misma.
+ * @param {unknown} entrada { actual, nueva }
+ * @returns {{ ok: true, datos: { actual: string, nueva: string } } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarCambioContrasena(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Escribe tu contraseña actual y la nueva.' } };
+  }
+  const actual = typeof entrada.actual === 'string' ? entrada.actual : '';
+  const nueva = typeof entrada.nueva === 'string' ? entrada.nueva : '';
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  if (actual === '') errores.actual = 'Escribe tu contraseña actual.';
+  else if (actual.length > MAX_LONGITUD_CONTRASENA) errores.actual = 'La contraseña actual no es correcta.';
+
+  if (nueva.length < MIN_LONGITUD_CONTRASENA) {
+    errores.nueva = `La contraseña tiene que tener al menos ${MIN_LONGITUD_CONTRASENA} caracteres.`;
+  } else if (nueva.length > MAX_LONGITUD_CONTRASENA) {
+    errores.nueva = `La contraseña puede tener como mucho ${MAX_LONGITUD_CONTRASENA} caracteres.`;
+  } else if (nueva === actual) {
+    errores.nueva = 'La contraseña nueva tiene que ser distinta de la actual.';
+  }
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { actual, nueva } };
+}
+
 // ============ Hogar ============
 
 /**
