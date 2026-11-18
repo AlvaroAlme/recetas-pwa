@@ -49,8 +49,8 @@ Proyecto de portfolio de un estudiante de DAW.
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
 3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15), 7
-(2026-11-16) y 8 (2026-11-17). El detalle de cada paso está en los
-commits (`git log`).
+(2026-11-16), 8 (2026-11-17) y 9 (2026-11-18). El detalle de cada paso
+está en los commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
 ayudante con acciones (tarjetas que se confirman), el cuadrante va por
@@ -58,13 +58,18 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Fases 9 y 10 nuevas (2026-11-18, D-52):** antes del cierre, 9 Perfil y
-avatar, y 10 Lista de la compra (D-53 se fija en su paso 1). El cierre
-pasa a ser la 11 (recuperar la contraseña y cambiar el email: el
-proveedor de correo se decide entonces; en Render gratis el SMTP está
-bloqueado, hace falta una API HTTPS como Brevo o Resend).
-**Siguiente: fase 9, paso 5** (desplegar en Render, `008_perfil` se
-aplica al arrancar, y probar el "Hecho cuando" en el iPhone). Paso 4
+**Fases nuevas (2026-11-18, D-52 y D-53):** 9 Perfil y avatar, 10
+Recuperar la contraseña y cambiar el email (Resend + dominio propio;
+Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
+su paso 1) y 12 cierre.
+**Siguiente: fase 10, paso 2** (el autor compra el dominio, crea la
+cuenta de Resend, verifica el dominio con SPF y DKIM y crea las keys
+`vigia-desarrollo` y `vigia-produccion`, con guía; NUNCA pegarlas en el
+chat). Paso 1 (documentación: D-53, `enlaces_correo`, rutas `olvide`,
+`restablecer`, `confirmar-email` y `yo/email`, P-27 a P-29) hecho.
+
+**Fase 9 (Perfil y avatar): aprobada** (2026-11-18, "ok" del autor tras
+desplegar `app-v30`). Paso 4
 hecho: Perfil (`perfil.js`) y sus apartados (`perfilDatos`,
 `perfilSeguridad`, `perfilHogar`, `perfilAvisos`, `perfilIa`, con
 `comunPerfil.js`), `ajustes.js` borrado, `/ajustes` → `/perfil`

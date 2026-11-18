@@ -271,7 +271,7 @@ html {
 | `EstadoVacio` | `crearVacio()` | `<section>` + `<h2>` |
 | `Aviso` | `crearAviso()` | `<div role="alert">` o `role="status"` |
 | `TituloSeccion` | `crearTituloSeccion()` | `<h2>` |
-| *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 10, D-53) |
+| *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 11, D-54) |
 | *(nuevo)* | `crearCabecera()` | `<header>` con "‹ Atrás", título y acción; en las pestañas, también el botón de Perfil con tu avatar (D-52) |
 | *(nuevo)* | `crearAvatar()`, `crearAvatarVivo()` | El avatar de una semilla, dibujado por blobatar: `<img>` quieto o `<svg>` vivo (D-52) |
 | *(nuevo, sustituye a `Alert`)* | `confirmar()` | `<dialog>` + `showModal()` |
@@ -442,7 +442,7 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
     <li><a href="/ayudante">…<span>Ayudante</span></a></li>
   </ul>
 </nav>
-<!-- Fase 10 (D-53): <li><a href="/lista">…<span>Lista</span></a></li> va detrás de Inventario. -->
+<!-- Fase 11 (D-54): <li><a href="/lista">…<span>Lista</span></a></li> va detrás de Inventario. -->
 ```
 - **Pestaña activa:** `aria-current="page"` + color `primario` + **texto en negrita y una barrita encima** (abajo) o a la izquierda (lateral). No depende solo del color.
 - Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30). Como mucho **5 pestañas**: en un iPhone de 375 px caben 75 px por pestaña; con 6 quedarían 62 px y "Ayudante" no cabría (por eso Ajustes pasa a la cabecera como Perfil, D-52). El texto va en `--texto-pequeno` y en una sola línea. Icono de Ayudante: un bocadillo de conversación.
@@ -542,6 +542,7 @@ Leyenda: `[ Botón ]` primario · `[ Botón ]°` secundario · `‹texto›` fan
 │  [__________________________] │
 │  Contraseña                   │
 │  [__________________________] │
+│  ‹¿Has olvidado la contraseña?›  enlace (D-53)
 │                               │
 │  [         Entrar          ]  │
 │                               │
@@ -1022,13 +1023,18 @@ Sin barra de pestañas (es una pantalla secundaria). El avatar grande es el **vi
 │      ‹Otro avatar›            │  botón secundario
 │  Nombre                       │
 │  [Álvaro__________________]   │
-│  Email                        │
-│  alvaro@ejemplo.es            │  solo se ve (fase 11)
-│  Pronto podrás cambiarlo.     │  tenue
-│──────────────────────────────│
 │ [     Guardar nombre      ]   │
+│  EMAIL                        │
+│  alvaro@ejemplo.es            │
+│  ‹Cambiar email›              │  abre el formulario (fase 10, D-53)
+│  Email nuevo                  │
+│  [________________________]   │
+│  Tu contraseña                │
+│  [••••••••••••] Mostrar       │
+│  [ Enviar enlace ]  ‹Cancelar›│
 └──────────────────────────────┘
 ```
+- **Cambiar email (D-53):** `‹Cambiar email›` despliega el formulario (email nuevo con `type="email"` y `autocomplete="email"`, y la contraseña actual). "Enviando…" → "Te hemos enviado un enlace a nuevo@…: ábrelo para confirmar. Hasta entonces sigues entrando con alvaro@…". Errores en su campo: contraseña incorrecta, email en uso, el mismo que ya tienes.
 - "Otro avatar" → `POST /api/yo/avatar` y el avatar cambia al momento (también el de la cabecera). Sin confirmar: si no gusta, se pulsa otra vez.
 - Nombre con `crearCampo()` y la misma validación que en el registro. "Guardando…" → "✓ Nombre guardado." (`role="status"`).
 
@@ -1064,6 +1070,42 @@ Lo que eran las secciones "Avisos en este dispositivo" y "Aviso del plan" de Aju
 #### P-26 · Inteligencia artificial — `/perfil/ia` · E-2 (D-52)
 Lo que era la sección de IA de Ajustes: "Tickets: te quedan 9 de 10 hoy." · "Ayudante: te quedan 28 de 30 mensajes hoy." · "Las fotos de los tickets y los mensajes del Ayudante se envían a Anthropic para leerlos." y `‹Privacidad›`.
 
+#### P-27 · Recuperar contraseña — `/recuperar` · E-3 (D-53)
+```
+┌──────────────────────────────┐
+│  ‹ Entrar  Recuperar contraseña
+│  Escribe el email de tu       │
+│  cuenta y te enviaremos un    │
+│  enlace para poner una nueva. │
+│  Email                        │
+│  [__________________________] │
+│  [      Enviar enlace      ]  │
+└──────────────────────────────┘
+          ↓ al enviar
+│  ✓ Si hay una cuenta con      │
+│  ana@ejemplo.es, te hemos     │
+│  enviado un enlace. Caduca en │
+│  30 minutos. Mira también en  │
+│  la carpeta de spam.          │
+│  ‹Volver a Entrar›            │
+```
+Pública. Si en Entrar ya habías escrito tu email, sale puesto (pasa en `history.state`, nunca en la URL). La respuesta es la misma exista o no la cuenta. Con 429: "Has pedido demasiados enlaces. Espera un rato."
+
+#### P-28 · Contraseña nueva — `/restablecer#t=…` · E-3 (D-53)
+```
+┌──────────────────────────────┐
+│  Contraseña nueva             │
+│  Contraseña nueva             │
+│  [••••••••••••] Mostrar       │
+│  De 10 a 128 caracteres.      │
+│  [   Guardar y entrar      ]  │
+└──────────────────────────────┘
+```
+Pública; la abre el enlace del correo. El token se lee de `location.hash` y se borra de la barra de direcciones (`history.replaceState`) al llegar. `autocomplete="new-password"`. Al guardar: entra y va al Inventario con "✓ Contraseña cambiada. Hemos cerrado la sesión en tus otros dispositivos." Enlace que no sirve (usado, caducado o mal copiado): "Este enlace ya no sirve. Pide otro." + `[Pedir otro enlace]` (→ `/recuperar`).
+
+#### P-29 · Confirmar email — `/confirmar-email#t=…` · E-3 (D-53)
+Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-email` con el token (y lo borra de la barra de direcciones). "Confirmando…" → "✓ Tu email ahora es nuevo@….", con `[Ir a Vigía]`; o "Este enlace ya no sirve. Vuelve a pedir el cambio desde Perfil › Datos personales." / "Ese email ya lo usa otra cuenta."
+
 #### P-17 · Invitar / unirse — `/hogar/invitar` · `/hogar/unirse` · E-2
 ```
 INVITAR                             UNIRSE
@@ -1083,7 +1125,7 @@ INVITAR                             UNIRSE
 "Compartir…" usa `navigator.share()` si existe.
 
 #### P-18 · Privacidad — `/privacidad` · E-3
-Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los tickets se envían a Anthropic** para leerlas y no se guardan, que **los mensajes del Ayudante** (y lo que lee de tu inventario, tus recetas y tu plan) también se envían a Anthropic y la conversación se guarda 30 días, solo la ve quien la escribe y se borra con "Nueva conversación" o al borrar la cuenta (D-51), la cuota de IA, cómo borrar la cuenta y el contacto. Se puede abrir sin sesión.
+Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los tickets se envían a Anthropic** para leerlas y no se guardan, que **los mensajes del Ayudante** (y lo que lee de tu inventario, tus recetas y tu plan) también se envían a Anthropic y la conversación se guarda 30 días, solo la ve quien la escribe y se borra con "Nueva conversación" o al borrar la cuenta (D-51), que **los correos** (recuperar la contraseña, cambiar el email) se envían con **Resend**, que recibe tu email y el texto del correo (D-53), la cuota de IA, cómo borrar la cuenta y el contacto. Se puede abrir sin sesión.
 
 #### P-19 · No existe — cualquier ruta desconocida · E-1/E-3
 `EstadoVacio` centrado: "Esta pantalla no existe" + `[Ir al inventario]°`. Igual para los parámetros no válidos ("Día no válido", "Este producto ya no existe").
@@ -1093,7 +1135,7 @@ Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los ti
 ## 5. Navegación y rutas
 
 ### 5.1 Pestañas
-**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 10, **Lista** (`/lista`, D-53) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27).
+**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 11, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27).
 
 ### 5.2 Rutas (History API: URLs normales, sin `#`)
 
@@ -1129,6 +1171,9 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/hogar/invitar`, `/hogar/unirse` | P-17 | — | `?codigo` opcional, formato del código | `/perfil/hogar` |
 | `/cuenta/borrar` | Borrar cuenta (fase 2): aviso de lo que se borra + contraseña | — | — | `/perfil/seguridad` |
 | `/privacidad` | P-18 | — | — | página anterior o `/` |
+| `/recuperar` | P-27 | — (pública) | — | `/entrar` |
+| `/restablecer#t=…` | P-28 | — (pública) | el token (`#t=`): 43 caracteres base64url; si no, "Este enlace ya no sirve" | `/entrar` |
+| `/confirmar-email#t=…` | P-29 | — (pública) | igual que `/restablecer` | `/` |
 | otra | P-19 | — | — | `/` |
 
 ### 5.3 Reglas de navegación
