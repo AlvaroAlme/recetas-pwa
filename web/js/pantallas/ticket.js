@@ -4,13 +4,29 @@
  * elegir la foto o el PDF y mandarlo a Claude. Después, revisar cada línea
  * (corregir, eliminar o confirmar) y guardarlo todo con /api/productos/lote.
  */
+import { thinking } from '/vendor/blobatar/expression.js';
 import { api, mensajeDeError } from '../api.js';
 import { ErrorArchivo, prepararArchivoTicket } from '../archivoTicket.js';
+import { crearAvatarVivo, ponerExpresion } from '../componentes/avatar.js';
 import { crearLinea, crearLineaTicket, problemaLinea } from '../componentes/lineaTicket.js';
 import { crearAviso, crearCarga, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { salir } from '../movimiento.js';
 import { navegar } from '../router.js';
+import { usuarioSabido } from '../yo.js';
+
+/**
+ * Mientras Claude lee el ticket, tu avatar "piensa" (D-56), en vez del
+ * círculo que gira. Si todavía no sé quién eres, el círculo de siempre.
+ * @returns {HTMLElement}
+ */
+function crearCargaTicket() {
+  const usuario = usuarioSabido();
+  if (!usuario) return crearCarga('Leyendo el ticket…');
+  const avatar = crearAvatarVivo({ semilla: usuario.avatarSemilla, tamano: 64 });
+  ponerExpresion(avatar, thinking);
+  return el('div', { class: 'carga', role: 'status' }, avatar, el('p', {}, 'Leyendo el ticket…'));
+}
 
 /** @returns {import('../router.js').Vista} */
 export function pantallaTicket() {
@@ -148,7 +164,7 @@ export function pantallaTicket() {
   /** @param {{ base64: string, mimeType: string }} archivo */
   async function leer(archivo) {
     ponerCargando(elegir, true, 'Leyendo…');
-    zona.replaceChildren(crearCarga('Leyendo el ticket…'), el('p', { class: 'tono--tenue' }, 'Puede tardar unos segundos.'));
+    zona.replaceChildren(crearCargaTicket(), el('p', { class: 'tono--tenue' }, 'Puede tardar unos segundos.'));
     try {
       const { productos } = await api.post('/ia/ticket', { archivo });
       ponerCargando(elegir, false);

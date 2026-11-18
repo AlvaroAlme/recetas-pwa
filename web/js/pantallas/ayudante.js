@@ -29,6 +29,7 @@ import {
 } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { entrar } from '../movimiento.js';
+import { pensar } from '../reacciones.js';
 import { cargarInventarioCompleto } from './receta.js';
 
 /** Los ejemplos del estado vacío: al pulsarlos se ESCRIBEN, no se envían. */
@@ -310,6 +311,8 @@ export function pantallaAyudante() {
   async function enviar(texto) {
     if (respondiendo) return;
     respondiendo = true;
+    // Tu avatar de la cabecera "piensa" mientras el Ayudante responde (D-56).
+    pensar(true);
     zonaAviso.replaceChildren();
     anuncio.textContent = '';
 
@@ -352,6 +355,7 @@ export function pantallaAyudante() {
       falloAlEnviar(error, texto, mio, suyo, empezado);
     } finally {
       respondiendo = false;
+      pensar(false);
       if (datos) actualizar();
     }
   }

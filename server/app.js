@@ -138,11 +138,12 @@ app.use('/api', rutaNoEncontrada);
 // compartido/ lo ejecutan Node y el navegador: es el mismo archivo en los dos sitios (P-04).
 app.use('/compartido', express.static(path.join(import.meta.dirname, '..', 'compartido')));
 
-// blobatar (D-52), el dibujo de los avatares: sirvo SOLO los tres archivos
+// blobatar (D-52), el dibujo de los avatares: sirvo SOLO los cuatro archivos
 // que usa la app, sacados de node_modules (versión fija en package.json).
 // Así no hace falta copiarlos a web/ ni un bundler, y la CSP 'self' se cumple.
 const CARPETA_BLOBATAR = path.join(import.meta.dirname, '..', 'node_modules', 'blobatar', 'dist');
-for (const archivo of ['index.js', 'internal.js', 'motion.css']) {
+// expression.js (D-56): las caras (contento, triste, pensando). No importa nada más.
+for (const archivo of ['index.js', 'internal.js', 'expression.js', 'motion.css']) {
   app.get(`/vendor/blobatar/${archivo}`, (req, res) => res.sendFile(path.join(CARPETA_BLOBATAR, archivo)));
 }
 app.use(express.static(CARPETA_WEB));

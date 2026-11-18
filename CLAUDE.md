@@ -61,9 +61,17 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 4** (expresiones: servir `expression.js`,
-`ponerExpresion()` con pruebas y las reacciones del avatar). Paso 3
-hecho (2026-11-18): View Transitions en `router.js` (`conTransicion`,
+**Siguiente: fase 11, paso 5** (Bienvenida "Este eres tú" con el
+nacimiento del avatar). Paso 4 hecho (2026-11-18): `app.js` sirve
+también `expression.js`; `ponerExpresion(avatar, pose)` en `avatar.js`
+(un `WeakMap` con la semilla, el grupo y las variables puestas);
+`reacciones.js` (`usarAvatarCabecera`, `pensar`, y escucha
+`vigia:escritura`, que lanza `api.js` en cada POST/PUT/PATCH/DELETE: no
+con `campos` ni con 401); `thinking` en el Ayudante y un avatar de 64 px
+que piensa al leer el ticket (sin probar: gasta IA). Ojo: el router pasa
+el avatar ANTES de meterlo en la página (no está "conectado"). 4
+pruebas nuevas en `avatar.test.js` (244 en total). `sw.js` en
+`app-v38`. Paso 3 hecho (2026-11-18): View Transitions en `router.js` (`conTransicion`,
 `decidirSentido`, `ponerVista`; `navegar()` adelante y con `reemplazar`
 atrás; `atrasConFlecha` para que el gesto de iOS no se anime dos veces;
 sin animación si el camino no cambia), con su CSS al final de

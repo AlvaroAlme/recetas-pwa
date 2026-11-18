@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v37';
+const VERSION = 'app-v38';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -33,6 +33,7 @@ const ARCHIVOS = [
   '/js/dom.js',
   '/js/log.js',
   '/js/movimiento.js',
+  '/js/reacciones.js',
   '/js/router.js',
   '/js/yo.js',
   '/js/componentes/avatar.js',
@@ -98,6 +99,7 @@ const ARCHIVOS = [
   // blobatar (D-52): app.js los sirve desde node_modules.
   '/vendor/blobatar/index.js',
   '/vendor/blobatar/internal.js',
+  '/vendor/blobatar/expression.js',
   '/vendor/blobatar/motion.css',
 ];
 

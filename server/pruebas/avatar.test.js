@@ -10,6 +10,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { blobatar } from 'blobatar';
 import { _parts } from 'blobatar/internal';
+import { happy, idle, sad, thinking } from 'blobatar/expression';
 
 /** Las mismas opciones que crearAvatar() y crearAvatarVivo(). */
 const QUIETO = { background: 'circle' };
@@ -55,6 +56,48 @@ describe('blobatar con nuestras semillas', () => {
         for (const declaracion of estilo.split(';').filter(Boolean)) {
           assert.match(declaracion, /^(--mo-[\w-]+|transform-origin):/);
         }
+      }
+    }
+  });
+});
+
+describe('las expresiones del avatar (D-56)', () => {
+  const SEMILLA = '00000000000000000000000000000000';
+  const variables = (pose) => _parts(SEMILLA, { ...VIVO, expression: pose }).vars;
+
+  it('idle es el avatar de siempre: sin variables de expresión ni la clase mo-expr', () => {
+    const normal = _parts(SEMILLA, VIVO);
+    const conIdle = _parts(SEMILLA, { ...VIVO, expression: idle });
+    assert.deepEqual(conIdle.vars, normal.vars);
+    assert.equal(conIdle.cls, normal.cls);
+    assert.ok(!conIdle.cls.includes('mo-expr'));
+  });
+
+  it('una expresión no cambia el dibujo: solo variables y la clase mo-expr (así ponerExpresion no toca el SVG)', () => {
+    const normal = _parts(SEMILLA, VIVO);
+    for (const pose of [happy, sad, thinking]) {
+      const partes = _parts(SEMILLA, { ...VIVO, expression: pose });
+      assert.equal(partes.inner, normal.inner);
+      assert.ok(partes.cls.split(' ').includes('mo-expr'));
+      // Las variables de siempre siguen igual; la expresión solo añade.
+      for (const [variable, valor] of Object.entries(normal.vars)) {
+        if (!variable.startsWith('--mo-head') && !variable.startsWith('--mo-eye')) assert.equal(partes.vars[variable], valor);
+      }
+    }
+  });
+
+  it('cada expresión que uso trae sus variables de siempre (si cambian, cambian las caras: avisar en D-56)', () => {
+    assert.equal(variables(happy)['--mo-esx'], '1.72');
+    assert.equal(variables(happy)['--mo-bdy'], '-2.2');
+    assert.ok('--mo-edy' in variables(sad));
+    assert.ok('--mo-rock' in variables(thinking));
+  });
+
+  it('las variables son números o colores sencillos: nada que la CSP o setProperty no acepten', () => {
+    for (const pose of [happy, sad, thinking]) {
+      for (const [variable, valor] of Object.entries(variables(pose))) {
+        assert.match(variable, /^--mo-[a-z0-9-]+$/);
+        assert.match(String(valor), /^(-?[0-9.]+(ms|px)?|#[0-9a-f]{3,8})$/i);
       }
     }
   });

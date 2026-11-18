@@ -58,7 +58,7 @@ export function crearAvatar({ semilla, tamano }) {
 export function crearAvatarVivo({ semilla, tamano }) {
   // _parts es la pieza que usan los adaptadores de React y Vue: el dibujo
   // con las clases de la animación y sus variables (tiempos, colores…).
-  const partes = _parts(semilla, { background: 'circle', animate: 'always' });
+  const partes = _parts(semilla, OPCIONES_VIVO);
   const svg = elSvg('svg', {
     class: 'avatar avatar--vivo',
     viewBox: '0 0 100 100',
@@ -72,7 +72,42 @@ export function crearAvatarVivo({ semilla, tamano }) {
   const grupo = elSvg('g', { class: partes.cls ?? '' });
   grupo.append(...leerSvg(partes.inner));
   svg.append(grupo);
+  vivos.set(svg, { semilla, grupo, variables: new Set(Object.keys(partes.vars ?? {})) });
   return svg;
+}
+
+/** Las opciones del avatar vivo: con su círculo y siempre animado. */
+const OPCIONES_VIVO = { background: 'circle', animate: 'always' };
+
+/**
+ * Lo que necesito de cada avatar vivo para cambiarle la cara: su semilla,
+ * el grupo que lleva las clases y las variables que le he puesto. En un
+ * WeakMap: cuando el avatar desaparece de la pantalla, se olvida solo.
+ * @type {WeakMap<SVGSVGElement, { semilla: string, grupo: SVGGElement, variables: Set<string> }>}
+ */
+const vivos = new WeakMap();
+
+/**
+ * Le pongo una expresión a un avatar vivo (D-56): happy, sad, thinking… de
+ * /vendor/blobatar/expression.js, o idle para volver a la normal. Una
+ * expresión son solo variables de CSS (cuánto se estiran o se inclinan los
+ * ojos…) y la clase mo-expr: blobatar pasa de una a otra con una transición.
+ * Las pongo con setProperty, que la CSP permite.
+ * @param {SVGSVGElement} avatar El de crearAvatarVivo().
+ * @param {object} pose
+ */
+export function ponerExpresion(avatar, pose) {
+  const vivo = vivos.get(avatar);
+  if (!vivo) return;
+  const partes = _parts(vivo.semilla, { ...OPCIONES_VIVO, expression: pose });
+  const nuevas = partes.vars ?? {};
+  // Las de la expresión anterior que esta no trae, fuera (vuelven a su valor de reposo).
+  for (const variable of vivo.variables) {
+    if (!(variable in nuevas)) avatar.style.removeProperty(variable);
+  }
+  for (const [variable, valor] of Object.entries(nuevas)) avatar.style.setProperty(variable, valor);
+  vivo.variables = new Set(Object.keys(nuevas));
+  vivo.grupo.setAttribute('class', partes.cls ?? '');
 }
 
 /**

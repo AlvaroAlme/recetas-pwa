@@ -14,6 +14,7 @@ import { crearIcono } from './componentes/iconos.js';
 import { el } from './dom.js';
 import { logError } from './log.js';
 import { sinMovimiento } from './movimiento.js';
+import { usarAvatarCabecera } from './reacciones.js';
 import { olvidarUsuario, usuarioActual, usuarioSabido } from './yo.js';
 
 /**
@@ -129,7 +130,12 @@ function crearEnlacePerfil() {
   const enlace = el('a', { class: 'cabecera__perfil', href: '/perfil', 'aria-label': 'Perfil' });
   const flecha = crearIcono('adelante');
   flecha.classList.add('cabecera__flecha');
-  const ponerAvatar = (usuario) => enlace.replaceChildren(crearAvatarVivo({ semilla: usuario.avatarSemilla, tamano: 32 }), flecha);
+  const ponerAvatar = (usuario) => {
+    const avatar = crearAvatarVivo({ semilla: usuario.avatarSemilla, tamano: 32 });
+    enlace.replaceChildren(avatar, flecha);
+    // Este es el que pone caras al guardar o mientras piensa el Ayudante (D-56).
+    usarAvatarCabecera(avatar);
+  };
   const sabido = usuarioSabido();
   if (sabido) {
     ponerAvatar(sabido);

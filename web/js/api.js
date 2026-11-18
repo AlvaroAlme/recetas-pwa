@@ -271,13 +271,38 @@ async function flujo(ruta, cuerpo, alEvento) {
   }
 }
 
+/**
+ * Una escritura (POST, PUT, PATCH, DELETE) que, al terminar, lo cuenta con
+ * el evento "vigia:escritura" ({ ok }): el avatar de la cabecera se alegra
+ * o se pone triste (reacciones.js, D-56). No cuento un error de validación
+ * (ya se ve en el campo) ni un 401 (te mando a Entrar).
+ * @param {string} metodo
+ * @param {string} ruta
+ * @param {unknown} [cuerpo]
+ */
+async function escribir(metodo, ruta, cuerpo) {
+  try {
+    const datos = await peticion(metodo, ruta, cuerpo);
+    avisarEscritura(true);
+    return datos;
+  } catch (error) {
+    if (error.estado !== 401 && !error.campos) avisarEscritura(false);
+    throw error;
+  }
+}
+
+/** @param {boolean} ok */
+function avisarEscritura(ok) {
+  dispatchEvent(new CustomEvent('vigia:escritura', { detail: { ok } }));
+}
+
 /** Atajos para cada método. "delete" es palabra reservada: lo llamo borrar. */
 export const api = {
   get: (ruta) => peticion('GET', ruta),
-  post: (ruta, cuerpo) => peticion('POST', ruta, cuerpo),
-  put: (ruta, cuerpo) => peticion('PUT', ruta, cuerpo),
-  patch: (ruta, cuerpo) => peticion('PATCH', ruta, cuerpo),
-  borrar: (ruta, cuerpo) => peticion('DELETE', ruta, cuerpo),
+  post: (ruta, cuerpo) => escribir('POST', ruta, cuerpo),
+  put: (ruta, cuerpo) => escribir('PUT', ruta, cuerpo),
+  patch: (ruta, cuerpo) => escribir('PATCH', ruta, cuerpo),
+  borrar: (ruta, cuerpo) => escribir('DELETE', ruta, cuerpo),
   flujo,
 };
 
