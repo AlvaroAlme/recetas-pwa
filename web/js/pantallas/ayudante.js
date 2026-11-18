@@ -13,6 +13,7 @@ import {
   MAX_PREGUNTAS_CONVERSACION,
 } from '/compartido/constantes.js';
 import { api, mensajeDeError } from '../api.js';
+import { crearIcono } from '../componentes/iconos.js';
 import { crearMensajeChat } from '../componentes/mensajeChat.js';
 import { crearTarjetaHuecos } from '../componentes/tarjetaHuecos.js';
 import { crearTarjetaReceta } from '../componentes/tarjetaReceta.js';
@@ -110,11 +111,20 @@ export function pantallaAyudante() {
     ),
   });
 
-  // La cabecera: "Nueva conversación", solo si hay algo que borrar.
+  // La cabecera: "Nueva conversación", solo si hay algo que borrar. Solo el
+  // icono (D-55); el nombre va en aria-label y en title (al pasar el ratón).
   const botonNueva = el(
     'button',
-    { class: 'boton boton--fantasma boton--ajustado', type: 'button', hidden: true, 'data-escribe': true, onclick: nuevaConversacion },
-    'Nueva conversación'
+    {
+      class: 'boton-icono',
+      type: 'button',
+      'aria-label': 'Nueva conversación',
+      title: 'Nueva conversación',
+      hidden: true,
+      'data-escribe': true,
+      onclick: nuevaConversacion,
+    },
+    crearIcono('nuevaConversacion')
   );
 
   // El pie: el área de texto, Enviar y lo que me queda hoy.

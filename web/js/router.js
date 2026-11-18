@@ -10,6 +10,7 @@
  * (o promete) lo que va en el esqueleto de index.html: una Vista.
  */
 import { crearAvatar } from './componentes/avatar.js';
+import { crearIcono } from './componentes/iconos.js';
 import { el } from './dom.js';
 import { logError } from './log.js';
 import { olvidarUsuario, usuarioActual, usuarioSabido } from './yo.js';
@@ -93,8 +94,9 @@ function buscar(camino) {
 }
 
 /**
- * El enlace "‹ Atrás" de la cabecera. Es un <a> con su href de verdad (se
- * puede abrir en otra pestaña), pero al pulsarlo uso volver().
+ * El enlace Atrás de la cabecera: solo la flecha (D-55), con "Atrás" en el
+ * aria-label para el lector. Es un <a> con su href de verdad (se puede abrir
+ * en otra pestaña), pero al pulsarlo uso volver().
  * @param {string} porDefecto
  * @returns {HTMLAnchorElement}
  */
@@ -102,14 +104,15 @@ function crearAtras(porDefecto) {
   return el(
     'a',
     {
-      class: 'cabecera__atras',
+      class: 'boton-icono cabecera__atras',
       href: porDefecto,
+      'aria-label': 'Atrás',
       onclick: (evento) => {
         evento.preventDefault();
         volver(porDefecto);
       },
     },
-    '‹ Atrás'
+    crearIcono('atras')
   );
 }
 

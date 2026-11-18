@@ -5,6 +5,7 @@
  */
 import { UBICACIONES } from '/compartido/constantes.js';
 import { api, mensajeDeError } from '../api.js';
+import { crearIcono } from '../componentes/iconos.js';
 import { confirmar, crearAviso, crearCarga, crearSinConexion, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { crearVistaReceta } from '../componentes/vistaReceta.js';
 import { el } from '../dom.js';
@@ -38,7 +39,12 @@ export function pantallaReceta({ parametros }) {
   // "La he cocinado" no sale hasta tener la receta: le guardo el sitio en el pie.
   const ranuraBoton = el('div', { class: 'pie__ranura' });
   // "Editar", en la cabecera, también espera a la receta (si no existe, no tiene sentido).
-  const botonEditar = el('a', { class: 'boton boton--secundario boton--ajustado', href: `/receta/${id}/editar`, hidden: true }, 'Editar');
+  // Solo el icono del lápiz (D-55); el nombre, en aria-label y en title.
+  const botonEditar = el(
+    'a',
+    { class: 'boton-icono', href: `/receta/${id}/editar`, 'aria-label': 'Editar receta', title: 'Editar receta', hidden: true },
+    crearIcono('editar')
+  );
 
   async function cargar() {
     zona.replaceChildren(crearCarga('Cargando…'));

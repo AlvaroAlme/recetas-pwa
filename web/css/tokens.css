@@ -112,8 +112,12 @@
   --fuente-titulos: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --fuente-texto: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  --texto-titulo: calc(26rem / 17);      --linea-titulo: 1.15;
-  --texto-subtitulo: calc(19rem / 17);   --linea-subtitulo: 1.3;
+  /* 20 y 18 px (antes 26 y 19, D-55): con 26 px, "Ayudante" y su botón no
+     cabían en la cabecera de un móvil de 375 px. */
+  --texto-titulo: calc(20rem / 17);      --linea-titulo: 1.2;
+  --texto-subtitulo: calc(18rem / 17);   --linea-subtitulo: 1.3;
+  /* El código de invitación sigue grande: es para dictarlo. */
+  --texto-codigo: calc(26rem / 17);
   --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.4;
   --texto-secundario: calc(14rem / 17);  --linea-secundario: 1.429;
   --texto-pequeno: calc(13rem / 17);     --linea-pequeno: 1.385;

@@ -86,15 +86,44 @@
   border-radius: 50%;
   background: var(--color-superficie-2);
 }
-.cabecera__atras {
+/* Botón con un icono solo (D-55): 44 x 44 para el dedo, icono de 24. El
+   nombre lo lleva en aria-label. */
+.boton-icono {
   display: inline-flex;
   align-items: center;
-  min-height: var(--tactil);
-  padding-inline: var(--espacio-xs);
-  margin-inline-start: calc(var(--espacio-xs) * -1);
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--tactil);
+  height: var(--tactil);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radio-l);
+  background: transparent;
   color: var(--color-primario-texto);
-  font-weight: var(--peso-fuerte);
-  text-decoration: none;
+  cursor: pointer;
+}
+.boton-icono[hidden] {
+  display: none;
+}
+.boton-icono:active {
+  opacity: 0.7;
+}
+.boton-icono[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (hover: hover) {
+  .boton-icono:not([disabled]):hover {
+    background: var(--color-superficie-2);
+  }
+}
+.icono {
+  width: 24px;
+  height: 24px;
+}
+/* La flecha, pegada al borde: el dibujo queda alineado con el texto de abajo. */
+.cabecera__atras {
+  margin-inline-start: calc(var(--espacio-s) * -1);
 }
 .pantalla {
   flex: 1;
@@ -960,7 +989,7 @@ input:focus-visible + .chip {
 .invitar__codigo {
   font-family: var(--fuente-titulos);
   /* Grande, pero sin salirse de la tarjeta en móviles estrechos (320 px). */
-  font-size: clamp(var(--texto-titulo), 8.5vw, calc(var(--texto-titulo) * 1.25));
+  font-size: clamp(var(--texto-codigo), 8.5vw, calc(var(--texto-codigo) * 1.25));
   line-height: var(--linea-titulo);
   font-weight: var(--peso-titulo);
   letter-spacing: 0.15em;

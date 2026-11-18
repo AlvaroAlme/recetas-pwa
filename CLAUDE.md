@@ -62,6 +62,19 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 Recuperar la contraseña y cambiar el email (Resend + dominio propio;
 Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
 su paso 1) y 12 cierre.
+**Decidido el 2026-11-18 (sin documentar aún: D-56 se escribe en el paso
+1, DESPUÉS de cerrar la fase 10):** 11 Animaciones, 12 Lista de la
+compra (D-54) y 13 cierre. Animaciones: el avatar "nace" en un paso
+nuevo de Bienvenida ("Este eres tú", 4 pasos, con "Otro avatar"),
+expresiones de blobatar (`thinking` mientras piensa el chat o el ticket,
+`happy` al guardar o cocinar, `sad` con un error; hay que servir
+`expression.js` y el avatar de la cabecera pasa a vivo), transiciones
+entre pantallas (`startViewTransition` en `router.js`) y listas y
+botones. Solo `transform`/`opacity`, ≤ ~300 ms y `prefers-reduced-motion`.
+**D-55 (2026-11-18):** títulos de 20 px (antes 26) y subtítulos de 18;
+en la cabecera, solo iconos (`componentes/iconos.js`, `.boton-icono` con
+`aria-label`): flecha Atrás, Nueva conversación y Editar receta. `sw.js`
+en `app-v34`.
 **Siguiente: fase 10, paso 7**: en Render, ANTES del push, añadir
 `RESEND_API_KEY` (la de la nota `vigia-produccion`) y
 `CORREO_REMITENTE=Vigía <no-responder@correo.alvaroalme.dev>` (sin ellas

@@ -217,8 +217,9 @@ html {
 
   /* Tamaño (px / 17 rem) · altura de línea. Título y subtítulo, algo mayores
      que en tema.ts para que se note la letra de la marca (D-45). */
-  --texto-titulo: calc(26rem / 17);      --linea-titulo: 1.15;     /* 26, 700 */
-  --texto-subtitulo: calc(19rem / 17);   --linea-subtitulo: 1.3;   /* 19, 700 en .titulo-seccion */
+  --texto-titulo: calc(20rem / 17);      --linea-titulo: 1.2;      /* 20, 700 (antes 26: D-55) */
+  --texto-subtitulo: calc(18rem / 17);   --linea-subtitulo: 1.3;   /* 18, 700 en .titulo-seccion (antes 19) */
+  --texto-codigo: calc(26rem / 17);                                /* el código de invitación, para dictarlo */
   --texto-cuerpo: calc(16rem / 17);      --linea-cuerpo: 1.4;      /* 16 */
   --texto-secundario: calc(14rem / 17);  --linea-secundario: 1.429;/* 14 / 20 */
   --texto-pequeno: calc(13rem / 17);     --linea-pequeno: 1.385;   /* 13 / 18 */
@@ -272,7 +273,7 @@ html {
 | `Aviso` | `crearAviso()` | `<div role="alert">` o `role="status"` |
 | `TituloSeccion` | `crearTituloSeccion()` | `<h2>` |
 | *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 11, D-54) |
-| *(nuevo)* | `crearCabecera()` | `<header>` con "‹ Atrás", título y acción; en las pestañas, también el botón de Perfil con tu avatar (D-52) |
+| *(nuevo)* | `crearCabecera()` | `<header>` con la flecha Atrás (solo el icono, D-55), título y acción; en las pestañas, también el botón de Perfil con tu avatar (D-52) |
 | *(nuevo)* | `crearAvatar()`, `crearAvatarVivo()` | El avatar de una semilla, dibujado por blobatar: `<img>` quieto o `<svg>` vivo (D-52) |
 | *(nuevo, sustituye a `Alert`)* | `confirmar()` | `<dialog>` + `showModal()` |
 | *(nuevo)* | `crearFranjaConexion()` | `<div role="status">` "Sin conexión" |
@@ -449,10 +450,10 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 - **Se muestra en las pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
 
 #### Cabecera
-`<header class="cabecera"><a class="cabecera__atras" href="/">‹ Atrás</a><h1>Nuevo producto</h1></header>`
-- Variantes: de pestaña (título + acción opcional, como "Ir a esta semana" en Semana o "Nueva conversación" en el Ayudante) y secundaria ("‹ Atrás" + título). "Ticket" ya no está en la cabecera de Inventario: es "Escanear ticket" dentro de Nuevo producto (2026-11-18).
+`<header class="cabecera"><a class="boton-icono cabecera__atras" href="/" aria-label="Atrás"><svg class="icono" aria-hidden="true">…</svg></a><h1>Nuevo producto</h1></header>`
+- Variantes: de pestaña (título + acción opcional, como el icono de "Nueva conversación" en el Ayudante) y secundaria (flecha Atrás + título). **Botones de la cabecera, solo con icono (D-55):** `.boton-icono` de 44 × 44 px con un SVG de 24 (`componentes/iconos.js`: `atras`, `nuevaConversacion`, `editar`), el nombre en `aria-label` (lo lee VoiceOver) y en `title` (al pasar el ratón). "Ticket" ya no está en la cabecera de Inventario: es "Escanear ticket" dentro de Nuevo producto (2026-11-18).
 - Comportamiento de "Atrás" en §5.3.
-- **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar" aria-hidden="true">…</svg></a>`. Zona táctil de 44 × 44 px con el avatar de 32 px dentro; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y "‹ Atrás" vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
+- **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar" aria-hidden="true">…</svg></a>`. Zona táctil de 44 × 44 px con el avatar de 32 px dentro; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y "‹      " vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
 
 #### Avatar (D-52)
 Lo dibuja **blobatar** 2.7.0 (`web/js/componentes/avatar.js`) desde la semilla de la persona: un "blob" de color con dos ojos, sobre un círculo claro (`background: 'circle'`). Diez siluetas y colores en OKLCh; los ojos contrastan al menos 4,5:1 con el cuerpo.
@@ -510,7 +511,7 @@ Todas las pantallas usan **una de estas tres plantillas** en escritorio. El cont
 ```
 E-1 · PESTAÑA                                   E-2 · SECUNDARIA CON PIE
 ┌──────┬───────────────────────────────────┐    ┌──────┬───────────────────────────────────┐
-│ [▢]  │      Inventario          (avatar) │    │ [▢]  │  ‹ Atrás   Nuevo producto         │
+│ [▢]  │      Inventario          (avatar) │    │ [▢]  │  ‹         Nuevo producto         │
 │Invent│ ┌───────────────────────────────┐ │    │Invent│ ┌───────────────────────────────┐ │
 │      │ │                               │ │    │      │ │ (formulario)                  │ │
 │ [⑂]  │ │ contenido, máx. 640 px        │ │    │ [⑂]  │ │                               │ │
@@ -554,7 +555,7 @@ Leyenda: `[ Botón ]` primario · `[ Botón ]°` secundario · `‹texto›` fan
 #### P-02 · Crear cuenta — `/registro` · E-3
 ```
 ┌──────────────────────────────┐
-│  ‹ Atrás     Crear cuenta     │
+│  ‹           Crear cuenta     │
 │  Tu nombre                    │
 │  [__________________________] │
 │  Email                        │
@@ -614,7 +615,7 @@ El selector de ubicación se recuerda en la URL (`/?ubicacion=despensa`), así q
 #### P-05 · Nuevo / editar producto — `/producto/nuevo?ubicacion=` · `/producto/:id` · E-2
 ```
 ┌──────────────────────────────┐
-│  ‹ Atrás     Nuevo producto   │
+│  ‹           Nuevo producto   │
 │  ¿Vienes de la compra? Añade  │  tenue
 │  todo de una vez:             │
 │  [     Escanear ticket     ]  │  secundario → /ticket
@@ -643,7 +644,7 @@ El selector de ubicación se recuerda en la URL (`/?ubicacion=despensa`), así q
 #### P-06 · Nuevo tupper — `/tupper/nuevo?ubicacion=` · E-2
 ```
 ┌──────────────────────────────┐
-│  ‹ Atrás       Nuevo tupper   │
+│  ‹             Nuevo tupper   │
 │  ¿Qué hay en el tupper?       │
 │  [Cocido___________________]  │
 │  Ubicación                    │
@@ -684,7 +685,7 @@ Ya consumido: "✓ Consumido" en verde y sin pie.
 ```
 ELEGIR                              REVISAR
 ┌──────────────────────────────┐   ┌──────────────────────────────┐
-│  ‹ Atrás     Escanear ticket  │   │  ‹ Atrás     Revisar ticket   │
+│  ‹           Escanear ticket  │   │  ‹           Revisar ticket   │
 │  Haz una foto al ticket o     │   │  Revisa cada producto: corrí- │
 │  sube el ticket digital (PDF  │   │  gelo, elimínalo o confírmalo.│
 │  o imagen). Claude leerá los  │   │  No se guarda nada hasta que  │
@@ -737,7 +738,7 @@ Las recetas que propone la IA son tarjetas de P-21 (`TarjetaReceta`). Esta panta
 #### P-11 · Receta — `/receta/:id` · E-2
 ```
 ┌──────────────────────────────┐
-│  ‹ Recetas            Editar  │
+│  ‹                         ✎  │
 │  Tortilla de patatas          │  (h1)
 │  Para 4 personas · Te faltan  │
 │  2 ingredientes  (naranja)    │
@@ -771,14 +772,14 @@ Las recetas que propone la IA son tarjetas de P-21 (`TarjetaReceta`). Esta panta
 
 - Resumen bajo el título: "Tienes todo" (`exito`) o "Te faltan N ingredientes" (`aviso`), contando **`falta` y `poco`**. `otra_unidad` no cuenta: sí lo tienes, y "La he cocinado" preguntará cuánto has gastado.
 - Se calcula **al abrir**, con los productos y los tuppers del hogar recién pedidos a la API (si alguien de la casa acaba de gastar algo, ya sale).
-- `Editar` en la cabecera → `/receta/:id/editar` (P-20).
+- El lápiz de la cabecera (`aria-label` "Editar receta") → `/receta/:id/editar` (P-20).
 - `‹Borrar receta›` (botón fantasma, al final) con `confirmar()`: "Borrar receta" / "Se borrará «Tortilla de patatas». No se puede deshacer." / `[Borrar]` peligroso → vuelve a Recetas con "✓ «Tortilla de patatas» borrada."
 - El pie **solo** tiene `[La he cocinado]` → `/cocinar?receta=:id` (P-12).
 
 #### P-20 · Nueva / editar receta — `/receta/nueva` · `/receta/:id/editar` · E-2 (D-49)
 ```
 ┌──────────────────────────────┐
-│  ‹ Atrás      Nueva receta    │
+│  ‹            Nueva receta    │
 │  Nombre                       │
 │  [Ej. Tortilla de patatas___] │
 │  Raciones (opcional)          │
@@ -816,7 +817,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 #### P-12 · La he cocinado — `/cocinar?receta=:id` · E-2
 ```
 ┌──────────────────────────────┐
-│  ‹ Atrás      La he cocinado  │
+│  ‹            La he cocinado  │
 │  Arroz con pollo              │
 │  Revisa lo que se va a des-   │
 │  contar de tu inventario.     │
@@ -948,7 +949,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 #### P-21 · Ayudante — `/ayudante` · E-1 (D-48, D-51)
 ```
 ┌──────────────────────────────┐
-│  Ayudante  ‹Nueva conversación›
+│  Ayudante                  [+]│
 │                               │
 │        ┌───────────────────┐  │
 │        │ ¿Qué ceno hoy con │  │  tu mensaje, a la derecha
@@ -986,13 +987,13 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 - **El pie** (como en E-2, pegado encima de la navegación): `<textarea>` de 1 a 4 líneas que crece al escribir, con la etiqueta flotante "Escribe tu pregunta"; contador "1980 / 2000" solo a partir de 1800 caracteres; botón Enviar de 44 × 44 px con `aria-label="Enviar"`. **Intro** hace un salto de línea (en el iPhone no hay Mayús + Intro cómodo); se envía con el botón. Debajo, "Te quedan N mensajes hoy." en tono tenue.
 - **Mientras responde:** el área y Enviar se deshabilitan ("Respondiendo…"), la página baja sola mientras llega texto **solo si ya estabas abajo** (si has subido a leer, no te mueve) y, al acabar, un `role="status"` oculto dice "Respuesta lista" (el texto que llega a trozos no se anuncia: el lector lo leería palabra a palabra).
 - **Al guardar una tarjeta:** el botón pasa a "Guardando…" y después la tarjeta cambia a su estado final. Las demás tarjetas y el chat siguen usables.
-- `‹Nueva conversación›` → `confirmar()` "¿Empezar una conversación nueva? La de ahora se borrará y no se puede recuperar." `[Empezar de nuevo]` (peligro) → `DELETE /api/chat` → vacía.
+- `[+]` (icono de bocadillo con "+", `aria-label` "Nueva conversación") → `confirmar()` "¿Empezar una conversación nueva? La de ahora se borrará y no se puede recuperar." `[Empezar de nuevo]` (peligro) → `DELETE /api/chat` → vacía.
 - **Conversación llena** (40 preguntas): el pie se sustituye por "Esta conversación ha llegado al máximo." + `[Nueva conversación]`.
 
 #### P-16 · Perfil — `/perfil` · E-2 (D-52; sustituye a Ajustes)
 ```
 ┌──────────────────────────────┐
-│  ‹ Atrás          Perfil      │
+│  ‹                Perfil      │
 │            (•‿•)              │  avatar VIVO de 96 px
 │            Álvaro             │  (h2)
 │      alvaro@ejemplo.es        │  tenue
@@ -1182,7 +1183,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 
 ### 5.3 Reglas de navegación
 - **Enlaces internos:** `router.js` intercepta los clics en `<a href="/…">` del propio origen y usa `history.pushState`. Los enlaces se pueden abrir en otra pestaña y el gesto de volver de iOS funciona.
-- **"‹ Atrás":** si la entrada anterior del historial es de la app, `history.back()`; si se ha llegado desde un aviso o un enlace directo (no hay anterior), va a la ruta "Atrás por defecto" de la tabla. Así nunca se sale de la app al pulsarlo.
+- **Atrás (la flecha):** si la entrada anterior del historial es de la app, `history.back()`; si se ha llegado desde un aviso o un enlace directo (no hay anterior), va a la ruta "Atrás por defecto" de la tabla. Así nunca se sale de la app al pulsarlo.
 - **Tras guardar** (equivale a `router.back()` + `Alert` en Expo): se vuelve a la pantalla anterior con un **mensaje de éxito** pasado en `history.state`, que la pantalla de destino muestra como `Aviso` `--exito` ("Ticket guardado. Se han añadido 5 productos al inventario."). Se usa `history.replaceState`, para que "Atrás" no lleve de nuevo al formulario.
 - **Sin sesión:** cualquier ruta privada → `/entrar?volver=/tupper/12` → al entrar, a la ruta original.
 - **Cambio de pantalla:** foco a `<main>`, `document.title` actualizado y scroll arriba (salvo al volver atrás, que restaura la posición).
