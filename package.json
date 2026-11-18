@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.4.0",
+    "blobatar": "2.7.0",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
     "pg": "^8.23.1",

@@ -273,7 +273,7 @@ html {
 | `TituloSeccion` | `crearTituloSeccion()` | `<h2>` |
 | *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 10, D-53) |
 | *(nuevo)* | `crearCabecera()` | `<header>` con "‹ Atrás", título y acción; en las pestañas, también el botón de Perfil con tu avatar (D-52) |
-| *(nuevo)* | `crearAvatar()` | `<svg>` decorativo con la carita de una semilla (D-52) |
+| *(nuevo)* | `crearAvatar()`, `crearAvatarVivo()` | El avatar de una semilla, dibujado por blobatar: `<img>` quieto o `<svg>` vivo (D-52) |
 | *(nuevo, sustituye a `Alert`)* | `confirmar()` | `<dialog>` + `showModal()` |
 | *(nuevo)* | `crearFranjaConexion()` | `<div role="status">` "Sin conexión" |
 
@@ -451,15 +451,16 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 #### Cabecera
 `<header class="cabecera"><a class="cabecera__atras" href="/">‹ Atrás</a><h1>Nuevo producto</h1><a class="cabecera__accion" href="/ticket">…Ticket</a></header>`
 - Variantes: de pestaña (título + acción opcional, como el botón "Ticket" de Inventario) y secundaria ("‹ Atrás" + título).
+- Comportamiento de "Atrás" en §5.3.
 - **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar" aria-hidden="true">…</svg></a>`. Zona táctil de 44 × 44 px con el avatar de 32 px dentro; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y "‹ Atrás" vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
 
 #### Avatar (D-52)
-`crearAvatar({ semilla, tamano })` → `<svg class="avatar" viewBox="0 0 64 64" aria-hidden="true">`, redondo, creado con `elSvg()` (nunca `innerHTML`, SEC-07).
-- **Las piezas salen de la semilla** con `piezasAvatar(semilla)` de `compartido/avatar.js`: un generador pseudoaleatorio (*mulberry32*) que arranca con la semilla elige, siempre en el mismo orden, el **fondo** (6 tonos claros, de la familia de la paleta), la **piel** (6 tonos), los **ojos** (4: puntos, contentos, guiño y gafas), la **boca** (4: sonrisa, risa, tranquila y sorpresa), el **pelo** (6: sin pelo, corto, flequillo, moño, rizado y gorro) y las **mejillas** (sí o no). Son 13 824 caritas distintas. La misma semilla da la misma carita en todos los dispositivos.
-- **Es decorativo** (`aria-hidden`): siempre va junto al nombre de la persona o dentro de un botón con su `aria-label`. No transmite información.
-- **Tamaños:** 32 px en la cabecera, 24 px junto a cada persona del hogar y 96 px arriba en Perfil.
-- Los trazos (ojos, boca, gafas) en un tono oscuro fijo, también en el modo oscuro: es un dibujo, no texto, y sobre los fondos claros se ve en los dos modos.
-- Comportamiento de "Atrás" en §5.3.
+Lo dibuja **blobatar** 2.7.0 (`web/js/componentes/avatar.js`) desde la semilla de la persona: un "blob" de color con dos ojos, sobre un círculo claro (`background: 'circle'`). Diez siluetas y colores en OKLCh; los ojos contrastan al menos 4,5:1 con el cuerpo.
+- **Quieto** — `crearAvatar({ semilla, tamano })` → `<img class="avatar" src="data:image/svg+xml,…" alt="">`. En la cabecera (32 px) y junto a cada persona del hogar (24 px). Es lo que recomienda blobatar para avatares pequeños, y la CSP ya admite imágenes `data:`.
+- **Vivo** — `crearAvatarVivo({ semilla, tamano })` → `<svg class="avatar avatar--vivo">` con `motion.css` (`<link>` a `/vendor/blobatar/motion.css`): respira, parpadea y echa alguna mirada, con tiempos propios de cada semilla. Solo arriba en Perfil (96 px). Con "Reducir movimiento", `motion.css` lo deja quieto.
+- **Mira hacia donde tocas** — `mirarAlToque(avatar, zona)`: al tocar (o hacer clic) en la pantalla, el grupo de los ojos (`.mo-eyes`) se desplaza 3,5 unidades hacia ese punto con una transición de CSS y vuelve a los 1,4 s; mientras, se paran sus miradas de reposo. Devuelve una función para dejar de escuchar al salir de la pantalla. El seguimiento de blobatar (`gaze`) no sirve: solo se activa con ratón (`pointer: fine`).
+- **Sin `innerHTML`** (SEC-07): el SVG vivo se lee con `DOMParser` (con los `style="…"` renombrados para que la CSP no se queje) y cada nodo se crea de nuevo; los estilos van por `style.setProperty`, que la CSP sí permite.
+- **Es decorativo** (`alt=""` / `aria-hidden`): siempre va junto al nombre de la persona o dentro de un botón con su `aria-label`. No transmite información.
 
 #### Confirmar (`<dialog>`, D-28)
 ```html
@@ -987,7 +988,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 ```
 ┌──────────────────────────────┐
 │  ‹ Atrás          Perfil      │
-│            (◕‿◕)              │  avatar de 96 px
+│            (•‿•)              │  avatar VIVO de 96 px
 │            Álvaro             │  (h2)
 │      alvaro@ejemplo.es        │  tenue
 │ ┌──────────────────────────┐ │
@@ -1012,7 +1013,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │  Modelo: claude-sonnet-5-5    │  tenue
 └──────────────────────────────┘
 ```
-Sin barra de pestañas (es una pantalla secundaria). Cada fila lleva a su apartado; el resumen se calcula con lo que ya devuelve `GET /api/yo`. El resumen de Avisos depende de **este dispositivo** (§7.6): "Activados", "Desactivados", "Instala la app para recibir avisos"…
+Sin barra de pestañas (es una pantalla secundaria). El avatar grande es el **vivo**: parpadea y mira hacia donde toques en la pantalla (`mirarAlToque`). Cada fila lleva a su apartado; el resumen se calcula con lo que ya devuelve `GET /api/yo`. El resumen de Avisos depende de **este dispositivo** (§7.6): "Activados", "Desactivados", "Instala la app para recibir avisos"…
 
 #### P-22 · Datos personales — `/perfil/datos` · E-2 (D-52)
 ```
@@ -1029,7 +1030,7 @@ Sin barra de pestañas (es una pantalla secundaria). Cada fila lleva a su aparta
 │ [     Guardar nombre      ]   │
 └──────────────────────────────┘
 ```
-- "Otro avatar" → `POST /api/yo/avatar` y la carita cambia al momento (también la de la cabecera). Sin confirmar: si no gusta, se pulsa otra vez.
+- "Otro avatar" → `POST /api/yo/avatar` y el avatar cambia al momento (también el de la cabecera). Sin confirmar: si no gusta, se pulsa otra vez.
 - Nombre con `crearCampo()` y la misma validación que en el registro. "Guardando…" → "✓ Nombre guardado." (`role="status"`).
 
 #### P-23 · Seguridad — `/perfil/seguridad` · E-2 (D-52)

@@ -1515,3 +1515,34 @@ label.tarjeta-chat__hueco .casilla__entrada {
   flex-direction: column;
   gap: var(--espacio-s);
 }
+
+/* ============ Avatar (D-52) ============ */
+
+/* El dibujo es de blobatar; aquí solo el tamaño y que no se aplaste. */
+.avatar {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* El avatar vivo mira hacia donde tocas (mirarAlToque en avatar.js): muevo
+   el grupo de los ojos con "transform", que no pisa el "translate" con el
+   que blobatar hace sus miradas de reposo. Unidades del dibujo (100 x 100). */
+.avatar--vivo .mo-eyes {
+  transform-box: view-box;
+  transform: translate(calc(var(--mirar-x, 0) * 1px), calc(var(--mirar-y, 0) * 1px));
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Mientras mira el toque, sus miradas de reposo se quedan quietas. */
+.avatar--mirando .mo-root {
+  --mo-look-x: 0;
+  --mo-look-y: 0;
+  --mo-look-mx: 0;
+  --mo-look-my: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar--vivo .mo-eyes {
+    transition: none;
+  }
+}

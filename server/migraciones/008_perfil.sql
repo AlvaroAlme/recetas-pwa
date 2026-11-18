@@ -1,8 +1,9 @@
 -- 008: perfil y avatar (fase 9, D-52).
 
 -- La semilla del avatar: 32 cifras hexadecimales al azar. De ella sale
--- SIEMPRE la misma carita (compartido/avatar.js), así que guardo la semilla
--- y no el dibujo: si un día cambio el dibujo, no hay que migrar nada.
+-- SIEMPRE el mismo avatar (lo dibuja blobatar en el navegador), así que
+-- guardo la semilla y no el dibujo: si un día cambio el dibujo, no hay que
+-- migrar nada.
 --
 -- gen_random_uuid() viene con PostgreSQL desde la 13 (Neon usa la 18). El
 -- uuid sin guiones son justo 32 cifras hexadecimales. Como el DEFAULT cambia

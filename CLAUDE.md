@@ -63,8 +63,17 @@ avatar, y 10 Lista de la compra (D-53 se fija en su paso 1). El cierre
 pasa a ser la 11 (recuperar la contraseña y cambiar el email: el
 proveedor de correo se decide entonces; en Render gratis el SMTP está
 bloqueado, hace falta una API HTTPS como Brevo o Resend).
-**Siguiente: fase 9, paso 3** (`compartido/avatar.js`, de la semilla a la
-carita, con pruebas). Hechos: paso 1 (documentación: D-52, P-16 Perfil y
+**Siguiente: fase 9, paso 4** (pantallas: Perfil y sus apartados, el
+avatar en la cabecera y la barra de pestañas; añadir a `ARCHIVOS` de
+`sw.js` `/js/componentes/avatar.js` y los 3 de `/vendor/blobatar/`, y el
+`<link>` a `motion.css` en `index.html`). Paso 3 hecho: avatar con
+**blobatar 2.7.0** (versión fija; `app.js` sirve `index.js`,
+`internal.js` y `motion.css` de `node_modules` en `/vendor/blobatar/`),
+`componentes/avatar.js` (`crearAvatar` quieto en `<img>`,
+`crearAvatarVivo` con parpadeo y `mirarAlToque`, porque `gaze` de
+blobatar solo va con ratón) y sus pruebas. El SVG vivo NO va con
+innerHTML: DOMParser + estilos por CSSOM (la CSP bloquea `style=`).
+Muestra temporal (no se sube): `web/muestra-avatares.html`. Hechos antes: paso 1 (documentación: D-52, P-16 Perfil y
 P-22 a P-26) y paso 2 (`008_perfil.sql`, aplicada solo en desarrollo, y
 `PATCH /api/yo`, `POST /api/yo/avatar`, `PUT /api/yo/contrasena` y
 `DELETE /api/yo/sesiones`, probadas contra el servidor con Ana).
