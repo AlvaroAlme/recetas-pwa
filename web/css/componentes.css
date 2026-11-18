@@ -69,15 +69,32 @@
 .cabecera__lado:empty {
   display: none;
 }
-/* El botón de Perfil con mi avatar (D-52): 44 x 44 para el dedo, avatar de 32. */
+/* El botón de Perfil con mi avatar (D-52): una píldora con fondo y borde,
+   el avatar de 32 y una flecha ">", para que se vea que es un botón
+   (2026-11-18). 44 px de alto para el dedo. */
 .cabecera__perfil {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: var(--tactil);
+  gap: 2px;
   min-height: var(--tactil);
-  margin-inline-end: calc(var(--espacio-xs) * -1);
+  padding: 5px var(--espacio-xs) 5px 5px;
+  border: 1px solid var(--color-borde);
   border-radius: var(--radio-pildora);
+  /* superficie-2 y no superficie: en oscuro, superficie casi no se distingue del fondo. */
+  background: var(--color-superficie-2);
+  color: var(--color-texto-tenue);
+}
+.cabecera__perfil:active {
+  opacity: 0.7;
+}
+@media (hover: hover) {
+  .cabecera__perfil:hover {
+    background: var(--color-borde);
+  }
+}
+.cabecera__flecha {
+  width: 18px;
+  height: 18px;
 }
 /* Mientras llega mi avatar, un círculo del mismo tamaño (la cabecera no salta). */
 .cabecera__hueco-avatar {

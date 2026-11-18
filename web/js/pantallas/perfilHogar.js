@@ -5,7 +5,7 @@
  */
 import { validarNombreCasa } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
-import { crearAvatar } from '../componentes/avatar.js';
+import { crearAvatarVivo } from '../componentes/avatar.js';
 import { confirmar, crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
@@ -107,7 +107,7 @@ function crearSeccionCasa(usuario, hogar) {
       el(
         'li',
         { class: 'fila fila--estatica' },
-        crearAvatar({ semilla: miembro.avatarSemilla, tamano: 24 }),
+        crearAvatarVivo({ semilla: miembro.avatarSemilla, tamano: 24 }),
         el(
           'span',
           { class: 'fila__textos' },

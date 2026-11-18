@@ -10,6 +10,8 @@ import { elSvg } from './ui/index.js';
 const TRAZOS = {
   // Una flecha "<", como la de iOS.
   atras: ['M15 5l-7 7 7 7'],
+  // La flecha al revés, ">": lleva a otra pantalla (la del botón de Perfil).
+  adelante: ['M9 5l7 7-7 7'],
   // Un bocadillo con un "+": empezar otra conversación.
   nuevaConversacion: ['M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z', 'M12 9v6M9 12h6'],
   // Un lápiz.

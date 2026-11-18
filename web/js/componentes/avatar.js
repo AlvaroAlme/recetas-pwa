@@ -5,11 +5,13 @@
  * "blob" con ojos.
  *
  * Dos formas de pintarlo:
- * - Quieto (cabecera, hogar): un <img> con el SVG dentro de una URL data:.
- *   Es lo que recomienda blobatar para avatares pequeños y la CSP ya admite
- *   imágenes data: (img-src). Es decorativo: alt vacío.
- * - Vivo (el grande de Perfil): un <svg> de verdad, que respira y parpadea
- *   con motion.css y mira hacia donde tocas (mirarAlToque).
+ * - Quieto: un <img> con el SVG dentro de una URL data:. Es lo que
+ *   recomienda blobatar para avatares pequeños y la CSP ya admite imágenes
+ *   data: (img-src). Es decorativo: alt vacío. (Desde el 2026-11-18 no lo uso:
+ *   el autor quiere que parpadee en todas partes.)
+ * - Vivo (cabecera, Perfil y los miembros de Hogar): un <svg> de verdad, que
+ *   respira y parpadea con motion.css; en Perfil, además, mira hacia donde
+ *   tocas (mirarAlToque).
  *
  * La CSP (style-src 'self') bloquea los atributos style="…" escritos en el
  * HTML. Por eso nunca meto el SVG con innerHTML: lo leo con DOMParser, creo

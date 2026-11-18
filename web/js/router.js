@@ -9,7 +9,7 @@
  * Una pantalla es una función que recibe { parametros, consulta } y devuelve
  * (o promete) lo que va en el esqueleto de index.html: una Vista.
  */
-import { crearAvatar } from './componentes/avatar.js';
+import { crearAvatarVivo } from './componentes/avatar.js';
 import { crearIcono } from './componentes/iconos.js';
 import { el } from './dom.js';
 import { logError } from './log.js';
@@ -123,13 +123,17 @@ function crearAtras(porDefecto) {
  * @returns {HTMLAnchorElement}
  */
 function crearEnlacePerfil() {
+  // Una píldora con fondo, el avatar vivo (parpadea) y una flecha ">": así se
+  // ve que es un botón y que lleva a otra pantalla (2026-11-18).
   const enlace = el('a', { class: 'cabecera__perfil', href: '/perfil', 'aria-label': 'Perfil' });
-  const ponerAvatar = (usuario) => enlace.replaceChildren(crearAvatar({ semilla: usuario.avatarSemilla, tamano: 32 }));
+  const flecha = crearIcono('adelante');
+  flecha.classList.add('cabecera__flecha');
+  const ponerAvatar = (usuario) => enlace.replaceChildren(crearAvatarVivo({ semilla: usuario.avatarSemilla, tamano: 32 }), flecha);
   const sabido = usuarioSabido();
   if (sabido) {
     ponerAvatar(sabido);
   } else {
-    enlace.append(el('span', { class: 'cabecera__hueco-avatar', 'aria-hidden': 'true' }));
+    enlace.append(el('span', { class: 'cabecera__hueco-avatar', 'aria-hidden': 'true' }), flecha);
     // Si falla (sin sesión, sin red), se queda el hueco: la pantalla ya enseña su error.
     usuarioActual().then(ponerAvatar, () => {});
   }
