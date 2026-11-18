@@ -11,6 +11,7 @@ import { MAX_INGREDIENTES_RECETA, MAX_LONGITUD_NOMBRE, UNIDADES } from '/compart
 import { validarReceta } from '/compartido/validacion.js';
 import { mensajeDeError } from '../api.js';
 import { el } from '../dom.js';
+import { entrar, salir } from '../movimiento.js';
 import { sugerirNombres } from './sugerenciasNombre.js';
 import { crearAutocompletar, crearAviso, crearCampo, ponerCargando, ponerErrorCampo } from './ui/index.js';
 
@@ -147,7 +148,8 @@ export function crearFormularioReceta({ inicial, textoBoton, alGuardar, buscarHi
     quitar.addEventListener('click', () => quitarFila(fila));
 
     filas.push(fila);
-    listaFilas.append(caja);
+    // Al pintar la receta no animo nada; solo la fila que añades tú (D-56).
+    listaFilas.append(enfocar ? entrar(caja) : caja);
     actualizarFilas();
     if (enfocar) nombreIngrediente.querySelector('input').focus();
   }
@@ -160,7 +162,8 @@ export function crearFormularioReceta({ inicial, textoBoton, alGuardar, buscarHi
   function quitarFila(fila) {
     const posicion = filas.indexOf(fila);
     filas = filas.filter((otra) => otra !== fila);
-    fila.caja.remove();
+    // Sale con su animación; la quito del array ya, así que no cuenta.
+    salir(fila.caja);
     actualizarFilas();
     (filas[posicion - 1] ?? filas[posicion])?.nombre.querySelector('input').focus();
   }

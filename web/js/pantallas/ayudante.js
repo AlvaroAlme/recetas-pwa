@@ -28,6 +28,7 @@ import {
   ponerCargando,
 } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
+import { entrar } from '../movimiento.js';
 import { cargarInventarioCompleto } from './receta.js';
 
 /** Los ejemplos del estado vacío: al pulsarlos se ESCRIBEN, no se envían. */
@@ -315,7 +316,8 @@ export function pantallaAyudante() {
     const mio = crearMensajeChat({ rol: 'tu', texto });
     const suyo = crearMensajeChat({ rol: 'ayudante', esperando: true });
     suyo.ponerEstado('Pensando…');
-    lista.append(mio.elemento, suyo.elemento);
+    // Tu pregunta y el "Pensando…" entran con su animación (D-56).
+    lista.append(entrar(mio.elemento), entrar(suyo.elemento));
     area.value = '';
     alEscribir();
     actualizar();

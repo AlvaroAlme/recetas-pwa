@@ -227,9 +227,22 @@ export function crearAviso({ tipo = 'error', mensaje, accion }) {
   return el(
     'div',
     { class: `aviso aviso--${tipo}`, role: tipo === 'error' ? 'alert' : 'status' },
-    el('p', {}, mensaje),
+    el('p', {}, ...partirMarca(tipo, mensaje)),
     accion
   );
+}
+
+/**
+ * En un aviso de éxito, el "✓ " del principio va en su propio <span> para
+ * que haga un "pop" al aparecer (D-56). El lector lo sigue leyendo igual:
+ * el texto no cambia, solo cómo está repartido.
+ * @param {string} tipo
+ * @param {string | Node} mensaje
+ * @returns {Array<string | Node>}
+ */
+function partirMarca(tipo, mensaje) {
+  if (tipo !== 'exito' || typeof mensaje !== 'string' || !mensaje.startsWith('✓ ')) return [mensaje];
+  return [el('span', { class: 'aviso__marca' }, '✓'), mensaje.slice(1)];
 }
 
 /**

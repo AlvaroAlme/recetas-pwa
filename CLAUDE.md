@@ -61,8 +61,16 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 2** (tokens de movimiento en `tokens.css`,
-botones, avisos y listas). Paso 1 hecho (2026-11-18): D-56 en
+**Siguiente: fase 11, paso 3** (transiciones entre pantallas en
+`router.js`). Paso 2 hecho (2026-11-18): tokens `--duracion-media`,
+`--duracion-lenta`, `--curva-salida` y `--curva-suave`; `movimiento.js`
+(`entrar`, `salir`, `sinMovimiento`); botones que se hunden
+(`scale(0.97)`, 0,94 los de icono); el "✓" de los avisos de éxito en su
+`<span class="aviso__marca">` con "pop" (`crearAviso`); entran y salen
+las filas de ingrediente, las líneas del ticket y los mensajes del
+Ayudante. `sw.js` en `app-v36`. Pendiente: la etiqueta flotante de los
+campos anima `top` y `font-size` (rompe la regla de D-56; pasarla a
+`transform`). Paso 1 hecho (2026-11-18): D-56 en
 ARQUITECTURA (§10 y §11) y DISENO_UI (§2.4 Movimiento, Avatar con
 expresiones y nacimiento, P-03 con 4 pasos y §7.6). Lo que conviene
 recordar de D-56:

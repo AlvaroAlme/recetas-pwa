@@ -85,7 +85,7 @@
   color: var(--color-texto-tenue);
 }
 .cabecera__perfil:active {
-  opacity: 0.7;
+  transform: scale(0.94);
 }
 @media (hover: hover) {
   .cabecera__perfil:hover {
@@ -123,7 +123,7 @@
   display: none;
 }
 .boton-icono:active {
-  opacity: 0.7;
+  transform: scale(0.94);
 }
 .boton-icono[disabled] {
   opacity: 0.4;
@@ -334,9 +334,11 @@
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+  /* Al pulsar se hunde un poco (D-56): solo transform, que va fluido. */
+  transition: transform var(--duracion-rapida) var(--curva-salida);
 }
 .boton:active {
-  opacity: 0.7;
+  transform: scale(0.97);
 }
 .boton--primario {
   background: var(--color-primario);
@@ -358,7 +360,7 @@
 /* Al pasar el ratón: el relleno se oscurece un poco (en oscuro, se aclara). */
 @media (hover: hover) {
   .boton {
-    transition: background-color var(--duracion-rapida) ease-out;
+    transition: background-color var(--duracion-rapida) ease-out, transform var(--duracion-rapida) var(--curva-salida);
   }
   .boton--primario:not([disabled], [aria-disabled='true']):hover {
     background: color-mix(in oklab, var(--color-primario) 85%, var(--color-texto));
@@ -594,6 +596,18 @@ input:focus-visible + .chip {
 .aviso--exito {
   background: var(--color-fondo-exito);
   color: var(--color-exito);
+}
+/* El "✓" de un aviso de éxito hace un "pop" al aparecer (D-56). Es un
+   <span> aparte (crearAviso) y va en inline-block para poder escalarlo. */
+.aviso__marca {
+  display: inline-block;
+  animation: pop var(--duracion-media) var(--curva-salida);
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
 }
 
 /* ============ Formularios ============ */
@@ -1606,7 +1620,7 @@ label.tarjeta-chat__hueco .casilla__entrada {
 .avatar--vivo .mo-eyes {
   transform-box: view-box;
   transform: translate(calc(var(--mirar-x, 0) * 1px), calc(var(--mirar-y, 0) * 1px));
-  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 0.35s var(--curva-salida);
 }
 
 /* Mientras mira el toque, sus miradas de reposo se quedan quietas. */
@@ -1662,4 +1676,28 @@ label.tarjeta-chat__hueco .casilla__entrada {
   padding-block-end: var(--espacio-l);
   margin-block-end: var(--espacio-l);
   border-bottom: 1px solid var(--color-borde);
+}
+
+/* ============ Movimiento (D-56) ============ */
+/* Lo que entra sin volver a pintar la pantalla (movimiento.js: entrar):
+   se funde y sube 8 px. */
+.entra {
+  animation: entrar var(--duracion-media) var(--curva-salida);
+}
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+/* Lo que sale (movimiento.js: salir): se funde y se aparta 16 px; después
+   lo quito. "forwards" para que no vuelva a verse un instante al acabar. */
+.sale {
+  animation: salir var(--duracion-media) var(--curva-suave) forwards;
+}
+@keyframes salir {
+  to {
+    opacity: 0;
+    transform: translateX(16px);
+  }
 }

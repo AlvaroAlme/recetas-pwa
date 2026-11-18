@@ -131,5 +131,10 @@
 :root {
   --foco: 3px solid var(--color-primario);
   --foco-separacion: 2px;
-  --duracion-rapida: 150ms;   /* cambios de color al pasar o pulsar */
+  /* Movimiento (D-56): solo transform y opacity, de 150 a 300 ms. */
+  --duracion-rapida: 150ms;   /* color al pasar o pulsar, cambio de pestaña */
+  --duracion-media: 250ms;    /* entrar una pantalla, una fila o un aviso */
+  --duracion-lenta: 400ms;    /* solo el nacimiento del avatar */
+  --curva-salida: cubic-bezier(0.23, 1, 0.32, 1);   /* lo que entra: rápido y frena */
+  --curva-suave: cubic-bezier(0.65, 0, 0.35, 1);    /* lo que va y vuelve */
 }

@@ -9,6 +9,7 @@ import { ErrorArchivo, prepararArchivoTicket } from '../archivoTicket.js';
 import { crearLinea, crearLineaTicket, problemaLinea } from '../componentes/lineaTicket.js';
 import { crearAviso, crearCarga, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
+import { salir } from '../movimiento.js';
 import { navegar } from '../router.js';
 
 /** @returns {import('../router.js').Vista} */
@@ -181,7 +182,7 @@ export function pantallaTicket() {
         alCambiar: actualizarPie,
         alEliminar: () => {
           lineas = lineas.filter((otra) => otra !== linea);
-          articulo.remove();
+          salir(articulo);
           actualizarPie();
         },
       });
