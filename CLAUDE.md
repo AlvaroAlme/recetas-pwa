@@ -61,9 +61,18 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (`sw.js`, desplegar y probar el "Hecho
-cuando" en el iPhone; con permiso, un ticket real para ver el avatar que
-piensa). Paso 5 hecho (2026-11-18): `nacerAvatar(marco, semilla, {
+**Siguiente: fase 11, paso 6** (desplegar `app-v40` y volver a probar el
+"Hecho cuando" en el iPhone; con permiso, un ticket real para ver el
+avatar que piensa). Primera prueba en el iPhone (2026-11-18, `app-v39`):
+no se veía nada (ni transiciones, ni ruleta, ni detalles). En Chrome, en
+producción, sí iba. Arreglado en `app-v40`: (1) la app instalada seguía
+con el código viejo: `app.js` recarga sola en `controllerchange` (si ya
+había un SW) y pide `registro.update()` al volver a verse
+(`visibilitychange`); (2) iOS no aplica `:active` sin un escuchador de
+`touchstart` (uno vacío y pasivo en `app.js`); (3) "Otro avatar" en
+Perfil › Datos personales también hace la ruleta (4 vueltas); (4) abajo
+en Perfil sale la versión ("Vigía app-v40") y si el iPhone tiene
+"Reducir movimiento" (con él, a propósito, no se anima nada). Paso 5 hecho (2026-11-18): `nacerAvatar(marco, semilla, {
 tamano, vueltas })` en `avatar.js` (semillas al azar con
 `crypto.getRandomValues`, pausas de 90 a 260 ms que crecen como un
 cuadrado, `.avatar--pop` y `.avatar--final`, `happy` 1,2 s) y el paso

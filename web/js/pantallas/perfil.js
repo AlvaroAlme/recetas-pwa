@@ -7,6 +7,7 @@ import { estadoAvisos } from '../avisos.js';
 import { crearAvatarVivo, mirarAlToque } from '../componentes/avatar.js';
 import { crearFila } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
+import { sinMovimiento } from '../movimiento.js';
 import { pantallaDePerfil, quedan } from './comunPerfil.js';
 
 /** Cómo resumo el estado de los avisos de este dispositivo (§7.6). */
@@ -58,9 +59,32 @@ export function pantallaPerfil() {
         }),
         crearFila({ href: '/privacidad', titulo: 'Privacidad', tono: null, subtitulo: 'Qué datos guardamos y dónde' })
       );
-      const todo = el('div', { class: 'perfil' }, cabecera, apartados);
+      const todo = el('div', { class: 'perfil' }, cabecera, apartados, crearVersion());
       mirarAlToque(avatar, todo);
       return [todo];
     },
   });
+}
+
+/**
+ * Abajo del todo, qué versión de la app tengo y si el sistema pide reducir
+ * el movimiento. Sirve para saber, en el iPhone, si ya ha llegado lo último
+ * (y por qué no se ven las animaciones, D-56). La versión es el nombre de
+ * la caché del Service Worker (sw.js: VERSION, "app-v40").
+ * @returns {HTMLElement}
+ */
+function crearVersion() {
+  const texto = el('p', { class: 'tono--tenue perfil__version' });
+  const movimiento = sinMovimiento() ? 'Reducir movimiento: activado' : 'Animaciones: activadas';
+  texto.textContent = `Vigía · ${movimiento}`;
+  if ('caches' in window) {
+    caches
+      .keys()
+      .then((nombres) => {
+        const version = nombres.find((nombre) => /^app-v\d+$/.test(nombre));
+        if (version) texto.textContent = `Vigía ${version} · ${movimiento}`;
+      })
+      .catch(() => {});
+  }
+  return texto;
 }

@@ -1666,6 +1666,13 @@ label.tarjeta-chat__hueco .casilla__entrada {
   font-weight: var(--peso-titulo);
   overflow-wrap: anywhere;
 }
+/* Abajo del todo: la versión de la app y si se reduce el movimiento. */
+.perfil__version {
+  margin-top: var(--espacio-l);
+  font-size: var(--texto-pequeno);
+  line-height: var(--linea-pequeno);
+  text-align: center;
+}
 .perfil__email {
   overflow-wrap: anywhere;
 }

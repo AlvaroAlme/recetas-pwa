@@ -4,11 +4,14 @@
  */
 import { validarCambioEmail, validarNombrePersona } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
-import { crearAvatarVivo, mirarAlToque } from '../componentes/avatar.js';
+import { crearAvatarVivo, mirarAlToque, nacerAvatar } from '../componentes/avatar.js';
 import { crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { ponerUsuario } from '../yo.js';
 import { pantallaDePerfil } from './comunPerfil.js';
+
+/** Vueltas de la ruleta con "Otro avatar" (D-56). */
+const VUELTAS_OTRO = 4;
 
 /**
  * @returns {import('../router.js').Vista}
@@ -42,6 +45,16 @@ function crearSeccionAvatar(usuario) {
     dejarDeMirar = mirarAlToque(avatar, seccion);
   }
 
+  /**
+   * "Otro avatar": la misma ruleta que en Bienvenida (D-56), 4 vueltas.
+   * @param {string} semilla
+   */
+  async function barajar(semilla) {
+    dejarDeMirar();
+    const avatar = await nacerAvatar(marco, semilla, { tamano: 96, vueltas: VUELTAS_OTRO });
+    dejarDeMirar = mirarAlToque(avatar, seccion);
+  }
+
   const otro = el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', 'data-escribe': true }, 'Otro avatar');
   otro.addEventListener('click', async () => {
     if (otro.disabled) return;
@@ -50,7 +63,10 @@ function crearSeccionAvatar(usuario) {
     try {
       const { usuario: nuevo } = await api.post('/yo/avatar');
       ponerUsuario(nuevo);
-      ponerAvatar(nuevo.avatarSemilla);
+      // Mientras gira, el botón sigue sin poder pulsarse. Cambio solo el
+      // texto: otro ponerCargando() se guardaría "Cambiando…" como original.
+      otro.textContent = 'Barajando…';
+      await barajar(nuevo.avatarSemilla);
       estado.textContent = 'Avatar nuevo.';
     } catch (error) {
       aviso.replaceChildren(crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido cambiar el avatar.') }));

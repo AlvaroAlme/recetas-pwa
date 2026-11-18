@@ -264,7 +264,7 @@ Reglas:
 - **Qué se mueve:**
   - **Pantallas:** hacia delante, la nueva entra desde la derecha (24 px y fundido); con la flecha Atrás, desde la izquierda; entre pestañas, solo fundido. La cabecera y la barra se quedan quietas. Con el gesto de iOS, sin animación (iOS ya desliza). Cómo lo decide `router.js`: `navegar()` va hacia delante y, con `reemplazar` (tras guardar), hacia atrás; la flecha Atrás marca `atrasConFlecha` antes de `history.back()`, y un `popstate` sin esa marca (el gesto o el Atrás del navegador) no se anima; si el camino no cambia (`/?ubicacion=…`, los pasos de Bienvenida), tampoco. La cabecera y la barra tienen su `view-transition-name`; la página vieja se funde en 150 ms y la nueva entra en 250.
   - **Filas:** las nuevas entran 8 px desde abajo con fundido; las que se borran se funden y se apartan 16 px antes de quitarlas.
-  - **Botones:** al pulsar, `scale(0.97)` (`scale(0.94)` los de icono y la píldora de Perfil, que son pequeños).
+  - **Botones:** al pulsar, `scale(0.97)` (en iOS, `:active` solo funciona si la página escucha `touchstart`: hay uno vacío y pasivo en `app.js`) (`scale(0.94)` los de icono y la píldora de Perfil, que son pequeños).
   - **Dónde están:** `web/js/movimiento.js` (`entrar(nodo)`, `salir(nodo)`, que espera a que acabe y lo quita, y `sinMovimiento()`) y las clases `.entra`, `.sale` y `.aviso__marca` de `componentes.css`. Hoy entran y salen las filas de ingrediente (Nueva receta), las líneas del ticket que descartas y los mensajes del Ayudante.
   - **Avisos de éxito:** el "✓" hace un "pop" (de 0,6 a 1).
   - **El avatar:** nace en Bienvenida y tiene expresiones (§3, Avatar).

@@ -96,7 +96,34 @@ iniciarRouter({
 
 // Los navegadores antiguos no tienen Service Worker: la app funciona igual, pero sin red no abre.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch((error) => {
-    logError('No se ha podido registrar el Service Worker', error);
+  // ¿Me controlaba ya un Service Worker al abrir? Si sí, cuando llegue uno
+  // nuevo recargo para usar su código. Si no (la primera visita), no hace
+  // falta: lo que tengo ya es lo último.
+  const habiaUno = Boolean(navigator.serviceWorker.controller);
+  let recargando = false;
+
+  navigator.serviceWorker.register('/sw.js').then(
+    (registro) => {
+      // La app instalada en el iPhone casi nunca se cierra del todo: al volver
+      // del segundo plano no se carga de nuevo, así que tampoco busca versión
+      // nueva. Se lo pido yo cada vez que vuelve a verse (2026-11-18).
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') registro.update().catch(() => {});
+      });
+    },
+    (error) => logError('No se ha podido registrar el Service Worker', error)
+  );
+
+  // El Service Worker nuevo ha tomado el control (skipWaiting + claim en
+  // sw.js), pero esta página sigue con el código viejo cargado: recargo una
+  // vez y ya va con el nuevo. Antes había que abrir la app dos veces.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!habiaUno || recargando) return;
+    recargando = true;
+    location.reload();
   });
 }
+
+// En el iPhone, Safari no aplica :active (el botón que se hunde al pulsarlo,
+// D-56) si la página no escucha los toques. Con este escuchador vacío, sí.
+document.addEventListener('touchstart', () => {}, { passive: true });
