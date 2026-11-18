@@ -49,7 +49,7 @@ Proyecto de portfolio de un estudiante de DAW.
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
 3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15), 7
-(2026-11-16), 8 (2026-11-17) y 9 (2026-11-18). El detalle de cada paso
+(2026-11-16), 8 (2026-11-17), 9 (2026-11-18) y 10 (2026-11-18). El detalle de cada paso
 está en los commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
@@ -58,64 +58,57 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Fases nuevas (2026-11-18, D-52 y D-53):** 9 Perfil y avatar, 10
-Recuperar la contraseña y cambiar el email (Resend + dominio propio;
-Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
-su paso 1) y 12 cierre.
-**Decidido el 2026-11-18 (sin documentar aún: D-56 se escribe en el paso
-1, DESPUÉS de cerrar la fase 10):** 11 Animaciones, 12 Lista de la
-compra (D-54) y 13 cierre. Animaciones: el avatar "nace" en un paso
-nuevo de Bienvenida ("Este eres tú", 4 pasos, con "Otro avatar"),
-expresiones de blobatar (`thinking` mientras piensa el chat o el ticket,
-`happy` al guardar o cocinar, `sad` con un error; hay que servir
-`expression.js` y el avatar de la cabecera pasa a vivo), transiciones
-entre pantallas (`startViewTransition` en `router.js`) y listas y
-botones. Solo `transform`/`opacity`, ≤ ~300 ms y `prefers-reduced-motion`.
-**D-55 (2026-11-18):** títulos de 20 px (antes 26) y subtítulos de 18;
-en la cabecera, solo iconos (`componentes/iconos.js`, `.boton-icono` con
-`aria-label`): flecha Atrás, Nueva conversación y Editar receta. `sw.js`
-en `app-v34`.
-**Siguiente: fase 10, paso 7**: en Render, ANTES del push, añadir
-`RESEND_API_KEY` (la de la nota `vigia-produccion`) y
-`CORREO_REMITENTE=Vigía <no-responder@correo.alvaroalme.dev>` (sin ellas
-`config.js` no arranca); después push (`009_correo` se aplica al
-arrancar) y probar el "Hecho cuando" en el iPhone. Paso 6 hecho:
-"Cambiar email" en Datos personales (email nuevo + contraseña; enlace
-al nuevo y aviso al actual) y `confirmarEmail.js` (P-29, pública, lee
-`#t=`), `sw.js` en `app-v32`. Probado con Ana (su email vuelve a ser
-ana@prueba.test). Además (2026-11-18): el botón "Ticket" sale de la
-cabecera de Inventario y pasa a "Escanear ticket" arriba de Nuevo
-producto (solo al dar de alta); `sw.js` en `app-v33`. Paso 5 hecho:
-"¿Has olvidado la contraseña?" en Entrar (lleva el email escrito con
-`recordarEmail()`), `recuperar.js` (P-27) y `restablecer.js` (P-28: lee
-`#t=`, lo quita de la barra y lo guarda en memoria; en Safari de iOS
-avisa de que la app instalada es otra sesión), Resend en Privacidad,
-`sw.js` en `app-v31`. Probado en el navegador con Ana. Cambios del
-autor en D-53 (2026-11-18): "Recuperar" SÍ dice si el email no tiene
-cuenta (404 `EMAIL_NO_REGISTRADO`, con enlace a Crear cuenta; Crear
-cuenta ya lo revelaba) y tras la contraseña nueva NO se entra: se
-cierran todas las sesiones y se va a Entrar con el email puesto. Paso 4
-hecho: `resend.js` (POST a la API con `fetch`, sin config: pruebas con
-un fetch falso), `correo.js` (Resend con key; sin key, buzón; las
-direcciones `.test` NUNCA se envían, van al buzón), `config.js` y
-`.env.ejemplo` con `RESEND_API_KEY` y `CORREO_REMITENTE`. Primer correo
-de verdad enviado el 2026-11-18 a la dirección del autor (con su
-permiso). Paso 3 hecho: `009_correo.sql` (aplicada solo en desarrollo),
-`enlaces.js` y `mensajesCorreo.js` (sin BD, con pruebas),
-`recuperacion.js`, `correo.js` (de momento solo el buzón: en producción
-lanza un error) y las rutas `auth/olvide` (202 siempre, sin esperar al
-correo), `auth/restablecer`, `auth/confirmar-email` y `yo/email`, con
-sus límites. Probado contra el servidor con Ana (28 comprobaciones; su
-email y su contraseña quedan como estaban). Ojo: `--watch` se reinicia
-al cargar `pg` desde un script (cambio en `node_modules`): esperar a
-`/api/salud`. Hechos antes: paso 1 (documentación: D-53, `enlaces_correo`,
-rutas `olvide`, `restablecer`, `confirmar-email` y `yo/email`, P-27 a
-P-29) y paso 2 (2026-11-18): dominio `alvaroalme.dev` en Cloudflare
-(renovación automática), `correo.alvaroalme.dev` verificado en Resend
-(región Ireland, eu-west-1) con DMARC `p=none` en `_dmarc`; keys con
-"Sending access": `vigia-desarrollo` (`.env` y Bitwarden) y
-`vigia-produccion` (nota `vigia-produccion`; a Render en el paso 7, ANTES
-del push). `CORREO_REMITENTE=Vigía <no-responder@correo.alvaroalme.dev>`.
+**Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
+Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
+Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
+**Siguiente: fase 11, paso 2** (tokens de movimiento en `tokens.css`,
+botones, avisos y listas). Paso 1 hecho (2026-11-18): D-56 en
+ARQUITECTURA (§10 y §11) y DISENO_UI (§2.4 Movimiento, Avatar con
+expresiones y nacimiento, P-03 con 4 pasos y §7.6). Lo que conviene
+recordar de D-56:
+- Solo `transform`/`opacity` (y las `--mo-*` de blobatar), 150 a 300 ms,
+  `--duracion-rapida/media/lenta` y `--curva-salida/suave`; con "Reducir
+  movimiento", nada se desliza ni rebota.
+- blobatar NO transforma un avatar en otro (la forma es un trazo
+  distinto): el nacimiento es una ruleta (`nacerAvatar`, 7 vueltas de 90
+  a 260 ms, y `happy` al final; "Otro avatar", 4). Las expresiones son
+  solo variables CSS + la clase `mo-expr` (`_parts(semilla, { expression
+  })`), así que van con `setProperty` y la CSP no se queja.
+  `expression.js` no importa nada más: hay que servirlo en `/vendor`.
+- Reacciones: `api.js` lanza `vigia:escritura` (`ok` sí o no); `happy`
+  1,2 s, `sad` 1,5 s (no con errores de validación), `thinking` en el
+  Ayudante y en Ticket (avatar de 64 px en vez del círculo que gira).
+- View Transitions solo en lo que navego yo (enlaces, `navegar()`, la
+  flecha Atrás); nunca en un `popstate` sin aviso mío (el gesto de iOS ya
+  anima).
+
+**Fase 10 (recuperar la contraseña y cambiar el email): aprobada**
+(2026-11-18, "ok" del autor tras probarla en el iPhone con `app-v35`).
+Lo que conviene recordar:
+- D-53: Resend con su API (`resend.js`, `fetch`, sin paquetes) desde el
+  dominio `alvaroalme.dev` (Cloudflare, renovación automática);
+  `correo.alvaroalme.dev` verificado en Resend (Ireland) con DMARC
+  `p=none` (subirlo a `p=quarantine` dentro de unas semanas).
+  `CORREO_REMITENTE=Vigía <no-responder@correo.alvaroalme.dev>`. Keys con
+  "Sending access": `vigia-desarrollo` (`.env` y Bitwarden) y
+  `vigia-produccion` (Render y nota `vigia-produccion`). Plan gratis:
+  100 correos al día y 3000 al mes.
+- `correo.js`: con key, Resend; sin key, el "buzón de desarrollo" (la
+  terminal). Las direcciones `.test` NUNCA se envían. En producción no se
+  escribe nunca el texto del correo (lleva el enlace).
+- `enlaces_correo` (`009_correo`): solo el SHA-256 del token; el token
+  va detrás de `#t=` (no llega a los logs) y la pantalla lo quita de la
+  barra. Recuperar, 30 min; cambiar el email, 24 h; un solo uso.
+- Cambios del autor en D-53: "Recuperar" dice si el email no tiene cuenta
+  (404 `EMAIL_NO_REGISTRADO`) y tras la contraseña nueva NO se entra: se
+  cierran todas las sesiones y se va a Entrar con el email puesto.
+- En el iPhone, el enlace del correo se abre en Safari, que es otra
+  sesión distinta de la app instalada.
+- Además (2026-11-18): "Escanear ticket" dentro de Nuevo producto
+  (`app-v33`); D-55, títulos de 20 px e iconos solos en la cabecera
+  (`componentes/iconos.js`, `.boton-icono` con `aria-label`; `app-v34`);
+  el botón de Perfil es una píldora con el avatar vivo y una flecha, y
+  los avatares de Hogar también parpadean (`app-v35`).
 
 **Fase 9 (Perfil y avatar): aprobada** (2026-11-18, "ok" del autor tras
 desplegar `app-v30`). Paso 4

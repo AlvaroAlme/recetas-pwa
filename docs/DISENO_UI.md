@@ -244,6 +244,30 @@ html {
 }
 ```
 
+**Movimiento (D-56, fase 11).** Tokens:
+
+```css
+:root {
+  --duracion-rapida: 150ms;   /* color al pasar o pulsar, cambio de pestaña */
+  --duracion-media: 250ms;    /* entrar una pantalla, una fila o un aviso */
+  --duracion-lenta: 400ms;    /* solo el nacimiento del avatar */
+  --curva-salida: cubic-bezier(0.23, 1, 0.32, 1);   /* lo que entra: rápido y frena */
+  --curva-suave: cubic-bezier(0.65, 0, 0.35, 1);    /* lo que va y vuelve */
+}
+```
+
+Reglas:
+- **Solo `transform` y `opacity`** (y las variables `--mo-*` de blobatar). Nunca `height`, `width`, `top` ni `margin`: obligan a recalcular la página y en el iPhone dan tirones.
+- **150 a 300 ms** en la interfaz; más largo solo el nacimiento del avatar, que no hace esperar a nada.
+- **Lo que entra usa `--curva-salida`**; nada rebota más allá de su sitio.
+- **Con "Reducir movimiento"** no se desliza ni rebota nada (la regla de arriba) y las View Transitions no se lanzan. Las expresiones del avatar sí cambian, pero sin transición.
+- **Qué se mueve:**
+  - **Pantallas:** hacia delante, la nueva entra desde la derecha (24 px y fundido); con la flecha Atrás, desde la izquierda; entre pestañas, solo fundido. La cabecera y la barra se quedan quietas. Con el gesto de iOS, sin animación (iOS ya desliza).
+  - **Filas:** las nuevas entran 8 px desde abajo con fundido; las que se borran se funden y se apartan 16 px antes de quitarlas.
+  - **Botones:** al pulsar, `scale(0.97)`.
+  - **Avisos de éxito:** el "✓" hace un "pop" (de 0,6 a 1).
+  - **El avatar:** nace en Bienvenida y tiene expresiones (§3, Avatar).
+
 `primario` sobre `fondo` es uno de los pares medidos, así que el anillo de foco contrasta en los dos modos.
 
 ---
@@ -272,7 +296,7 @@ html {
 | `EstadoVacio` | `crearVacio()` | `<section>` + `<h2>` |
 | `Aviso` | `crearAviso()` | `<div role="alert">` o `role="status"` |
 | `TituloSeccion` | `crearTituloSeccion()` | `<h2>` |
-| *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 11, D-54) |
+| *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 12, D-54) |
 | *(nuevo)* | `crearCabecera()` | `<header>` con la flecha Atrás (solo el icono, D-55), título y acción; en las pestañas, también el botón de Perfil con tu avatar (D-52) |
 | *(nuevo)* | `crearAvatar()`, `crearAvatarVivo()` | El avatar de una semilla, dibujado por blobatar: `<img>` quieto o `<svg>` vivo (D-52) |
 | *(nuevo, sustituye a `Alert`)* | `confirmar()` | `<dialog>` + `showModal()` |
@@ -443,7 +467,7 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
     <li><a href="/ayudante">…<span>Ayudante</span></a></li>
   </ul>
 </nav>
-<!-- Fase 11 (D-54): <li><a href="/lista">…<span>Lista</span></a></li> va detrás de Inventario. -->
+<!-- Fase 12 (D-54): <li><a href="/lista">…<span>Lista</span></a></li> va detrás de Inventario. -->
 ```
 - **Pestaña activa:** `aria-current="page"` + color `primario` + **texto en negrita y una barrita encima** (abajo) o a la izquierda (lateral). No depende solo del color.
 - Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30). Como mucho **5 pestañas**: en un iPhone de 375 px caben 75 px por pestaña; con 6 quedarían 62 px y "Ayudante" no cabría (por eso Ajustes pasa a la cabecera como Perfil, D-52). El texto va en `--texto-pequeno` y en una sola línea. Icono de Ayudante: un bocadillo de conversación.
@@ -453,12 +477,18 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 `<header class="cabecera"><a class="boton-icono cabecera__atras" href="/" aria-label="Atrás"><svg class="icono" aria-hidden="true">…</svg></a><h1>Nuevo producto</h1></header>`
 - Variantes: de pestaña (título + acción opcional, como el icono de "Nueva conversación" en el Ayudante) y secundaria (flecha Atrás + título). **Botones de la cabecera, solo con icono (D-55):** `.boton-icono` de 44 × 44 px con un SVG de 24 (`componentes/iconos.js`: `atras`, `nuevaConversacion`, `editar`), el nombre en `aria-label` (lo lee VoiceOver) y en `title` (al pasar el ratón). "Ticket" ya no está en la cabecera de Inventario: es "Escanear ticket" dentro de Nuevo producto (2026-11-18).
 - Comportamiento de "Atrás" en §5.3.
-- **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar avatar--vivo" aria-hidden="true">…</svg><svg class="icono cabecera__flecha" aria-hidden="true">…</svg></a>`. **Desde el 2026-11-18, una píldora** (fondo `--color-superficie-2`, borde `--color-borde`) con el avatar **vivo** de 32 px (parpadea, como en Perfil y en los miembros de Hogar) y una flecha "›": así se ve que es un botón que lleva a tu perfil. 44 px de alto; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y "‹      " vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
+- **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar avatar--vivo" aria-hidden="true">…</svg><svg class="icono cabecera__flecha" aria-hidden="true">…</svg></a>`. **Desde el 2026-11-18, una píldora** (fondo `--color-superficie-2`, borde `--color-borde`) con el avatar **vivo** de 32 px (parpadea, como en Perfil y en los miembros de Hogar) y una flecha "›": así se ve que es un botón que lleva a tu perfil. 44 px de alto; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y la flecha Atrás vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
 
 #### Avatar (D-52)
 Lo dibuja **blobatar** 2.7.0 (`web/js/componentes/avatar.js`) desde la semilla de la persona: un "blob" de color con dos ojos, sobre un círculo claro (`background: 'circle'`). Diez siluetas y colores en OKLCh; los ojos contrastan al menos 4,5:1 con el cuerpo.
-- **Quieto** — `crearAvatar({ semilla, tamano })` → `<img class="avatar" src="data:image/svg+xml,…" alt="">`. En la cabecera (32 px) y junto a cada persona del hogar (24 px). Es lo que recomienda blobatar para avatares pequeños, y la CSP ya admite imágenes `data:`.
-- **Vivo** — `crearAvatarVivo({ semilla, tamano })` → `<svg class="avatar avatar--vivo">` con `motion.css` (`<link>` a `/vendor/blobatar/motion.css`): respira, parpadea y echa alguna mirada, con tiempos propios de cada semilla. Solo arriba en Perfil (96 px). Con "Reducir movimiento", `motion.css` lo deja quieto.
+- **Quieto** — `crearAvatar({ semilla, tamano })` → `<img class="avatar" src="data:image/svg+xml,…" alt="">`. Es lo que recomienda blobatar para avatares pequeños, y la CSP ya admite imágenes `data:`. Desde el 2026-11-18 no se usa: el autor quiere que parpadee en todas partes.
+- **Vivo** — `crearAvatarVivo({ semilla, tamano })` → `<svg class="avatar avatar--vivo">` con `motion.css` (`<link>` a `/vendor/blobatar/motion.css`): respira, parpadea y echa alguna mirada, con tiempos propios de cada semilla. En la cabecera (32 px), arriba en Perfil (96 px) y junto a cada persona del hogar (24 px). Con "Reducir movimiento", `motion.css` lo deja quieto.
+- **Expresiones (D-56, fase 11)** — `ponerExpresion(avatar, pose)` con las poses de `/vendor/blobatar/expression.js`: pone sus variables con `style.setProperty` y la clase `mo-expr`, y blobatar pasa de una a otra con una transición. Una expresión es un estado que se mantiene: para volver a la normal se pone `idle`.
+  - `thinking` (los ojos a dos alturas, columpiándose): el de la cabecera mientras el Ayudante responde; en Ticket, un avatar de 64 px en lugar del círculo que gira mientras Claude lo lee.
+  - `happy` 1,2 s: cuando una escritura sale bien (guardar, gastar, "La he cocinado", guardar el ticket o una tarjeta del Ayudante).
+  - `sad` 1,5 s: cuando una escritura falla, salvo un error de validación de un campo (ya se ve en el campo).
+  - `api.js` avisa de cada escritura con un evento (`vigia:escritura`, con `ok`); el avatar de la cabecera reacciona. Si en ese momento no hay cabecera con avatar (una pantalla secundaria), reacciona el de la pantalla de pestaña a la que se vuelve, si llega en menos de 1 s.
+- **Nacimiento (D-56)** — `nacerAvatar(avatar, semilla, { vueltas })`: muestra `vueltas` avatares al azar (semillas hechas con `crypto.getRandomValues`, que no se guardan) cada vez más despacio, de 90 a 260 ms, cada uno con un "pop" de escala (0,85 → 1), y termina en el de `semilla` con `happy` 1,2 s. Con "Reducir movimiento", pone directamente el tuyo. blobatar no transforma un avatar en otro (la forma es un trazo distinto), por eso es una ruleta.
 - **Mira hacia donde tocas** — `mirarAlToque(avatar, zona)`: al tocar (o hacer clic) en la pantalla, el grupo de los ojos (`.mo-eyes`) se desplaza 3,5 unidades hacia ese punto con una transición de CSS y vuelve a los 1,4 s; mientras, se paran sus miradas de reposo. Devuelve una función para dejar de escuchar al salir de la pantalla. El seguimiento de blobatar (`gaze`) no sirve: solo se activa con ratón (`pointer: fine`).
 - **Sin `innerHTML`** (SEC-07): el SVG vivo se lee con `DOMParser` (con los `style="…"` renombrados para que la CSP no se queje) y cada nodo se crea de nuevo; los estilos van por `style.setProperty`, que la CSP sí permite.
 - **Es decorativo** (`alt=""` / `aria-hidden`): siempre va junto al nombre de la persona o dentro de un botón con su `aria-label`. No transmite información.
@@ -571,10 +601,32 @@ Leyenda: `[ Botón ]` primario · `[ Botón ]°` secundario · `‹texto›` fan
 ```
 
 #### P-03 · Bienvenida (primer uso) — `/bienvenida` · E-2 · ver flujo §7.6
+Desde D-56 (fase 11), **4 pasos**; el primero es "Este eres tú":
 ```
 ┌──────────────────────────────┐
 │  Bienvenida, Álvaro           │
-│  Paso 1 de 3                  │
+│  Paso 1 de 4                  │
+│ ┌──────────────────────────┐ │
+│ │ Este eres tú             │ │
+│ │                          │ │
+│ │          (●●)            │ │  ← avatar vivo de 120 px: nace
+│ │                          │ │
+│ │ Así te verán en tu casa. │ │
+│ │ Si no te convence:       │ │
+│ │      ‹Otro avatar›       │ │
+│ └──────────────────────────┘ │
+│                               │
+│  ‹Saltar›     [ Siguiente  ]  │
+└──────────────────────────────┘
+```
+- Al llegar, el avatar **nace** (`nacerAvatar`, 7 vueltas) y se pone contento. Siguiente funciona desde el primer momento.
+- `‹Otro avatar›` → `POST /api/yo/avatar` → una ruleta más corta (4 vueltas) hasta el nuevo. Mientras, el botón dice "Barajando…" y no se puede pulsar otra vez. Si falla, se queda el que había, con "No se ha podido cambiar el avatar." (y el avatar, triste).
+- El texto del avatar no lo lee el lector (es decorativo); al terminar, un `role="status"` dice "Este es tu avatar".
+
+```
+┌──────────────────────────────┐
+│  Bienvenida, Álvaro           │
+│  Paso 2 de 4                  │
 │ ┌──────────────────────────┐ │
 │ │ Tu casa                  │ │
 │ │ «Casa de Álvaro»  ‹Cambiar›│
@@ -586,7 +638,7 @@ Leyenda: `[ Botón ]` primario · `[ Botón ]°` secundario · `‹texto›` fan
 │  ‹Saltar›     [ Siguiente  ]  │
 └──────────────────────────────┘
 ```
-Paso 2, "Instala la app" (instrucciones de iOS o un botón en Chrome); paso 3, "Activa los avisos". Cada paso se puede saltar.
+Paso 3, "Instala la app" (instrucciones de iOS o un botón en Chrome); paso 4, "Activa los avisos". Cada paso se puede saltar.
 
 #### P-04 · Inventario — `/` · E-1
 ```
@@ -1140,7 +1192,7 @@ Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los ti
 ## 5. Navegación y rutas
 
 ### 5.1 Pestañas
-**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 11, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27).
+**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 12, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27).
 
 ### 5.2 Rutas (History API: URLs normales, sin `#`)
 
@@ -1288,18 +1340,19 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 
 ### 7.6 Primer uso: cuenta, instalación y permiso de avisos
 1. **Abrir la URL en Safari** → `/entrar`. Sin cuenta → `‹Créala›` → `/registro` → `[Crear cuenta]` → el servidor crea la cuenta, la casa "Casa de {nombre}" y la sesión → `/bienvenida`.
-2. **Paso 1, tu casa:** nombre editable · `‹Tengo un código›` → `/hogar/unirse` · `‹Invitar más tarde›`.
-3. **Paso 2, instalar** (solo si **no** está en modo `standalone`):
+2. **Paso 1, este eres tú (D-56):** tu avatar nace (una ruleta de avatares que se para en el tuyo) · `‹Otro avatar›`.
+3. **Paso 2, tu casa:** nombre editable · `‹Tengo un código›` → `/hogar/unirse` · `‹Invitar más tarde›`.
+4. **Paso 3, instalar** (solo si **no** está en modo `standalone`):
    - **iPhone/iPad (Safari):** "Para recibir avisos en el iPhone tienes que añadir la app a la pantalla de inicio: 1. Pulsa Compartir [icono]. 2. Elige «Añadir a pantalla de inicio». 3. Abre Vigía desde el icono nuevo." **[sin verificar]** los nombres exactos de los menús en el iOS actual (fase 3). Safari no tiene un botón de instalar que se pueda programar.
    - **Chrome/Edge (PC, Android):** botón `[Instalar la app]` si llega el evento `beforeinstallprompt` (**[sin verificar]**, fase 3). Si no, se explica que se puede instalar desde el menú del navegador.
    - **Ya instalada:** se salta el paso.
-4. **Paso 3, avisos** (solo dentro de la PWA instalada o en navegadores con `PushManager`):
+5. **Paso 4, avisos** (solo dentro de la PWA instalada o en navegadores con `PushManager`):
    - Texto: "Te avisaremos el día antes de que caduque un tupper (a las 10:00) y la noche antes de lo que tengas planificado (a las 21:00)."
    - `[Activar avisos]` → **en ese mismo toque**, `Notification.requestPermission()` (R-02) → el sistema pregunta → si se acepta: suscripción + `POST /api/push/suscripciones` + "✓ Avisos activados" + `‹Enviar un aviso de prueba›`.
    - **Si se rechaza:** "No pasa nada: puedes activarlos más tarde desde Perfil › Avisos." Si el permiso queda bloqueado, Perfil › Avisos explica cómo desbloquearlo en el sistema.
    - **No compatible:** "Este navegador no puede recibir avisos."
-5. **`‹Saltar›`** en cualquier paso → Inventario. Lo pendiente se recuerda con un aviso *info* en Perfil › Avisos, no con ventanas emergentes.
-6. **Un dispositivo nuevo de la misma persona** (por ejemplo, el PC): tras entrar, Perfil › Avisos muestra el estado de los avisos **de ese dispositivo**.
+6. **`‹Saltar›`** en cualquier paso → Inventario. Lo pendiente se recuerda con un aviso *info* en Perfil › Avisos, no con ventanas emergentes.
+7. **Un dispositivo nuevo de la misma persona** (por ejemplo, el PC): tras entrar, Perfil › Avisos muestra el estado de los avisos **de ese dispositivo**.
 
 ### 7.7 Preguntar al Ayudante → tarjeta → guardar (fase 8, D-51)
 1. **Ayudante** (`/ayudante`) → la primera vez, el aviso de privacidad → `[Empezar]`.
@@ -1356,6 +1409,6 @@ Comunes a todas:
 | **Lectores de pantalla** | HTML semántico (`<nav>`, `<main>`, `<header>`, `<h1>`/`<h2>`, `<button>`, `<a>`, `<fieldset>`/`<legend>`, `<ol>` para los pasos); un `<h1>` por pantalla; `aria-current` en la pestaña; `aria-invalid` + `aria-describedby` en los errores; `role="alert"` solo en errores y `role="status"` para cargas y avisos; `aria-busy` al cargar; iconos con `aria-hidden`; filas leídas como un solo elemento ("Leche, Caduca mañana, 1 l") | VoiceOver en el iPhone (rotor por encabezados y controles) en cada fase con pantallas nuevas |
 | **Tamaño de texto del usuario** | §2.3: `-apple-system-body` en iOS y `rem` en todo el texto; contenedores sin altura fija, solo `min-height`; textos que saltan de línea; chips con `flex-wrap`; media queries en `em`. **No** se bloquea el zoom (sin `maximum-scale` ni `user-scalable=no`) | Ajustes del iPhone › Tamaño del texto al máximo (y tamaños grandes de accesibilidad): nada se corta ni se solapa |
 | **Nada transmitido solo con color** | "✓ Tienes" / "✗ Te falta" / "Solo tienes…"; caducidad con texto ("Caduca mañana"); errores con "✗" y mensaje; pestaña activa en negrita + barrita; chip elegido con fondo relleno y recomendado con borde grueso + texto oculto; tarjetas destacadas con su texto ("· mañana", "✓ …") | Ver la app en escala de grises (filtro del sistema) |
-| **Movimiento reducido** | `prefers-reduced-motion`: sin giros ni transiciones (§2.4) | Activar "Reducir movimiento" en el iPhone |
+| **Movimiento reducido** | `prefers-reduced-motion`: sin giros ni transiciones, sin View Transitions y el avatar nace directamente (§2.4, D-56) | Activar "Reducir movimiento" en el iPhone |
 | **Formularios** | Etiqueta visible y asociada (`<label for>`) en cada campo, también en "Nombre del plato" (en Expo solo tenía `accessibilityLabel`); `autocomplete` correcto (email, contraseñas); `inputmode` adecuado; errores en texto y foco al primero | Rellenar cada formulario con VoiceOver |
 | **Idioma** | `<html lang="es">` (la plantilla de Expo tenía `lang="en"`); notificaciones con `lang: "es-ES"` | Inspector |
