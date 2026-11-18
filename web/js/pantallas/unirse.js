@@ -85,7 +85,7 @@ export function pantallaUnirse() {
 
   return {
     titulo: 'Unirse a una casa',
-    atras: '/ajustes',
+    atras: '/perfil/hogar',
     contenido: el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, codigo, boton),
   };
 }

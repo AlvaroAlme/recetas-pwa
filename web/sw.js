@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v29';
+const VERSION = 'app-v30';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -33,6 +33,8 @@ const ARCHIVOS = [
   '/js/dom.js',
   '/js/log.js',
   '/js/router.js',
+  '/js/yo.js',
+  '/js/componentes/avatar.js',
   '/js/componentes/equilibrioSemana.js',
   '/js/componentes/filaCocinar.js',
   '/js/componentes/formularioProducto.js',
@@ -46,9 +48,9 @@ const ARCHIVOS = [
   '/js/componentes/tarjetaReceta.js',
   '/js/componentes/ui/index.js',
   '/js/componentes/vistaReceta.js',
-  '/js/pantallas/ajustes.js',
   '/js/pantallas/ayudante.js',
   '/js/pantallas/bienvenida.js',
+  '/js/pantallas/comunPerfil.js',
   '/js/pantallas/borrarCuenta.js',
   '/js/pantallas/cocinar.js',
   '/js/pantallas/editarReceta.js',
@@ -56,6 +58,12 @@ const ARCHIVOS = [
   '/js/pantallas/inventario.js',
   '/js/pantallas/invitar.js',
   '/js/pantallas/noExiste.js',
+  '/js/pantallas/perfil.js',
+  '/js/pantallas/perfilAvisos.js',
+  '/js/pantallas/perfilDatos.js',
+  '/js/pantallas/perfilHogar.js',
+  '/js/pantallas/perfilIa.js',
+  '/js/pantallas/perfilSeguridad.js',
   '/js/pantallas/planDia.js',
   '/js/pantallas/planificarHueco.js',
   '/js/pantallas/privacidad.js',
@@ -82,6 +90,10 @@ const ARCHIVOS = [
   '/iconos/icono-512.png',
   '/iconos/apple-touch-icon.png',
   '/fuentes/bricolage-grotesque.woff2',
+  // blobatar (D-52): app.js los sirve desde node_modules.
+  '/vendor/blobatar/index.js',
+  '/vendor/blobatar/internal.js',
+  '/vendor/blobatar/motion.css',
 ];
 
 self.addEventListener('install', (evento) => {

@@ -6,7 +6,6 @@ import { escucharInstalacion } from './avisos.js';
 import { iniciarConexion } from './conexion.js';
 import { logError } from './log.js';
 import { iniciarRouter } from './router.js';
-import { pantallaAjustes } from './pantallas/ajustes.js';
 import { pantallaAyudante } from './pantallas/ayudante.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
@@ -16,6 +15,12 @@ import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
 import { pantallaInvitar } from './pantallas/invitar.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
+import { pantallaPerfil } from './pantallas/perfil.js';
+import { pantallaPerfilAvisos } from './pantallas/perfilAvisos.js';
+import { pantallaPerfilDatos } from './pantallas/perfilDatos.js';
+import { pantallaPerfilHogar } from './pantallas/perfilHogar.js';
+import { pantallaPerfilIa } from './pantallas/perfilIa.js';
+import { pantallaPerfilSeguridad } from './pantallas/perfilSeguridad.js';
 import { pantallaPlanDia } from './pantallas/planDia.js';
 import { pantallaPlanificarHueco } from './pantallas/planificarHueco.js';
 import { pantallaPrivacidad } from './pantallas/privacidad.js';
@@ -42,7 +47,15 @@ iniciarRouter({
     { patron: '/privacidad', publica: true, pantalla: pantallaPrivacidad },
     // Privadas: si no hay sesión, la API da 401 y api.js lleva a /entrar.
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
-    { patron: '/ajustes', pestana: '/ajustes', pantalla: pantallaAjustes },
+    // Perfil (P-16) y sus apartados (D-52): se abren con el avatar de la cabecera.
+    { patron: '/perfil', pantalla: pantallaPerfil },
+    { patron: '/perfil/datos', pantalla: pantallaPerfilDatos },
+    { patron: '/perfil/seguridad', pantalla: pantallaPerfilSeguridad },
+    { patron: '/perfil/hogar', pantalla: pantallaPerfilHogar },
+    { patron: '/perfil/avisos', pantalla: pantallaPerfilAvisos },
+    { patron: '/perfil/ia', pantalla: pantallaPerfilIa },
+    // Antes era Ajustes: avisos y enlaces viejos llegan a Perfil.
+    { patron: '/ajustes', redirigir: '/perfil', pantalla: pantallaPerfil },
     // El chat con la IA (P-21, D-51).
     { patron: '/ayudante', pestana: '/ayudante', pantalla: pantallaAyudante },
     { patron: '/recetas', pestana: '/recetas', pantalla: pantallaRecetas },

@@ -9,8 +9,10 @@
  * Una pantalla es una función que recibe { parametros, consulta } y devuelve
  * (o promete) lo que va en el esqueleto de index.html: una Vista.
  */
+import { crearAvatar } from './componentes/avatar.js';
 import { el } from './dom.js';
 import { logError } from './log.js';
+import { olvidarUsuario, usuarioActual, usuarioSabido } from './yo.js';
 
 /**
  * @typedef {Object} Vista
@@ -31,7 +33,9 @@ import { logError } from './log.js';
  * @property {(parametros: Record<string, string>) => boolean} [validar]
  *   Si devuelve false, la ruta no vale y sale "no existe" (SEC-06).
  * @property {boolean} [publica] Entrar, Crear cuenta…: sin pestañas (no hay
- *   sesión, así que no tiene sentido enseñar Inventario o Ajustes).
+ *   sesión, así que no tiene sentido enseñar Inventario o Perfil).
+ * @property {string} [redirigir] Una URL antigua que ahora es otra (/ajustes →
+ *   /perfil, D-52): la cambio en el historial y pinto la nueva.
  */
 
 /** @type {Ruta[]} */
@@ -110,12 +114,38 @@ function crearAtras(porDefecto) {
 }
 
 /**
+ * El botón de Perfil de la cabecera, con mi avatar (D-52). Sale en las
+ * pantallas de pestaña. Si todavía no sé quién soy, dejo un hueco del mismo
+ * tamaño (así la cabecera no salta) y pongo el avatar cuando llegue.
+ * @returns {HTMLAnchorElement}
+ */
+function crearEnlacePerfil() {
+  const enlace = el('a', { class: 'cabecera__perfil', href: '/perfil', 'aria-label': 'Perfil' });
+  const ponerAvatar = (usuario) => enlace.replaceChildren(crearAvatar({ semilla: usuario.avatarSemilla, tamano: 32 }));
+  const sabido = usuarioSabido();
+  if (sabido) {
+    ponerAvatar(sabido);
+  } else {
+    enlace.append(el('span', { class: 'cabecera__hueco-avatar', 'aria-hidden': 'true' }));
+    // Si falla (sin sesión, sin red), se queda el hueco: la pantalla ya enseña su error.
+    usuarioActual().then(ponerAvatar, () => {});
+  }
+  return enlace;
+}
+
+/**
  * Pinta la pantalla de la URL actual en el esqueleto de index.html.
  * @param {{ esPrimera?: boolean, volviendo?: boolean }} [opciones]
  */
 async function pintar({ esPrimera = false, volviendo = false } = {}) {
   const miTurno = ++turno;
-  const { ruta, parametros } = buscar(location.pathname);
+  let { ruta, parametros } = buscar(location.pathname);
+  if (ruta.redirigir) {
+    history.replaceState(history.state, '', ruta.redirigir);
+    ({ ruta, parametros } = buscar(location.pathname));
+  }
+  // En Entrar o Crear cuenta ya no hay sesión: quien entre puede ser otra persona.
+  if (ruta.publica) olvidarUsuario();
   const consulta = new URLSearchParams(location.search);
 
   /** @type {Vista} */
@@ -134,7 +164,10 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
   $('titulo').textContent = vista.titulo;
   document.title = `${vista.titulo} · Vigía`;
   $('pantalla').replaceChildren(vista.contenido);
-  $('accion-cabecera').replaceChildren(...(vista.accion ? [vista.accion] : []));
+  $('accion-cabecera').replaceChildren(
+    ...(vista.accion ? [vista.accion] : []),
+    ...(ruta.pestana ? [crearEnlacePerfil()] : [])
+  );
   $('atras-cabecera').replaceChildren(...(vista.atras ? [crearAtras(vista.atras)] : []));
   $('pie-interior').replaceChildren(...(vista.pie ?? []));
   $('pie').hidden = !vista.pie;

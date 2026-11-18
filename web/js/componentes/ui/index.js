@@ -150,7 +150,9 @@ export function recomendarEnSelector(selector, valores) {
 /**
  * Fila de una lista que lleva a otra pantalla. Es UN enlace, así que el
  * lector la lee entera: "Leche, Caduca mañana, 1 l".
- * @param {{ href: string, titulo: string, subtitulo?: string, tono?: string, detalle?: string }} opciones
+ * El subtítulo sale como etiqueta de estado (con su tono e icono); con
+ * tono: null es un texto normal en gris (los resúmenes de Perfil).
+ * @param {{ href: string, titulo: string, subtitulo?: string, tono?: string | null, detalle?: string }} opciones
  * @returns {HTMLLIElement}
  */
 export function crearFila({ href, titulo, subtitulo, tono = 'tenue', detalle }) {
@@ -164,7 +166,7 @@ export function crearFila({ href, titulo, subtitulo, tono = 'tenue', detalle }) 
         'span',
         { class: 'fila__textos' },
         el('span', { class: 'fila__titulo' }, titulo),
-        subtitulo && el('span', { class: `fila__subtitulo tono--${tono}` }, subtitulo)
+        subtitulo && el('span', { class: tono ? `fila__subtitulo tono--${tono}` : 'fila__subtitulo fila__subtitulo--texto' }, subtitulo)
       ),
       detalle && el('span', { class: 'fila__detalle' }, detalle)
     )

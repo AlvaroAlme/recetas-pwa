@@ -121,7 +121,7 @@ function pasoCasa() {
         'section',
         { class: 'tarjeta', 'aria-labelledby': 'titulo-convives' },
         el('h3', { class: 'texto--fuerte', id: 'titulo-convives' }, '¿Vives con alguien?'),
-        el('p', {}, 'Si ya usa Vigía, pídele un código para unirte a su casa. Si no, puedes invitarle más tarde desde Ajustes.'),
+        el('p', {}, 'Si ya usa Vigía, pídele un código para unirte a su casa. Si no, puedes invitarle más tarde desde Perfil › Hogar.'),
         el('a', { class: 'boton boton--secundario boton--ajustado', href: '/hogar/unirse' }, 'Tengo un código')
       )
     );
@@ -183,7 +183,7 @@ function pasoInstalar() {
   };
 }
 
-/** Paso 3: activar los avisos (el mismo bloque que Ajustes). */
+/** Paso 3: activar los avisos (el mismo bloque que Perfil › Avisos). */
 function pasoAvisos() {
   return {
     titulo: 'Bienvenida',

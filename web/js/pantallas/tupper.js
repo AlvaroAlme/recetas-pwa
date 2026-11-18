@@ -175,7 +175,7 @@ function pantallaNuevo(consulta) {
   }
 
   // "Este dispositivo no tiene los avisos activos" (§7.4, paso 3): lo pongo
-  // cuando sé el estado, si se pueden activar o desbloquear desde Ajustes.
+  // cuando sé el estado, si se pueden activar o desbloquear desde Perfil › Avisos.
   const avisoDispositivo = el('div');
   estadoAvisos()
     .then((estado) => {
@@ -184,7 +184,7 @@ function pantallaNuevo(consulta) {
         crearAviso({
           tipo: 'aviso',
           mensaje: 'Este dispositivo no tiene los avisos activos.',
-          accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: '/ajustes' }, 'Activar avisos'),
+          accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: '/perfil/avisos' }, 'Activar avisos'),
         })
       );
     })

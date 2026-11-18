@@ -76,7 +76,7 @@ export function pantallaInvitar() {
 
   return {
     titulo: 'Invitar',
-    atras: '/ajustes',
+    atras: '/perfil/hogar',
     contenido: el(
       'div',
       { class: 'formulario' },

@@ -59,9 +59,32 @@
   flex: 1;
   min-width: 0;
 }
+/* Un lado puede llevar dos cosas: la acción (Ticket) y el botón de Perfil. */
+.cabecera__lado {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-s);
+}
 /* Si un lado de la cabecera está vacío (no hay Atrás o no hay acción), no ocupa sitio. */
 .cabecera__lado:empty {
   display: none;
+}
+/* El botón de Perfil con mi avatar (D-52): 44 x 44 para el dedo, avatar de 32. */
+.cabecera__perfil {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tactil);
+  min-height: var(--tactil);
+  margin-inline-end: calc(var(--espacio-xs) * -1);
+  border-radius: var(--radio-pildora);
+}
+/* Mientras llega mi avatar, un círculo del mismo tamaño (la cabecera no salta). */
+.cabecera__hueco-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-superficie-2);
 }
 .cabecera__atras {
   display: inline-flex;
@@ -131,7 +154,9 @@
 }
 .navegacion ul {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* Una columna por pestaña, sean 4 o 5 (como mucho 5: DISENO_UI §3.2). */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   padding: 0;
   list-style: none;
 }
@@ -229,6 +254,7 @@
     border-right: 1px solid var(--color-borde);
   }
   .navegacion ul {
+    grid-auto-flow: row;
     grid-template-columns: 1fr;
     gap: var(--espacio-s);
   }
@@ -420,6 +446,10 @@ input:focus-visible + .chip {
 .fila__subtitulo {
   font-size: var(--texto-secundario);
   line-height: var(--linea-secundario);
+}
+/* Un subtítulo que solo informa (Perfil): texto gris, sin etiqueta. */
+.fila__subtitulo--texto {
+  color: var(--color-texto-secundario);
 }
 .fila__detalle {
   color: var(--color-texto-secundario);
@@ -1545,4 +1575,24 @@ label.tarjeta-chat__hueco .casilla__entrada {
   .avatar--vivo .mo-eyes {
     transition: none;
   }
+}
+
+/* ============ Perfil (P-16, D-52) ============ */
+/* Arriba: el avatar vivo, mi nombre y mi email, centrados. */
+.perfil__cabecera {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-s);
+  margin-block-end: var(--espacio-xl);
+  text-align: center;
+}
+.perfil__nombre {
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+  font-weight: var(--peso-titulo);
+  overflow-wrap: anywhere;
+}
+.perfil__email {
+  overflow-wrap: anywhere;
 }

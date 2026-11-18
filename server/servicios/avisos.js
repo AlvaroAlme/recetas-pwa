@@ -1,7 +1,7 @@
 /**
  * @file Envío de los avisos, a todos los dispositivos de la casa:
  * - de los tuppers (§7.2): el día anterior a su fecha límite a las 10:00;
- * - del plan (§7.4): la noche anterior, a la hora de Ajustes (21:00 por
+ * - del plan (§7.4): la noche anterior, a la hora de Perfil › Avisos (21:00 por
  *   defecto), si mañana hay comida o cena planificada.
  * Las horas son las de la casa (su zona horaria).
  */

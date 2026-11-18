@@ -266,7 +266,7 @@ html {
 | `Selector` | `crearSelector()` | `<fieldset>` + radios nativos con aspecto de chip |
 | `Casilla` | `crearCasilla()` | `<input type="checkbox">` + `<label>` |
 | `Tarjeta` | `crearTarjeta()` | `<article>` o `<a>` si se puede pulsar |
-| `FilaLista` | `crearFila()` | `<li>` + `<a>` |
+| `FilaLista` | `crearFila()` | `<li>` + `<a>`; el subtítulo es una etiqueta de estado con su tono, o texto gris con `tono: null` (Perfil) |
 | `EstadoCarga` | `crearCarga()` | `<div role="status">` |
 | `EstadoVacio` | `crearVacio()` | `<section>` + `<h2>` |
 | `Aviso` | `crearAviso()` | `<div role="alert">` o `role="status"` |
@@ -1010,10 +1010,9 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │ ├──────────────────────────┤ │
 │ │ Privacidad             › │ │
 │ └──────────────────────────┘ │
-│  Modelo: claude-sonnet-5-5    │  tenue
 └──────────────────────────────┘
 ```
-Sin barra de pestañas (es una pantalla secundaria). El avatar grande es el **vivo**: parpadea y mira hacia donde toques en la pantalla (`mirarAlToque`). Cada fila lleva a su apartado; el resumen se calcula con lo que ya devuelve `GET /api/yo`. El resumen de Avisos depende de **este dispositivo** (§7.6): "Activados", "Desactivados", "Instala la app para recibir avisos"…
+Sin barra de pestañas (es una pantalla secundaria). El avatar grande es el **vivo**: parpadea y mira hacia donde toques en la pantalla (`mirarAlToque`). Cada fila lleva a su apartado; el resumen se calcula con lo que ya devuelve `GET /api/yo` y va en gris, no como etiqueta de estado (`crearFila({ tono: null })`). El resumen de Avisos depende de **este dispositivo** (§7.6): "Activados", "Desactivados", "Instala la app para recibir avisos"…
 
 #### P-22 · Datos personales — `/perfil/datos` · E-2 (D-52)
 ```
@@ -1063,7 +1062,7 @@ Lo que era la sección "Tu casa" de Ajustes: nombre de la casa con `‹Cambiar n
 Lo que eran las secciones "Avisos en este dispositivo" y "Aviso del plan" de Ajustes, con sus estados (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Vigía" **[sin verificar]** la ruta exacta, `‹Enviar prueba›`, `‹Desactivar›` y la hora del aviso del plan.
 
 #### P-26 · Inteligencia artificial — `/perfil/ia` · E-2 (D-52)
-Lo que era la sección de IA de Ajustes: "Tickets: te quedan 9 de 10 hoy." · "Ayudante: te quedan 28 de 30 mensajes hoy." · "Se renuevan cada día a medianoche." y el modelo en tono tenue.
+Lo que era la sección de IA de Ajustes: "Tickets: te quedan 9 de 10 hoy." · "Ayudante: te quedan 28 de 30 mensajes hoy." · "Las fotos de los tickets y los mensajes del Ayudante se envían a Anthropic para leerlos." y `‹Privacidad›`.
 
 #### P-17 · Invitar / unirse — `/hogar/invitar` · `/hogar/unirse` · E-2
 ```

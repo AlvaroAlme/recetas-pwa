@@ -84,7 +84,7 @@ export function pantallaPrivacidad() {
 
       apartado(
         'Borrar tus datos',
-        el('p', {}, 'En Ajustes › Borrar cuenta se borra al momento tu cuenta, tus sesiones, tus avisos y tu conversación con el Ayudante. Si eras la única persona de tu casa, también la casa con sus productos y tuppers; si no, la casa sigue para los demás.')
+        el('p', {}, 'En Perfil › Seguridad › Borrar cuenta se borra al momento tu cuenta, tus sesiones, tus avisos y tu conversación con el Ayudante. Si eras la única persona de tu casa, también la casa con sus productos y tuppers; si no, la casa sigue para los demás.')
       ),
 
       apartado(

@@ -54,7 +54,7 @@ export function pantallaBorrarCuenta() {
 
   return {
     titulo: 'Borrar cuenta',
-    atras: '/ajustes',
+    atras: '/perfil/seguridad',
     contenido: el(
       'form',
       { class: 'formulario', novalidate: true, onsubmit: alEnviar },

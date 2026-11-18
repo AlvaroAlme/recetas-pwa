@@ -126,7 +126,7 @@ export async function enviarAlHogar(hogarId, mensaje) {
 }
 
 /**
- * "Enviar un aviso de prueba" (Ajustes): a todos los dispositivos de la
+ * "Enviar un aviso de prueba" (Perfil › Avisos): a todos los dispositivos de la
  * persona, para comprobar que el iPhone los recibe.
  * @param {number} usuarioId
  * @returns {Promise<number>} A cuántos ha llegado.
@@ -135,7 +135,7 @@ export async function enviarPrueba(usuarioId) {
   const mensaje = crearMensaje({
     titulo: 'Aviso de prueba',
     cuerpo: 'Si ves esto, los avisos de Vigía funcionan en este dispositivo.',
-    ruta: '/ajustes',
+    ruta: '/perfil/avisos',
     etiqueta: 'prueba',
   });
   return enviarA(await suscripcionesDe(usuarioId), mensaje);

@@ -146,7 +146,7 @@ export function nombreDeCasa(nombre) {
 }
 
 /**
- * Mi hogar y quién vive en él (para GET /api/yo y Ajustes).
+ * Mi hogar y quién vive en él (para GET /api/yo y Perfil).
  * @param {number} hogarId
  * @returns {Promise<{ id: number, nombre: string, zonaHoraria: string, horaAvisoPlan: string, miembros: { id: number, nombre: string, rol: string }[] }>}
  */

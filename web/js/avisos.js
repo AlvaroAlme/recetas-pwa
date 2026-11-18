@@ -1,7 +1,7 @@
 /**
  * @file Los avisos Web Push de ESTE dispositivo (§7.1): saber en qué estado
  * están, activarlos, desactivarlos y mandar un aviso de prueba. La pantalla
- * (Ajustes, la Bienvenida) decide qué enseñar; aquí no pinto nada.
+ * (Perfil › Avisos, la Bienvenida) decide qué enseñar; aquí no pinto nada.
  *
  * Cada dispositivo tiene su propia suscripción: activar los avisos en el
  * iPhone no los activa en el PC.

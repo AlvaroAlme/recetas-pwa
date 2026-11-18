@@ -63,10 +63,14 @@ avatar, y 10 Lista de la compra (D-53 se fija en su paso 1). El cierre
 pasa a ser la 11 (recuperar la contraseña y cambiar el email: el
 proveedor de correo se decide entonces; en Render gratis el SMTP está
 bloqueado, hace falta una API HTTPS como Brevo o Resend).
-**Siguiente: fase 9, paso 4** (pantallas: Perfil y sus apartados, el
-avatar en la cabecera y la barra de pestañas; añadir a `ARCHIVOS` de
-`sw.js` `/js/componentes/avatar.js` y los 3 de `/vendor/blobatar/`, y el
-`<link>` a `motion.css` en `index.html`). Paso 3 hecho: avatar con
+**Siguiente: fase 9, paso 5** (desplegar en Render, `008_perfil` se
+aplica al arrancar, y probar el "Hecho cuando" en el iPhone). Paso 4
+hecho: Perfil (`perfil.js`) y sus apartados (`perfilDatos`,
+`perfilSeguridad`, `perfilHogar`, `perfilAvisos`, `perfilIa`, con
+`comunPerfil.js`), `ajustes.js` borrado, `/ajustes` → `/perfil`
+(`redirigir` en el router), botón con el avatar en las cabeceras de
+pestaña (`yo.js` guarda quién soy; se olvida en las pantallas
+públicas), barra de 4 pestañas, `sw.js` en `app-v30`. Paso 3 hecho: avatar con
 **blobatar 2.7.0** (versión fija; `app.js` sirve `index.js`,
 `internal.js` y `motion.css` de `node_modules` en `/vendor/blobatar/`),
 `componentes/avatar.js` (`crearAvatar` quieto en `<img>`,

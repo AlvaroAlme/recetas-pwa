@@ -201,7 +201,7 @@ export function pantallaPlanificarHueco({ parametros }) {
         await api.put(ruta, datos);
         // Si mañana me tocaría el aviso y aquí no llega, lo digo (pero se ha guardado).
         const mensaje = (await sinAvisos)
-          ? { tipo: 'aviso', texto: 'Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes.' }
+          ? { tipo: 'aviso', texto: 'Plan guardado. Activa los avisos en Perfil › Avisos para que te lo recordemos la noche antes.' }
           : 'Plan guardado.';
         navegar(semana, { reemplazar: true, mensaje });
       } catch (error) {
