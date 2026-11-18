@@ -34,15 +34,18 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 | **"Qué me falta"** | Calculado en el momento con `estadoIngrediente()` | Igual, en el navegador, con `compartido/cocina.js` y el inventario recién pedido. No se guarda |
 | **"La he cocinado"** | Transacción SQLite: descuenta productos y consume tuppers | **Una transacción PostgreSQL** con bloqueo de filas (`FOR UPDATE`), porque ahora varias personas pueden tocar el mismo inventario a la vez |
 | **Planificador semanal** | Comida y cena de lunes a domingo; aviso la noche anterior a una hora configurable (21:00 por defecto) | Igual, compartido por el hogar; el aviso lo envía el servidor por Web Push |
-| **Ajustes** | API key de Claude y hora del aviso | **Ya no hay API key** (está en el servidor, D-05). Hora del aviso, hogar e invitaciones, avisos de este dispositivo y cerrar sesión |
+| **Ajustes → Perfil** | API key de Claude y hora del aviso | **Ya no hay API key** (está en el servidor, D-05). **Perfil** (fase 9, D-52), que se abre con tu avatar desde la cabecera: datos personales, seguridad (contraseña y sesiones), hogar e invitaciones, avisos y cuota de IA |
+| **Lista de la compra** | No existía | Compartida por el hogar; se añade sola cuando un producto baja al 10 % y se tacha sola al volver al inventario (fase 10, D-53) |
 | **Cuentas y hogar** | No existían | Registro, inicio de sesión, hogar compartido con invitación (D-01, D-03, D-04) |
 | **Sin conexión** | Siempre funcionaba (todo era local) | Solo lectura con la última copia guardada (D-09) |
 
 ### 1.2 Fuera de alcance de la primera versión
 - Escribir sin conexión y sincronizar después (descartado en D-09).
 - Varios hogares por usuario (P-01).
-- Recuperar la contraseña por email hasta la fase 8 (P-10).
+- Recuperar la contraseña por email hasta la fase 11 (P-10; movida por D-52).
 - Analíticas, temas personalizados y cualquier cosa que no esté en la app Expo.
+  Excepciones que decidió el autor el 2026-11-18: el perfil con avatar (D-52)
+  y la lista de la compra (D-53).
 - Las ideas de la versión 2 (consejos de cocina, productos de temporada):
   apuntadas en §10, "Versión 2".
 
@@ -153,6 +156,10 @@ CREATE TABLE usuarios (
   hash_contrasena       TEXT NOT NULL,          -- "scrypt$N$r$p$sal$hash" (D-04)
   aviso_ia_aceptado_en  TIMESTAMPTZ,            -- SEC-04: NULL = aún no ha aceptado
   aviso_chat_aceptado_en TIMESTAMPTZ,           -- D-51: el aviso propio del chat
+  -- D-52: de esta semilla sale SIEMPRE la misma carita (compartido/avatar.js).
+  -- 32 cifras hexadecimales al azar; "Otro avatar" la cambia.
+  avatar_semilla        TEXT NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+                        CHECK (avatar_semilla ~ '^[0-9a-f]{32}$'),
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -450,6 +457,7 @@ Nada sensible va a `localStorage`.
 | `005_recetas.sql` | 6 | `recetas`, `receta_ingredientes` (sin `sugerencias`, D-48) |
 | `006_cuadrante.sql` | 7 | `cuadrante`, `avisos_plan_enviados`, `ALTER TABLE hogares ADD COLUMN hora_aviso_plan …` |
 | `007_chat.sql` | 8 | `conversaciones`, `mensajes_chat`, `tarjetas_chat`, `ALTER TABLE usuarios ADD COLUMN aviso_chat_aceptado_en …`, `ALTER TABLE uso_ia ADD COLUMN mensajes_chat …` |
+| `008_perfil.sql` | 9 | `ALTER TABLE usuarios ADD COLUMN avatar_semilla …` (con `DEFAULT`: cada usuario que ya existe recibe su propia semilla al azar) |
 
 ---
 
@@ -510,7 +518,11 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | `POST /api/auth/registro` | `{ email, nombre, contrasena }` | 201 `{ usuario, hogar }` + cookie | 400, 409 (email existente), 429 | Email en minúsculas, ≤ 254, con formato básico; nombre de 1 a 80; contraseña de 10 a 128 (P-02). **TX:** `usuarios` + `hogares` ("Casa de {nombre}") + `miembros` (propietario) + `sesiones` |
 | `POST /api/auth/login` | `{ email, contrasena }` | 200 `{ usuario, hogar }` + cookie | 400, **401 genérico** ("Email o contraseña incorrectos"), 429 | Se calcula el hash aunque el email no exista, para no revelar qué emails existen por el tiempo de respuesta. Límite: 10 intentos / 15 min por IP y 5 por email |
 | `POST /api/auth/logout` 🔑 | — | 204 + cookie borrada | — | Borra la fila de `sesiones` |
-| `GET /api/yo` 🔑 | — | 200 `{ usuario, hogar, miembros, cuotaIa: { usadas, limite }, cuotaChat: { usadas, limite }, avisoIaAceptado }` | 401 | — |
+| `GET /api/yo` 🔑 | — | 200 `{ usuario, hogar, miembros, cuotaIa: { usadas, limite }, cuotaChat: { usadas, limite }, avisoIaAceptado }` | 401 | `usuario` y cada miembro llevan `avatarSemilla` (fase 9, D-52) |
+| `PATCH /api/yo` 🔑 | `{ nombre }` | 200 `{ usuario }` | 400 | Fase 9 (D-52). Nombre de 1 a 80, como en el registro. El email todavía no se cambia (fase 11: hay que confirmarlo por correo) |
+| `POST /api/yo/avatar` 🔑 | — | 200 `{ usuario }` | — | Fase 9. "Otro avatar": semilla nueva con `crypto.randomBytes(16)` |
+| `PUT /api/yo/contrasena` 🔑 | `{ actual, nueva }` | 204 | 400, 401 `CONTRASENA_INCORRECTA`, 429 | Fase 9. `nueva` de 10 a 128 (P-02) y distinta de la actual. **TX:** hash nuevo y **se borran las demás sesiones** (la de este dispositivo sigue). Límite: 5 intentos / 15 min por persona |
+| `DELETE /api/yo/sesiones` 🔑 | — | 200 `{ cerradas: n }` | — | Fase 9. "Cerrar las demás sesiones": borra las filas de `sesiones` de la persona menos la de su cookie |
 | `DELETE /api/yo` 🔑 | `{ contrasena }` | 204 | 400, 401 | **TX:** si la persona era la única del hogar, se borra el hogar (`CASCADE` borra sus datos); si había más y era propietaria, se pasa la propiedad al miembro más antiguo. Después se borra el usuario |
 
 #### Hogar
@@ -702,6 +714,7 @@ recetas-nevera-pwa/
 │   ├── formato.js             formatearCantidad                           ← lib/inventario.ts
 │   ├── plan.js                lunesDe, textoSemana, nombrePlato, textoAviso,
 │   │                          ETIQUETAS_GRUPO, OBJETIVOS_AESAN, equilibrioSemana, avisosDia (D-50)
+│   ├── avatar.js              piezasAvatar(semilla): de la semilla a la carita (D-52)
 │   └── validacion.js          validarProducto… (API y formulario, D-40)   ← FormularioProducto
 │
 ├── server/
@@ -759,8 +772,8 @@ recetas-nevera-pwa/
         ├── avisos.js          Instalación, permiso, suscripción push (§7.1)
         ├── componentes/       Equivalentes a components/ui (se diseñan en la fase B)
         └── pantallas/         inventario, producto, tupper, ticket, recetas, receta,
-                               cocinar, semana, plan-dia, asignar, ayudante, ajustes,
-                               entrar, registro, privacidad
+                               cocinar, semana, plan-dia, asignar, ayudante, perfil
+                               (y sus apartados, D-52), entrar, registro, privacidad
 ```
 
 **Reglas de capas** (igual que en `COMPONENTES.md`: cada capa solo importa de las de abajo):
@@ -918,6 +931,7 @@ RETURNING t.id, t.nombre, t.fecha_limite, t.hogar_id;
   - `registro`: 5 / hora por IP;
   - invitaciones y `push/prueba`: 3 / hora.
   - `hogar/unirse`: 10 / hora por persona (contando todos los intentos).
+  - `yo/contrasena`: 5 / 15 min por persona (fase 9, D-52), como el login por email.
 - `app.set('trust proxy', 1)`: Render pone un proxy delante, y sin esto **todas** las peticiones parecerían venir de la misma IP.
 - **IA:** cuota diaria en la base de datos (atómica, §5.2) y una petición a la vez por persona.
 - **Tarea de avisos:** protegida por `CRON_SECRETO`.
@@ -1106,8 +1120,28 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - "Nueva conversación" la borra, y una conversación de más de 30 días desaparece con la limpieza diaria;
 - en la pestaña Red no aparece la key en ninguna petición, ni el razonamiento del modelo.
 
-### Fase 9 — Cierre
-- Recuperar la contraseña por email (P-10; decisión del proveedor en ese momento).
+### Fase 9 — Perfil y avatar (D-52)
+- `008_perfil.sql`: `avatar_semilla` en `usuarios`.
+- **Avatar aleatorio:** una carita en SVG que sale siempre igual de su semilla (`compartido/avatar.js`, sin servicios externos y sin red); "Otro avatar" saca una nueva. Se ve en la cabecera, en Perfil y junto a cada persona del hogar.
+- **Perfil** sustituye a Ajustes: sale de la barra de pestañas y se abre con el avatar de la cabecera. Apartados, cada uno en su pantalla: **Datos personales** (nombre y avatar; el email se ve), **Seguridad** (cambiar la contraseña, cerrar las demás sesiones, cerrar sesión, borrar la cuenta), **Hogar**, **Avisos** (este dispositivo y la hora del plan), **Inteligencia artificial** (cuota) y **Privacidad**. `/ajustes` lleva a `/perfil`.
+- API: `PATCH /api/yo`, `POST /api/yo/avatar`, `PUT /api/yo/contrasena` y `DELETE /api/yo/sesiones`.
+- Pasos: 1 documentación (este cambio); 2 `008_perfil.sql` y la API con pruebas; 3 `compartido/avatar.js` con pruebas; 4 pantallas (Perfil, apartados, cabecera y barra); 5 `sw.js`, desplegar e iPhone.
+
+**Hecho cuando:**
+- cada persona tiene una carita distinta, que sale igual en todos los dispositivos y cambia con "Otro avatar";
+- el avatar de la cabecera abre Perfil, y cada ajuste de la antigua pantalla está en su apartado;
+- se cambia el nombre y se ve en el hogar de las demás personas;
+- cambiar la contraseña pide la actual, la sesión de este dispositivo sigue abierta y la de otro navegador se cierra;
+- "Cerrar las demás sesiones" cierra la del otro navegador y no la tuya;
+- un aviso o un enlace antiguo a `/ajustes` llega a Perfil.
+
+### Fase 10 — Lista de la compra (D-53)
+- Lista **compartida por el hogar**, en una pestaña propia junto a Inventario. Se añade a mano (con el autocompletado de D-42) y **sola**, cuando un producto baja al 10 % o menos de su cantidad de referencia (al gastarlo, editarlo o con "La he cocinado"), sin repetir lo que ya está sin tachar. **Se tacha sola** cuando entra en el inventario un producto con ese nombre (a mano o con el ticket), y también a mano. "Borrar comprados".
+- Las cifras y el detalle (tabla, cantidad de referencia, cómo se comparan los nombres) se fijan en su paso 1 (D-53).
+- El Ayudante no ve la lista: darle una herramienta nueva cambiaría las herramientas del chat (D-51).
+
+### Fase 11 — Cierre
+- Recuperar la contraseña por email (P-10; decisión del proveedor en ese momento) y cambiar el email desde Datos personales (D-52).
 - Revisión de accesibilidad, `npm audit`, README del proyecto y actualización de la auditoría con los hallazgos nuevos.
 
 **Hecho cuando:**
@@ -1183,6 +1217,7 @@ diseña y se decide (D-xx) cuando le toque.
 | D-49 | 2026-11-13 | Recetas escritas a mano (fase 6) | **Crear, editar y borrar** (`PUT /api/recetas/:id`: actualiza la receta y sustituye sus ingredientes en una TX). **Ingredientes en filas** (nombre, cantidad y unidad, con "Añadir ingrediente" y "Quitar"), **pasos en un área de texto** (un paso por línea, guardados juntos en `instrucciones`) y **raciones opcionales** (1 a 20, solo informan). Formulario de receta como pantalla nueva | Corregir una cantidad no debe obligar a rehacer la receta. "Qué me falta" y "La he cocinado" necesitan nombre, cantidad y unidad por separado: las filas evitan errores de formato. Los pasos como texto se escriben y se pegan cómodamente en el móvil. Las raciones las usará también el chat (fase 8) |
 | D-50 | 2026-11-16 | Cuadrante por fechas: grupos, equilibrio y rutas (fase 7) | Tabla **`cuadrante`** (sustituye a `planificador_semanal`, que nunca llegó a crearse): una fila por hogar + **fecha** + comida/cena con receta, texto libre o "fuera de casa". **8 grupos** en una lista cerrada (`GRUPOS_ALIMENTOS`): legumbres, pescado, huevos, carne blanca, carne roja, verduras, pasta o arroz, otro; **opcional** en cada hueco y nunca en "fuera de casa". **Equilibrio** frente al informe de AESAN 2022 (comprobado en aesan.gob.es el 2026-11-16): por semana, **legumbres ≥ 4**, **pescado ≥ 3**, **huevos ≤ 4** y **carne ≤ 3** (la blanca y la roja suman juntas; se recomienda priorizar aves y conejo). Los demás grupos se cuentan sin objetivo. **Avisos junto al día** (`avisosDia()`): el mismo grupo en la comida y en la cena ("mejor variar"; "otro" no avisa) y el día en que se pasa de un máximo ("Cuarta vez de carne esta semana"); el bloque del equilibrio se queda abajo como resumen (lo que falta no es de ningún día). **"Fuera de casa" con nota opcional** en `texto_libre` ("Comida aniversario": una cita no es un plato). **Rutas con la fecha en la ruta**: `/semana` (la actual), `/semana/2026-11-23` (lunes), `/plan/2026-11-24` y `/plan/2026-11-24/cena`. **Margen**: un año atrás y uno adelante (400 fuera de él); las filas de hace más de un año se borran en la tarea de avisos | Separar la carne blanca y la roja permite el matiz de AESAN sin cambiar el máximo. Un grupo obligatorio no encaja con "Comida aniversario". Las cifras diarias de AESAN (hortalizas, fruta, cereales) no se pueden contar con un hueco por comida, así que no se usan. Contar huecos no es contar raciones: por eso es "orientativo". La fecha en la ruta se lee bien y cabe en el router actual. Sin margen, la tabla crecería sin control |
 | D-51 | 2026-11-17 | Chat ayudante con IA (fase 8; fija las cifras de D-48 y cierra D-31) | **Modelo** `claude-sonnet-5-5` (el del ticket) con razonamiento adaptativo y esfuerzo `low`, con **`@anthropic-ai/sdk`** (versión fija; el ticket sigue con su `fetch`, D-47). **Una conversación activa por persona**, privada, con "Nueva conversación" (borra la anterior); se borra sola **30 días** después de su último mensaje; como mucho **40 preguntas**. **Cuota: 30 mensajes al día por persona** (`mensajes_chat` en `uso_ia`), contada antes y devuelta si Claude falla con un error reintentable; mensajes de 1 a 2000 caracteres; **5 vueltas** de herramientas por mensaje; una petición de IA a la vez. **Historial guardado tal cual** (los bloques de la API en JSONB, solo se añade) y **reenviado sin cambios**; las instrucciones y las herramientas **no cambian nunca** y la fecha de hoy va en cada mensaje de la persona. **5 herramientas** con `strict` y `eager_input_streaming`: `leer_inventario`, `leer_recetas`, `leer_semana`, `proponer_receta` y `proponer_huecos`; las propuestas se validan con `validarReceta()` y `validarHueco()` y nunca tocan un hueco "fuera de casa". **Tarjetas**: se guardan con `POST /api/chat/tarjetas/:id/guardar`, que lee la propuesta del historial (no del navegador) y la reclama en `tarjetas_chat` en una TX, así no se guarda dos veces; en "Añadir al cuadrante" se eligen los huecos y la tarjeta avisa de lo que sustituye. **Streaming** NDJSON hasta el navegador (`api.flujo()`); si se corta, no se guarda nada del turno. Rechazo del modelo (`refusal`) → "No puedo ayudarte con eso." **Aviso de privacidad propio** (`aviso_chat_aceptado_en`). Pestaña nueva **Ayudante** (5 pestañas, P-21). **Limpieza diaria** a las 04:00 UTC en la agenda. La tabla `sugerencias` (D-31) no se crea | Con Sonnet 5.5, el razonamiento de cada respuesta va ligado a la conversación exacta: si se edita el historial, o cambian las instrucciones o las herramientas, se pierde (y la caché también). Por eso se guarda todo tal cual y la fecha no va en las instrucciones. Sonnet 5.5 no deja obligar a usar una herramienta (`tool_choice` forzado da 400): las instrucciones la piden y el servidor valida. El esfuerzo `low` es el recomendado para un chat: responde antes y gasta menos. Una sola conversación es más simple de entender y de borrar (RGPD) que una lista. Leer la propuesta del historial y no del navegador impide guardar algo que la IA no propuso. Las 40 preguntas acotan el coste de reenviar el historial y lo que se guarda. La limpieza dependía de que tocara un aviso: una casa sin tuppers ni plan no limpiaba nunca |
+| D-52 | 2026-11-18 | Perfil con avatar aleatorio (fase 9; añade las fases 9 y 10, y el cierre pasa a la 11) | **Avatar:** una **carita en SVG** generada en el navegador desde `avatar_semilla` (32 cifras hexadecimales al azar, en `usuarios`) con `compartido/avatar.js`: un generador pseudoaleatorio con semilla elige el color de fondo, el tono de piel, los ojos, la boca, el pelo y las mejillas, siempre los mismos para la misma semilla. "Otro avatar" pide una semilla nueva al servidor. **Perfil** sustituye a Ajustes: sale de la barra de pestañas (deja el hueco a la Lista de la compra, D-53) y se abre con un **botón con tu avatar arriba a la derecha** de la cabecera. Apartados en pantallas propias: Datos personales, Seguridad, Hogar, Avisos, Inteligencia artificial y Privacidad. **Se puede cambiar** el nombre, el avatar y la contraseña (con la actual; borra las demás sesiones) y cerrar las demás sesiones. El email se ve y se cambiará en la fase 11, con el correo. `/ajustes` sigue existiendo y lleva a `/perfil` | El autor quiere una pestaña de perfil con apartados y un avatar sin tener que subir una foto. Generarlo desde una semilla no usa servicios externos (privacidad, la CSP `'self'` no cambia y funciona sin red), no guarda imágenes y se ve igual en todos los dispositivos. Guardar la semilla y no el SVG deja cambiar el dibujo sin migrar datos. Con 5 pestañas ya no cabe una sexta en un iPhone de 375 px (62 px cada una): el perfil se va a la cabecera, como en la mayoría de apps. El SVG se crea con `elSvg()` (sin `innerHTML`, SEC-07). Cambiar la contraseña cierra las demás sesiones porque, si alguien la conocía, es lo que se espera. Cambiar el email sin confirmarlo dejaría quedarse con la cuenta a quien robe una sesión |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 
@@ -1197,6 +1232,6 @@ diseña y se decide (D-xx) cuando le toque.
 | P-07 | El servidor **rechaza (409)** un descuento mayor que lo disponible en ese momento, en lugar de recortarlo en silencio | Con un hogar compartido, otra persona puede haber gastado el producto; decide el usuario, no la app | Recortar a lo disponible, como hacía `Math.min` en el cliente de Expo |
 | P-08 | Los avisos de tuppers y del plan llegan a **todos los dispositivos de todos los miembros** del hogar | Es la nevera de los dos | Avisar solo a quien creó el tupper |
 | P-09 | Desarrollo en `http://localhost`; **las pruebas del iPhone se hacen contra Render** (HTTPS) | Web Push exige HTTPS; evita abrir el firewall (SEC-01) | Túnel HTTPS al PC (exige instalar algo y exponerlo) |
-| P-10 | Recuperación de contraseña en la **fase 8**; el proveedor de correo se decide entonces | No bloquea nada anterior y añade una cuenta externa más | Hacerla en la fase 2 |
+| P-10 | Recuperación de contraseña en la **fase 8** (pasó a la 9 con D-48 y a la **11** con D-52); el proveedor de correo se decide entonces | No bloquea nada anterior y añade una cuenta externa más | Hacerla en la fase 2 |
 | P-11 | Una sola tarea de cron-job.org cada 5 min (despierta Render y revisa la agenda) | Una sola pieza externa | Dos tareas (una para mantener despierto y otra para avisar) |
 | P-12 | *(Para la fase B)* Dónde guardar las recetas sugeridas sin guardar (memoria o `sessionStorage`) y el campo de fecha (texto DD/MM/AAAA como en Expo, o `<input type="date">`) | Son decisiones de UX: te las plantearé con opciones en `DISENO_UI.md` | — |

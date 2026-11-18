@@ -271,8 +271,9 @@ html {
 | `EstadoVacio` | `crearVacio()` | `<section>` + `<h2>` |
 | `Aviso` | `crearAviso()` | `<div role="alert">` o `role="status"` |
 | `TituloSeccion` | `crearTituloSeccion()` | `<h2>` |
-| *(nuevo)* | `crearNavegacion()` | `<nav>` con las 5 pestañas (Ayudante desde la fase 8, D-51) |
-| *(nuevo)* | `crearCabecera()` | `<header>` con "‹ Atrás", título y acción |
+| *(nuevo)* | `crearNavegacion()` | `<nav>` con las pestañas: 4 en la fase 9 (Ajustes pasa a Perfil, D-52) y 5 con la Lista de la compra (fase 10, D-53) |
+| *(nuevo)* | `crearCabecera()` | `<header>` con "‹ Atrás", título y acción; en las pestañas, también el botón de Perfil con tu avatar (D-52) |
+| *(nuevo)* | `crearAvatar()` | `<svg>` decorativo con la carita de una semilla (D-52) |
 | *(nuevo, sustituye a `Alert`)* | `confirmar()` | `<dialog>` + `showModal()` |
 | *(nuevo)* | `crearFranjaConexion()` | `<div role="status">` "Sin conexión" |
 
@@ -336,7 +337,7 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
 - **Medidas:** `min-height: calc(var(--tactil) + 4px)` (48 px, como Expo); la fantasma, 44 px. `border-radius: var(--radio-l)` (14 px, D-45). Texto `--texto-cuerpo` con peso 600; puede ocupar dos líneas.
 - **Cargando:** `aria-busy="true"` y `disabled`; el texto pasa a `tituloCargando` ("Guardando…") y aparece el indicador. **Evita las dobles pulsaciones** (doble guardado o doble llamada a la IA).
 - **Deshabilitado por un motivo** (sin conexión, falta confirmar líneas): en lugar de `disabled`, `aria-disabled="true"` + `aria-describedby` hacia el motivo visible ("Necesitas conexión para guardar"). Así el botón sigue enfocable y el lector de pantallas **explica por qué** no se puede pulsar. El JS ignora el clic.
-- **Navegar o actuar:** si el botón lleva a otra pantalla ("+ Producto", "Ir a Ajustes") se usa `<a class="boton" href="/producto/nuevo">`, que se abre con un toque largo y el lector anuncia "enlace". Si hace algo ("Guardar"), `<button>`.
+- **Navegar o actuar:** si el botón lleva a otra pantalla ("+ Producto", "Ir a Perfil") se usa `<a class="boton" href="/producto/nuevo">`, que se abre con un toque largo y el lector anuncia "enlace". Si hace algo ("Guardar"), `<button>`.
 - **`accessibilityHint`** de Expo → texto visualmente oculto unido con `aria-describedby`.
 
 #### CampoTexto
@@ -359,7 +360,7 @@ Tonos: `.tono--secundario`, `--tenue`, `--primario`, `--peligro`, `--aviso`, `--
   - email: `type="email" autocomplete="email"`;
   - contraseña: `type="password"`, con `autocomplete="current-password"` o `"new-password"` para que funcione el llavero de iCloud;
   - fecha: `type="date"` + "Quitar fecha" (D-32);
-  - hora: `type="time"`, en Ajustes.
+  - hora: `type="time"`, en Perfil › Avisos.
 - **Medidas:** unos 58 px de alto (espacio para la etiqueta subida y el texto), borde de 1 px `borde-control`, radio `--radio-s`. **Tamaño de letra ≥ 16 px** dentro del campo (`--texto-cuerpo`): si es menor, Safari hace zoom al enfocarlo (comprobado en el iPhone el 2026-11-12: sin zoom).
 - **Error:** se rellena y muestra `.campo__error` ("✗ Debe ser un número mayor que 0."), se pone `aria-invalid="true"`, y `aria-describedby` apunta al error (en lugar de a la ayuda, que se oculta como en Expo). El borde pasa a `peligro` **y además** aparece el texto con "✗": la información no depende solo del color.
 - **Al pulsar Guardar con errores:** el foco va al **primer campo con error** (el lector de pantallas lo lee con su error). No se anuncian los errores mientras se escribe, para no interrumpir.
@@ -439,17 +440,25 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
     <li><a href="/recetas"><svg aria-hidden="true">…</svg><span>Recetas</span></a></li>
     <li><a href="/semana">…<span>Semana</span></a></li>
     <li><a href="/ayudante">…<span>Ayudante</span></a></li>
-    <li><a href="/ajustes">…<span>Ajustes</span></a></li>
   </ul>
 </nav>
+<!-- Fase 10 (D-53): <li><a href="/lista">…<span>Lista</span></a></li> va detrás de Inventario. -->
 ```
 - **Pestaña activa:** `aria-current="page"` + color `primario` + **texto en negrita y una barrita encima** (abajo) o a la izquierda (lateral). No depende solo del color.
-- Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30). Con 5 pestañas, en un iPhone de 375 px caben 75 px por pestaña: el texto va en `--texto-pequeno` y en una sola línea ("Ayudante" es la más larga). Icono de Ayudante: un bocadillo de conversación.
-- **Se muestra en las 5 pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
+- Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30). Como mucho **5 pestañas**: en un iPhone de 375 px caben 75 px por pestaña; con 6 quedarían 62 px y "Ayudante" no cabría (por eso Ajustes pasa a la cabecera como Perfil, D-52). El texto va en `--texto-pequeno` y en una sola línea. Icono de Ayudante: un bocadillo de conversación.
+- **Se muestra en las pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
 
 #### Cabecera
 `<header class="cabecera"><a class="cabecera__atras" href="/">‹ Atrás</a><h1>Nuevo producto</h1><a class="cabecera__accion" href="/ticket">…Ticket</a></header>`
 - Variantes: de pestaña (título + acción opcional, como el botón "Ticket" de Inventario) y secundaria ("‹ Atrás" + título).
+- **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar" aria-hidden="true">…</svg></a>`. Zona táctil de 44 × 44 px con el avatar de 32 px dentro; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y "‹ Atrás" vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
+
+#### Avatar (D-52)
+`crearAvatar({ semilla, tamano })` → `<svg class="avatar" viewBox="0 0 64 64" aria-hidden="true">`, redondo, creado con `elSvg()` (nunca `innerHTML`, SEC-07).
+- **Las piezas salen de la semilla** con `piezasAvatar(semilla)` de `compartido/avatar.js`: un generador pseudoaleatorio (*mulberry32*) que arranca con la semilla elige, siempre en el mismo orden, el **fondo** (6 tonos claros, de la familia de la paleta), la **piel** (6 tonos), los **ojos** (4: puntos, contentos, guiño y gafas), la **boca** (4: sonrisa, risa, tranquila y sorpresa), el **pelo** (6: sin pelo, corto, flequillo, moño, rizado y gorro) y las **mejillas** (sí o no). Son 13 824 caritas distintas. La misma semilla da la misma carita en todos los dispositivos.
+- **Es decorativo** (`aria-hidden`): siempre va junto al nombre de la persona o dentro de un botón con su `aria-label`. No transmite información.
+- **Tamaños:** 32 px en la cabecera, 24 px junto a cada persona del hogar y 96 px arriba en Perfil.
+- Los trazos (ojos, boca, gafas) en un tono oscuro fijo, también en el modo oscuro: es un dibujo, no texto, y sobre los fondos claros se ve en los dos modos.
 - Comportamiento de "Atrás" en §5.3.
 
 #### Confirmar (`<dialog>`, D-28)
@@ -904,7 +913,7 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 - "Fuera de casa": un campo "Nota (opcional)" (`Ej. Comida aniversario`, hasta 80 caracteres): una cita no es un plato. Vacía, se guarda sin nota.
 - Sin recetas guardadas: en vez de la lista, "Aún no tienes recetas guardadas." + `‹Escribir una›` (→ `/receta/nueva`); la opción por defecto pasa a ser "Escribir un plato".
 - Al abrir un hueco que ya tiene algo, sale lo que tiene marcado.
-- Guardar → "Guardando…" → vuelve a la semana del hueco (`reemplazar`) con "✓ Plan guardado." Si este dispositivo no tiene los avisos activos: "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
+- Guardar → "Guardando…" → vuelve a la semana del hueco (`reemplazar`) con "✓ Plan guardado." Si este dispositivo no tiene los avisos activos: "Plan guardado. Activa los avisos en Perfil › Avisos para que te lo recordemos la noche antes."
 - ‹Dejar este hueco vacío› → `DELETE` sin confirmar (se deshace volviendo a planificarlo) → vuelve con "✓ Hueco vaciado."
 
 #### P-15 · Plan del día — `/plan/:fecha` · E-2 (**la abre el aviso**)
@@ -974,43 +983,92 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 - `‹Nueva conversación›` → `confirmar()` "¿Empezar una conversación nueva? La de ahora se borrará y no se puede recuperar." `[Empezar de nuevo]` (peligro) → `DELETE /api/chat` → vacía.
 - **Conversación llena** (40 preguntas): el pie se sustituye por "Esta conversación ha llegado al máximo." + `[Nueva conversación]`.
 
-#### P-16 · Ajustes — `/ajustes` · E-1
+#### P-16 · Perfil — `/perfil` · E-2 (D-52; sustituye a Ajustes)
 ```
 ┌──────────────────────────────┐
-│  Ajustes                      │
-│  AVISOS EN ESTE DISPOSITIVO   │
-│  ✓ Activados    ‹Enviar prueba›
-│  ‹Desactivar›                 │
-│  AVISO DEL PLANIFICADOR       │
-│  Hora a la que te llega, la   │
-│  noche anterior, el aviso.    │
-│  [ 21:00 ▾ ]                  │
-│  [     Guardar hora       ]°  │
-│  TU CASA                      │
-│  Casa de Álvaro   ‹Cambiar nombre›
-│  Álvaro (tú) · propietario    │
-│  Lucía                        │
-│  [ Invitar a alguien ]°       │
-│  ‹Tengo un código›            │
-│  INTELIGENCIA ARTIFICIAL      │
-│  Tickets: te quedan 9 de 10.  │
-│  Ayudante: te quedan 28 de 30 │
-│  mensajes hoy.                │
-│  CUENTA                       │
-│  alvaro@…   ‹Cerrar sesión›   │
-│  ‹Privacidad›  ‹Borrar cuenta›│
-│  Modelo: claude-sonnet-5-5    │
-├──────────────────────────────┤
-│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│
+│  ‹ Atrás          Perfil      │
+│            (◕‿◕)              │  avatar de 96 px
+│            Álvaro             │  (h2)
+│      alvaro@ejemplo.es        │  tenue
+│ ┌──────────────────────────┐ │
+│ │ Datos personales       › │ │  FilaLista con su resumen
+│ │ Tu nombre y tu avatar    │ │
+│ ├──────────────────────────┤ │
+│ │ Seguridad              › │ │
+│ │ Contraseña y sesiones    │ │
+│ ├──────────────────────────┤ │
+│ │ Hogar                  › │ │
+│ │ Casa de Álvaro · 2 pers. │ │
+│ ├──────────────────────────┤ │
+│ │ Avisos                 › │ │
+│ │ Activados · plan 21:00   │ │
+│ ├──────────────────────────┤ │
+│ │ Inteligencia artificial › │ │
+│ │ Te quedan 9 tickets y 28 │ │
+│ │ mensajes hoy             │ │
+│ ├──────────────────────────┤ │
+│ │ Privacidad             › │ │
+│ └──────────────────────────┘ │
+│  Modelo: claude-sonnet-5-5    │  tenue
 └──────────────────────────────┘
 ```
-La sección de avisos cambia según el estado (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Vigía" **[sin verificar]** la ruta exacta (fase 4).
+Sin barra de pestañas (es una pantalla secundaria). Cada fila lleva a su apartado; el resumen se calcula con lo que ya devuelve `GET /api/yo`. El resumen de Avisos depende de **este dispositivo** (§7.6): "Activados", "Desactivados", "Instala la app para recibir avisos"…
+
+#### P-22 · Datos personales — `/perfil/datos` · E-2 (D-52)
+```
+┌──────────────────────────────┐
+│  ‹ Perfil   Datos personales  │
+│            (◕‿◕)              │
+│      ‹Otro avatar›            │  botón secundario
+│  Nombre                       │
+│  [Álvaro__________________]   │
+│  Email                        │
+│  alvaro@ejemplo.es            │  solo se ve (fase 11)
+│  Pronto podrás cambiarlo.     │  tenue
+│──────────────────────────────│
+│ [     Guardar nombre      ]   │
+└──────────────────────────────┘
+```
+- "Otro avatar" → `POST /api/yo/avatar` y la carita cambia al momento (también la de la cabecera). Sin confirmar: si no gusta, se pulsa otra vez.
+- Nombre con `crearCampo()` y la misma validación que en el registro. "Guardando…" → "✓ Nombre guardado." (`role="status"`).
+
+#### P-23 · Seguridad — `/perfil/seguridad` · E-2 (D-52)
+```
+┌──────────────────────────────┐
+│  ‹ Perfil       Seguridad     │
+│  CAMBIAR LA CONTRASEÑA        │
+│  Contraseña actual            │
+│  [••••••••••••] Mostrar       │
+│  Contraseña nueva             │
+│  [••••••••••••] Mostrar       │
+│  De 10 a 128 caracteres.      │
+│  [  Cambiar contraseña   ]°   │
+│  SESIONES                     │
+│  Cierra la sesión en tus      │
+│  otros dispositivos.          │
+│  ‹Cerrar las demás sesiones›  │
+│  ‹Cerrar sesión›              │
+│  ‹Borrar cuenta›   (peligro)  │
+└──────────────────────────────┘
+```
+- Cambiar la contraseña: `autocomplete="current-password"` y `"new-password"` (el llavero de iOS propone una). Contraseña actual mal → error en su campo ("La contraseña actual no es correcta."). Bien → "✓ Contraseña cambiada. Hemos cerrado la sesión en tus otros dispositivos." y se vacían los campos.
+- "Cerrar las demás sesiones" → `confirmar()` → "✓ Hemos cerrado 2 sesiones." (o "No había otras sesiones abiertas.").
+- "Cerrar sesión" y "Borrar cuenta" como estaban en Ajustes; "Borrar cuenta" lleva a `/cuenta/borrar`.
+
+#### P-24 · Hogar — `/perfil/hogar` · E-2 (D-52)
+Lo que era la sección "Tu casa" de Ajustes: nombre de la casa con `‹Cambiar nombre›`, las personas (**cada una con su avatar de 24 px**, "(tú)" y su rol), `[Invitar a alguien]`, `‹Tengo un código›` y `‹Salir de esta casa›`.
+
+#### P-25 · Avisos — `/perfil/avisos` · E-2 (D-52)
+Lo que eran las secciones "Avisos en este dispositivo" y "Aviso del plan" de Ajustes, con sus estados (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Vigía" **[sin verificar]** la ruta exacta, `‹Enviar prueba›`, `‹Desactivar›` y la hora del aviso del plan.
+
+#### P-26 · Inteligencia artificial — `/perfil/ia` · E-2 (D-52)
+Lo que era la sección de IA de Ajustes: "Tickets: te quedan 9 de 10 hoy." · "Ayudante: te quedan 28 de 30 mensajes hoy." · "Se renuevan cada día a medianoche." y el modelo en tono tenue.
 
 #### P-17 · Invitar / unirse — `/hogar/invitar` · `/hogar/unirse` · E-2
 ```
 INVITAR                             UNIRSE
 ┌──────────────────────────────┐   ┌──────────────────────────────┐
-│  ‹ Ajustes      Invitar       │   │  ‹ Ajustes   Unirse a una casa│
+│  ‹ Hogar        Invitar       │   │  ‹ Hogar     Unirse a una casa│
 │  Dale este código a quien     │   │  Código de invitación         │
 │  viva contigo. Caduca en 48 h │   │  [K7M2-QX9P______________]    │
 │  y solo sirve una vez.        │   │ ┌──────────────────────────┐ │
@@ -1035,7 +1093,7 @@ Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los ti
 ## 5. Navegación y rutas
 
 ### 5.1 Pestañas
-**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`), **Ayudante** (`/ayudante`, fase 8, D-51) y **Ajustes** (`/ajustes`). Barra inferior en el móvil y lateral desde 48em (D-27).
+**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 10, **Lista** (`/lista`, D-53) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27).
 
 ### 5.2 Rutas (History API: URLs normales, sin `#`)
 
@@ -1061,9 +1119,15 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/plan/:fecha` | P-15 | Semana | `fecha`: fecha ISO dentro del margen | `/semana/:lunes` de esa fecha |
 | `/plan/:fecha/:tipo` | P-14 | Semana | `fecha` igual, `tipo` ∈ `TIPOS_COMIDA` | `/semana/:lunes` de esa fecha |
 | `/ayudante` | P-21 | Ayudante | — | — |
-| `/ajustes` | P-16 | Ajustes | — | — |
-| `/hogar/invitar`, `/hogar/unirse` | P-17 | Ajustes | `?codigo` opcional, formato del código | `/ajustes` |
-| `/cuenta/borrar` | Borrar cuenta (fase 2): aviso de lo que se borra + contraseña | Ajustes | — | `/ajustes` |
+| `/perfil` | P-16 | — (el avatar de la cabecera, D-52) | — | `/` |
+| `/perfil/datos` | P-22 | — | — | `/perfil` |
+| `/perfil/seguridad` | P-23 | — | — | `/perfil` |
+| `/perfil/hogar` | P-24 | — | — | `/perfil` |
+| `/perfil/avisos` | P-25 | — | — | `/perfil` |
+| `/perfil/ia` | P-26 | — | — | `/perfil` |
+| `/ajustes` | Lleva a `/perfil` (`reemplazar`): avisos y enlaces antiguos (D-52) | — | — | — |
+| `/hogar/invitar`, `/hogar/unirse` | P-17 | — | `?codigo` opcional, formato del código | `/perfil/hogar` |
+| `/cuenta/borrar` | Borrar cuenta (fase 2): aviso de lo que se borra + contraseña | — | — | `/perfil/seguridad` |
 | `/privacidad` | P-18 | — | — | página anterior o `/` |
 | otra | P-19 | — | — | `/` |
 
@@ -1080,7 +1144,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 |---|---|---|---|
 | Tupper | "Tu tupper de Cocido caduca pronto" | `/tupper/12` | P-07, con "Marcar como consumido" como acción principal |
 | Plan | "Mañana comes lentejas y cenas tortilla" | `/plan/2026-11-24` | P-15, con lo que tienes y lo que te falta |
-| Prueba | "Los avisos funcionan" | `/ajustes` | P-16 |
+| Prueba | "Los avisos funcionan" | `/perfil/avisos` (D-52) | P-25 |
 
 ---
 
@@ -1158,7 +1222,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 ### 7.4 Tupper → aviso → "Marcar como consumido"
 1. Inventario → `[+ Tupper]°` → `/tupper/nuevo`: nombre, ubicación y días (3 por defecto).
 2. **Vista previa** en directo: "Fecha límite: 22/10/2026 · Te avisaremos el 21/10/2026 a las 10:00." Si el límite es mañana: "Como el límite es mañana, el aviso llegará en unos minutos." (en Expo eran segundos; aquí ≤ 5 min, DIF-02).
-3. **Si este dispositivo no tiene los avisos activos:** aviso con `‹Activar avisos›` (va a la sección de Ajustes, §7.6).
+3. **Si este dispositivo no tiene los avisos activos:** aviso con `‹Activar avisos›` (va a Perfil › Avisos, §7.6).
 4. `[Guardar tupper]` → "Guardando…" → vuelve a Inventario con "✓ Tupper guardado." Si `avisoActivo = false`: "Tupper guardado sin aviso: nadie de tu casa tiene los avisos activados." (como el `Alert` de Expo).
 5. **El día anterior, entre las 10:00 y las 10:05:** llega "Tu tupper de Cocido caduca pronto" / "Cómetelo antes del 22/10/2026. Toca para marcarlo como consumido." a todos los dispositivos de la casa.
 6. **Toque** → la PWA se abre en `/tupper/12` → ficha con "Caduca mañana" → `[Marcar como consumido]` → "Guardando…" → vuelve a Inventario con "✓ Cocido marcado como consumido."
@@ -1167,8 +1231,8 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 ### 7.5 Planificar → aviso → "¿Tienes todo?" (fase 7, D-50)
 1. **Semana** (`/semana`, la de hoy; ‹ › para cambiar) → hueco "Martes 24 · Cena" → `/plan/2026-11-24/cena`.
 2. Elige "Una receta guardada" y pulsa una, o "Escribir un plato" ("Lentejas con chorizo"), o "Fuera de casa" (con una nota, si quiere: "Comida aniversario"); si quiere, el grupo de alimentos → `[Guardar]` → "Guardando…" → vuelve a esa semana con el hueco relleno y el equilibrio recalculado.
-3. **Si este dispositivo no tiene avisos:** "Plan guardado. Activa los avisos en Ajustes para que te lo recordemos la noche antes."
-4. **El lunes 23 a las 21:00** (hora de Ajustes; ≤ 5 min tarde): "Mañana cenas tortilla de patatas" / "¿Tienes todos los ingredientes? Toca para comprobarlo." Solo una vez; "fuera de casa" no avisa.
+3. **Si este dispositivo no tiene avisos:** "Plan guardado. Activa los avisos en Perfil › Avisos para que te lo recordemos la noche antes."
+4. **El lunes 23 a las 21:00** (hora de Perfil › Avisos; ≤ 5 min tarde): "Mañana cenas tortilla de patatas" / "¿Tienes todos los ingredientes? Toca para comprobarlo." Solo una vez; "fuera de casa" no avisa.
 5. **Toque** → `/plan/2026-11-24` → título "Mañana (martes 24)" → por cada plato: receta con "Tienes todo" / "Te faltan 2 ingredientes" y la lista con ✓/✗; o, si es un plato escrito a mano, "Esto es lo que hay en casa para este plato:" + ✓ o "✗ No hay nada para este plato en el inventario."
 6. **Nada planificado** (por ejemplo, alguien vació el hueco o borró la receta): "Nada planificado · No hay comida ni cena para el martes 24." + `[Planificar comida]°`.
 
@@ -1182,10 +1246,10 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 4. **Paso 3, avisos** (solo dentro de la PWA instalada o en navegadores con `PushManager`):
    - Texto: "Te avisaremos el día antes de que caduque un tupper (a las 10:00) y la noche antes de lo que tengas planificado (a las 21:00)."
    - `[Activar avisos]` → **en ese mismo toque**, `Notification.requestPermission()` (R-02) → el sistema pregunta → si se acepta: suscripción + `POST /api/push/suscripciones` + "✓ Avisos activados" + `‹Enviar un aviso de prueba›`.
-   - **Si se rechaza:** "No pasa nada: puedes activarlos más tarde desde Ajustes." Si el permiso queda bloqueado, Ajustes explica cómo desbloquearlo en el sistema.
+   - **Si se rechaza:** "No pasa nada: puedes activarlos más tarde desde Perfil › Avisos." Si el permiso queda bloqueado, Perfil › Avisos explica cómo desbloquearlo en el sistema.
    - **No compatible:** "Este navegador no puede recibir avisos."
-5. **`‹Saltar›`** en cualquier paso → Inventario. Lo pendiente se recuerda con un aviso *info* en Ajustes, no con ventanas emergentes.
-6. **Un dispositivo nuevo de la misma persona** (por ejemplo, el PC): tras entrar, Ajustes muestra el estado de los avisos **de ese dispositivo**.
+5. **`‹Saltar›`** en cualquier paso → Inventario. Lo pendiente se recuerda con un aviso *info* en Perfil › Avisos, no con ventanas emergentes.
+6. **Un dispositivo nuevo de la misma persona** (por ejemplo, el PC): tras entrar, Perfil › Avisos muestra el estado de los avisos **de ese dispositivo**.
 
 ### 7.7 Preguntar al Ayudante → tarjeta → guardar (fase 8, D-51)
 1. **Ayudante** (`/ayudante`) → la primera vez, el aviso de privacidad → `[Empezar]`.
@@ -1221,7 +1285,7 @@ Comunes a todas:
 | Planificar hueco | Recetas: indicador en línea | "Aún no tienes recetas guardadas." + `‹Escribir una›` · Parámetro malo: "Hueco no válido" | — | "Guardando…" → "No se ha guardado. Ha fallado el cambio en el plan. Inténtalo de nuevo." | Formulario + recetas |
 | Plan del día | "Comprobando ingredientes…" | "Nada planificado" + `[Planificar comida]°` · Fecha mala: "Día no válido" | `[Reintentar]` | — | Platos con ✓/✗ |
 | Ayudante | "Cargando la conversación…" | "Pregúntame lo que quieras de cocina" + 3 ejemplos · Primera vez: el aviso de privacidad | Cuota: "Has usado los 30 mensajes de hoy. Mañana podrás seguir." · Respuesta cortada: "La respuesta se ha cortado. No se ha gastado el mensaje." + `[Reintentar]` (vuelve a enviar el mismo texto) si es reintentable · Rechazo: "No puedo ayudarte con eso." · Sin conexión: el pie con `aria-disabled` y "Necesitas conexión para hablar con el ayudante" | "Respondiendo…" · Tarjeta: "Guardando…" → "No se ha guardado. Inténtalo de nuevo." · 409: "Esta propuesta ya se había guardado." (y se recarga) | Mensajes y tarjetas |
-| Ajustes | Cada sección con su indicador en línea | — | Hora: "Escribe la hora como HH:MM, por ejemplo 21:00." · Avisos: "No se han podido activar los avisos. Inténtalo de nuevo." | "Guardando…" → "Hora guardada: 21:30." / "No se ha podido guardar la hora." | Secciones |
+| Perfil y sus apartados | Cada apartado con su indicador en línea | — | Hora: "Escribe la hora como HH:MM, por ejemplo 21:00." · Avisos: "No se han podido activar los avisos. Inténtalo de nuevo." | "Guardando…" → "Hora guardada: 21:30." / "No se ha podido guardar la hora." | Secciones |
 | Invitar / Unirse | "Creando código…" | — | "Ese código no existe o ha caducado." · "Ese código ya se ha usado." | "Uniéndote…" → "No se ha podido unir. Inténtalo de nuevo." | Código / formulario |
 
 **Mientras se guarda en el servidor:**

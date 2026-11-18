@@ -58,10 +58,13 @@ fechas (semanas vacías, "fuera de casa", grupos de alimentos y equilibrio
 semanal calculado sin IA) y el chat llega al final. Nuevo orden: 6
 recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 8 chat ayudante, 9 cierre. Calendario: V2-03.
-**Siguiente: fase 9 (cierre).** Antes de empezar, leer ARQUITECTURA §10
-(fase 9) y P-10, y proponer el plan por pasos (recuperar la contraseña por
-email: el proveedor de correo se decide entonces, preguntando antes de
-crear la cuenta).
+**Fases 9 y 10 nuevas (2026-11-18, D-52):** antes del cierre, 9 Perfil y
+avatar, y 10 Lista de la compra (D-53 se fija en su paso 1). El cierre
+pasa a ser la 11 (recuperar la contraseña y cambiar el email: el
+proveedor de correo se decide entonces; en Render gratis el SMTP está
+bloqueado, hace falta una API HTTPS como Brevo o Resend).
+**Siguiente: fase 9, paso 2** (`008_perfil.sql` y la API del perfil, con
+pruebas). Paso 1 (documentación: D-52, P-16 Perfil y P-22 a P-26) hecho.
 
 **Fase 8 (chat ayudante con IA): aprobada.** Los 7 pasos (2026-11-17),
 desplegada en Render (`app-v28`, con `007_chat` aplicada en producción) y
