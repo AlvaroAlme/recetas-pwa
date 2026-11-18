@@ -1120,6 +1120,19 @@ input:focus-visible + .chip {
   flex-direction: column;
   gap: var(--espacio-l);
 }
+/* "Este eres tú" (D-56): el avatar grande, centrado. El marco tiene su
+   tamaño fijo para que la tarjeta no salte mientras gira la ruleta. */
+.bienvenida__tu {
+  align-items: center;
+  text-align: center;
+}
+.bienvenida__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+}
 .bienvenida__saludo {
   font-size: var(--texto-subtitulo);
   line-height: var(--linea-subtitulo);
@@ -1759,5 +1772,20 @@ html[data-sentido='pestana']::view-transition-new(root) {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none;
+  }
+}
+
+/* ---- El nacimiento del avatar (avatar.js: nacerAvatar) ----
+   Cada avatar de la ruleta aparece con un "pop" de escala (0,85 → 1); el
+   último, el tuyo, más despacio. */
+.avatar--pop {
+  animation: pop-avatar var(--duracion-rapida) var(--curva-salida);
+}
+.avatar--final {
+  animation-duration: var(--duracion-lenta);
+}
+@keyframes pop-avatar {
+  from {
+    transform: scale(0.85);
   }
 }

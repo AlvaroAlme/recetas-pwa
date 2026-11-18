@@ -1,26 +1,36 @@
 /**
- * @file Bienvenida (P-03, flujo §7.6, D-46): tres pasos tras crear la cuenta.
- * 1. Tu casa: el nombre (se puede cambiar) y unirse con un código.
- * 2. Instala la app: sin instalar, el iPhone no recibe avisos (R-01).
- * 3. Activa los avisos.
+ * @file Bienvenida (P-03, flujo §7.6, D-46 y D-56): cuatro pasos tras crear la cuenta.
+ * 1. Este eres tú: tu avatar "nace" (D-56) y puedes pedir otro.
+ * 2. Tu casa: el nombre (se puede cambiar) y unirse con un código.
+ * 3. Instala la app: sin instalar, el iPhone no recibe avisos (R-01).
+ * 4. Activa los avisos.
  * Cada paso se puede saltar. El paso va en la URL (/bienvenida?paso=2): así
  * "Atrás" vuelve al anterior.
  */
 import { validarNombreCasa } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
 import { esIos, estaInstalada, instalarApp, puedeInstalar } from '../avisos.js';
+import { sad } from '/vendor/blobatar/expression.js';
+import { nacerAvatar, ponerExpresion } from '../componentes/avatar.js';
 import { crearPanelAvisos } from '../componentes/panelAvisos.js';
 import { crearAviso, crearCampo, crearCarga, crearSinConexion, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
+import { ponerUsuario, usuarioActual } from '../yo.js';
 
-const PASOS = 3;
+const PASOS = 4;
+
+/** Tamaño del avatar de "Este eres tú", en px. */
+const TAMANO_AVATAR = 120;
+
+/** Vueltas de la ruleta: al llegar y con "Otro avatar" (D-56). */
+const VUELTAS = { nacer: 7, otro: 4 };
 
 /** "Saltar" en cualquier paso: al inventario (§7.6). */
 const crearSaltar = () => el('a', { class: 'boton boton--fantasma', href: '/' }, 'Saltar');
 
 /**
- * La cabecera de cada paso: "Paso 1 de 3" y su título.
+ * La cabecera de cada paso: "Paso 1 de 4" y su título.
  * @param {number} paso
  * @param {string} titulo
  */
@@ -40,12 +50,89 @@ function crearEncabezado(paso, titulo) {
 export function pantallaBienvenida({ consulta }) {
   // Un paso que no existe (?paso=9) cuenta como el primero.
   const paso = Number(consulta.get('paso'));
-  if (paso === 2) return pasoInstalar();
-  if (paso === 3) return pasoAvisos();
-  return pasoCasa();
+  if (paso === 2) return pasoCasa();
+  if (paso === 3) return pasoInstalar();
+  if (paso === 4) return pasoAvisos();
+  return pasoTu();
 }
 
-/** Paso 1: tu casa. */
+/** Paso 1: este eres tú (D-56). Tu avatar nace y, si no te gusta, pides otro. */
+function pasoTu() {
+  const zona = el('div', { class: 'bienvenida' });
+  const siguiente = el('a', { class: 'boton boton--primario', href: '/bienvenida?paso=2' }, 'Siguiente');
+
+  async function cargar() {
+    zona.replaceChildren(crearCarga('Cargando…'));
+    try {
+      zona.replaceChildren(...crearContenido(await usuarioActual()));
+    } catch (error) {
+      zona.replaceChildren(
+        error.codigo === 'SIN_CONEXION' ? crearSinConexion(cargar) : crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido cargar tu avatar.') })
+      );
+    }
+  }
+
+  /** @param {{ nombre: string, avatarSemilla: string }} usuario */
+  function crearContenido(usuario) {
+    // El avatar es decorativo (aria-hidden): lo que pasa lo cuenta "estado".
+    const marco = el('div', { class: 'bienvenida__avatar', 'aria-hidden': 'true' });
+    const estado = el('p', { class: 'solo-lector', role: 'status' });
+    const aviso = el('div');
+    const otro = el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', 'data-escribe': true }, 'Otro avatar');
+    /** @type {SVGSVGElement | null} */
+    let avatar = null;
+
+    /**
+     * La ruleta. Mientras gira, "Otro avatar" no se puede pulsar.
+     * @param {string} semilla
+     * @param {number} vueltas
+     */
+    async function girar(semilla, vueltas) {
+      otro.disabled = true;
+      avatar = await nacerAvatar(marco, semilla, { tamano: TAMANO_AVATAR, vueltas });
+      otro.disabled = false;
+      estado.textContent = 'Este es tu avatar.';
+    }
+
+    otro.addEventListener('click', async () => {
+      if (otro.disabled) return;
+      aviso.replaceChildren();
+      estado.textContent = '';
+      ponerCargando(otro, true, 'Barajando…');
+      try {
+        const { usuario: nuevo } = await api.post('/yo/avatar');
+        ponerUsuario(nuevo);
+        ponerCargando(otro, false);
+        await girar(nuevo.avatarSemilla, VUELTAS.otro);
+      } catch (error) {
+        ponerCargando(otro, false);
+        // Se queda el que había, triste un momento (D-56).
+        if (avatar) ponerExpresion(avatar, sad);
+        aviso.replaceChildren(crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido cambiar el avatar.') }));
+      }
+    });
+
+    girar(usuario.avatarSemilla, VUELTAS.nacer);
+    return [
+      el('p', { class: 'bienvenida__saludo' }, `Hola, ${usuario.nombre}. Vamos a dejarlo todo listo en un minuto.`),
+      crearEncabezado(1, 'Este eres tú'),
+      el(
+        'section',
+        { class: 'tarjeta bienvenida__tu', 'aria-label': 'Tu avatar' },
+        marco,
+        el('p', {}, 'Así te verán en tu casa. Si no te convence:'),
+        otro,
+        estado,
+        aviso
+      ),
+    ];
+  }
+
+  cargar();
+  return { titulo: 'Bienvenida', contenido: zona, pie: [crearSaltar(), siguiente] };
+}
+
+/** Paso 2: tu casa. */
 function pasoCasa() {
   const idFormulario = 'formulario-bienvenida';
   const zona = el('div');
@@ -54,8 +141,8 @@ function pasoCasa() {
   async function cargar() {
     zona.replaceChildren(crearCarga('Cargando…'));
     try {
-      const { usuario, hogar } = await api.get('/yo');
-      zona.replaceChildren(crearFormulario(usuario, hogar));
+      const { hogar } = await api.get('/yo');
+      zona.replaceChildren(crearFormulario(hogar));
     } catch (error) {
       zona.replaceChildren(
         error.codigo === 'SIN_CONEXION' ? crearSinConexion(cargar) : crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido cargar tu casa.') })
@@ -63,11 +150,8 @@ function pasoCasa() {
     }
   }
 
-  /**
-   * @param {{ nombre: string }} usuario
-   * @param {{ nombre: string, zonaHoraria: string }} hogar
-   */
-  function crearFormulario(usuario, hogar) {
+  /** @param {{ nombre: string, zonaHoraria: string }} hogar */
+  function crearFormulario(hogar) {
     const aviso = el('div');
     const nombre = crearCampo({
       etiqueta: 'Nombre de tu casa',
@@ -101,7 +185,7 @@ function pasoCasa() {
       ponerCargando(boton, true);
       try {
         if (Object.keys(cambios).length > 0) await api.patch('/hogar', cambios);
-        navegar('/bienvenida?paso=2');
+        navegar('/bienvenida?paso=3');
       } catch (error) {
         enviando = false;
         ponerCargando(boton, false);
@@ -113,8 +197,7 @@ function pasoCasa() {
     return el(
       'form',
       { class: 'formulario bienvenida', id: idFormulario, novalidate: true, onsubmit: alEnviar },
-      el('p', { class: 'bienvenida__saludo' }, `Hola, ${usuario.nombre}. Vamos a dejarlo todo listo en un minuto.`),
-      crearEncabezado(1, 'Tu casa'),
+      crearEncabezado(2, 'Tu casa'),
       aviso,
       nombre,
       el(
@@ -128,17 +211,17 @@ function pasoCasa() {
   }
 
   cargar();
-  return { titulo: 'Bienvenida', contenido: zona, pie: [crearSaltar(), boton] };
+  return { titulo: 'Bienvenida', atras: '/bienvenida', contenido: zona, pie: [crearSaltar(), boton] };
 }
 
-/** Paso 2: instalar la app. Si ya está instalada, no hace falta. */
+/** Paso 3: instalar la app. Si ya está instalada, no hace falta. */
 function pasoInstalar() {
   if (estaInstalada()) {
-    navegar('/bienvenida?paso=3', { reemplazar: true });
+    navegar('/bienvenida?paso=4', { reemplazar: true });
     return { titulo: 'Bienvenida', contenido: crearCarga('Cargando…') };
   }
 
-  const siguiente = el('a', { class: 'boton boton--primario', href: '/bienvenida?paso=3' }, 'Siguiente');
+  const siguiente = el('a', { class: 'boton boton--primario', href: '/bienvenida?paso=4' }, 'Siguiente');
   const resultado = el('div');
   let comoInstalar;
 
@@ -170,11 +253,11 @@ function pasoInstalar() {
 
   return {
     titulo: 'Bienvenida',
-    atras: '/bienvenida',
+    atras: '/bienvenida?paso=2',
     contenido: el(
       'div',
       { class: 'bienvenida' },
-      crearEncabezado(2, 'Instala la app'),
+      crearEncabezado(3, 'Instala la app'),
       el('p', {}, 'Así Vigía se abre como una app, sin la barra del navegador. En el iPhone, además, es la única forma de recibir avisos.'),
       comoInstalar,
       resultado
@@ -183,12 +266,12 @@ function pasoInstalar() {
   };
 }
 
-/** Paso 3: activar los avisos (el mismo bloque que Perfil › Avisos). */
+/** Paso 4: activar los avisos (el mismo bloque que Perfil › Avisos). */
 function pasoAvisos() {
   return {
     titulo: 'Bienvenida',
-    atras: '/bienvenida?paso=2',
-    contenido: el('div', { class: 'bienvenida' }, crearEncabezado(3, 'Activa los avisos'), crearPanelAvisos()),
+    atras: '/bienvenida?paso=3',
+    contenido: el('div', { class: 'bienvenida' }, crearEncabezado(4, 'Activa los avisos'), crearPanelAvisos()),
     pie: [el('a', { class: 'boton boton--primario', href: '/' }, 'Terminar')],
   };
 }

@@ -61,8 +61,17 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 5** (Bienvenida "Este eres tú" con el
-nacimiento del avatar). Paso 4 hecho (2026-11-18): `app.js` sirve
+**Siguiente: fase 11, paso 6** (`sw.js`, desplegar y probar el "Hecho
+cuando" en el iPhone; con permiso, un ticket real para ver el avatar que
+piensa). Paso 5 hecho (2026-11-18): `nacerAvatar(marco, semilla, {
+tamano, vueltas })` en `avatar.js` (semillas al azar con
+`crypto.getRandomValues`, pausas de 90 a 260 ms que crecen como un
+cuadrado, `.avatar--pop` y `.avatar--final`, `happy` 1,2 s) y el paso
+"Este eres tú" en `bienvenida.js` (`pasoTu`, 120 px, 7 vueltas; "Otro
+avatar" con 4 y `sad` si falla); los demás pasos pasan a 2, 3 y 4.
+Probado en el navegador (la ruleta tarda ~1,1 s; con "Reducir
+movimiento", al momento); "Otro avatar" sin pulsar (cambia el avatar de
+la cuenta). `sw.js` en `app-v39`. Paso 4 hecho (2026-11-18): `app.js` sirve
 también `expression.js`; `ponerExpresion(avatar, pose)` en `avatar.js`
 (un `WeakMap` con la semilla, el grupo y las variables puestas);
 `reacciones.js` (`usarAvatarCabecera`, `pensar`, y escucha

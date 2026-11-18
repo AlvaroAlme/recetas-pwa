@@ -18,9 +18,11 @@
  * yo cada nodo y paso los estilos por el CSSOM (style.setProperty), que la
  * CSP sí permite.
  */
+import { happy, idle } from '/vendor/blobatar/expression.js';
 import { blobatar } from '/vendor/blobatar/index.js';
 import { _parts } from '/vendor/blobatar/internal.js';
 import { el } from '../dom.js';
+import { sinMovimiento } from '../movimiento.js';
 import { elSvg } from './ui/index.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -108,6 +110,57 @@ export function ponerExpresion(avatar, pose) {
   for (const [variable, valor] of Object.entries(nuevas)) avatar.style.setProperty(variable, valor);
   vivo.variables = new Set(Object.keys(nuevas));
   vivo.grupo.setAttribute('class', partes.cls ?? '');
+}
+
+/** El nacimiento (D-56): la primera y la última pausa de la ruleta, en ms. */
+const PAUSA_RULETA_MS = { primera: 90, ultima: 260 };
+
+/** Cuánto rato está contento el avatar al terminar de nacer. */
+const CONTENTO_AL_NACER_MS = 1200;
+
+/** Una semilla al azar, como las del servidor (32 cifras hexadecimales). No se guarda. */
+function semillaAlAzar() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * La pausa de cada vuelta: crece como un cuadrado, así la ruleta empieza
+ * rápida y frena al final (de 90 a 260 ms).
+ * @param {number} vuelta 0, 1, 2…
+ * @param {number} vueltas
+ */
+function pausaDeVuelta(vuelta, vueltas) {
+  const avance = vueltas > 1 ? vuelta / (vueltas - 1) : 1;
+  return PAUSA_RULETA_MS.primera + (PAUSA_RULETA_MS.ultima - PAUSA_RULETA_MS.primera) * avance ** 2;
+}
+
+/**
+ * El avatar "nace" (D-56): en `marco` pasan `vueltas` avatares al azar, cada
+ * vez más despacio y cada uno con un "pop", y se para en el de `semilla`,
+ * que se pone contento un momento. blobatar no puede transformar un avatar
+ * en otro (cada forma es un dibujo distinto), por eso es una ruleta.
+ * Con "Reducir movimiento", pongo el tuyo directamente.
+ * @param {HTMLElement} marco Donde va el avatar.
+ * @param {string} semilla La de la persona.
+ * @param {{ tamano: number, vueltas: number }} opciones
+ * @returns {Promise<SVGSVGElement>} El avatar final, cuando termina.
+ */
+export async function nacerAvatar(marco, semilla, { tamano, vueltas }) {
+  if (!sinMovimiento()) {
+    for (let vuelta = 0; vuelta < vueltas; vuelta++) {
+      const deMentira = crearAvatarVivo({ semilla: semillaAlAzar(), tamano });
+      deMentira.classList.add('avatar--pop');
+      marco.replaceChildren(deMentira);
+      await new Promise((resolver) => setTimeout(resolver, pausaDeVuelta(vuelta, vueltas)));
+    }
+  }
+  const avatar = crearAvatarVivo({ semilla, tamano });
+  avatar.classList.add('avatar--pop', 'avatar--final');
+  marco.replaceChildren(avatar);
+  ponerExpresion(avatar, happy);
+  setTimeout(() => ponerExpresion(avatar, idle), CONTENTO_AL_NACER_MS);
+  return avatar;
 }
 
 /**
