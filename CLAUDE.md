@@ -62,8 +62,15 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 Recuperar la contraseña y cambiar el email (Resend + dominio propio;
 Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
 su paso 1) y 12 cierre.
-**Siguiente: fase 10, paso 6** (cambiar el email: formulario en Datos
-personales y pantalla Confirmar email, P-29). Paso 5 hecho:
+**Siguiente: fase 10, paso 7**: en Render, ANTES del push, añadir
+`RESEND_API_KEY` (la de la nota `vigia-produccion`) y
+`CORREO_REMITENTE=Vigía <no-responder@correo.alvaroalme.dev>` (sin ellas
+`config.js` no arranca); después push (`009_correo` se aplica al
+arrancar) y probar el "Hecho cuando" en el iPhone. Paso 6 hecho:
+"Cambiar email" en Datos personales (email nuevo + contraseña; enlace
+al nuevo y aviso al actual) y `confirmarEmail.js` (P-29, pública, lee
+`#t=`), `sw.js` en `app-v32`. Probado con Ana (su email vuelve a ser
+ana@prueba.test). Paso 5 hecho:
 "¿Has olvidado la contraseña?" en Entrar (lleva el email escrito con
 `recordarEmail()`), `recuperar.js` (P-27) y `restablecer.js` (P-28: lee
 `#t=`, lo quita de la barra y lo guarda en memoria; en Safari de iOS

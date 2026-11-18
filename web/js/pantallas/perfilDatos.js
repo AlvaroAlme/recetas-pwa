@@ -1,8 +1,8 @@
 /**
  * @file Datos personales (P-22, D-52): mi avatar con "Otro avatar", mi
- * nombre y mi email (el email todavía no se cambia: fase 11, con el correo).
+ * nombre y mi email, que se cambia confirmándolo por correo (D-53).
  */
-import { validarNombrePersona } from '/compartido/validacion.js';
+import { validarCambioEmail, validarNombrePersona } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
 import { crearAvatarVivo, mirarAlToque } from '../componentes/avatar.js';
 import { crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
@@ -113,15 +113,95 @@ function crearSeccionNombre(usuario) {
 }
 
 /**
- * Mi email: solo se ve. Cambiarlo exige confirmarlo por correo (fase 11, D-52).
+ * Mi email, con "Cambiar email" (D-53). Al pulsarlo sale el formulario: el
+ * email nuevo y mi contraseña. Envío un enlace al nuevo y un aviso al
+ * actual; el email NO cambia hasta que abra ese enlace.
  * @param {{ email: string }} usuario
  */
 function crearSeccionEmail(usuario) {
+  const caja = el('div', { class: 'formulario' });
+
+  /** @param {string} [mensaje] Lo que enseño encima (tras enviar el enlace). */
+  function verEmail(mensaje) {
+    const cambiar = el('button', { class: 'boton boton--fantasma boton--ajustado', type: 'button', 'data-escribe': true, onclick: editar }, 'Cambiar email');
+    caja.replaceChildren(
+      ...(mensaje ? [el('div', { role: 'status' }, crearAviso({ tipo: 'exito', mensaje }))] : []),
+      el('p', { class: 'texto--fuerte perfil__email' }, usuario.email),
+      el('div', { class: 'seccion__acciones' }, cambiar)
+    );
+    return cambiar;
+  }
+
+  function editar() {
+    const aviso = el('div');
+    const nuevo = crearCampo({
+      etiqueta: 'Email nuevo',
+      nombre: 'email-nuevo',
+      atributos: { type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', required: true },
+    });
+    const contrasena = crearCampo({
+      etiqueta: 'Tu contraseña',
+      nombre: 'contrasena-email',
+      ayuda: 'Para confirmar que eres tú.',
+      atributos: { type: 'password', autocomplete: 'current-password', required: true },
+    });
+    const enviar = el('button', { class: 'boton boton--primario boton--ajustado', type: 'submit', 'data-escribe': true }, 'Enviar enlace');
+    const cancelar = el('button', { class: 'boton boton--fantasma boton--ajustado', type: 'button' }, 'Cancelar');
+    // Al cancelar, el foco vuelve al botón que abrió el formulario.
+    cancelar.addEventListener('click', () => verEmail().focus());
+
+    /** @param {SubmitEvent} evento */
+    async function alEnviar(evento) {
+      evento.preventDefault();
+      if (enviar.disabled) return;
+      aviso.replaceChildren();
+      const resultado = validarCambioEmail({ emailNuevo: leerCampo(nuevo), contrasena: leerCampo(contrasena) }, usuario.email);
+      const errores = resultado.ok ? {} : resultado.errores;
+      ponerErrorCampo(nuevo, errores.emailNuevo ?? null);
+      ponerErrorCampo(contrasena, errores.contrasena ?? null);
+      if (!resultado.ok) {
+        (errores.emailNuevo ? nuevo : contrasena).querySelector('.campo__entrada').focus();
+        return;
+      }
+      ponerCargando(enviar, true, 'Enviando…');
+      try {
+        await api.post('/yo/email', resultado.datos);
+        verEmail(
+          `✓ Te hemos enviado un enlace a ${resultado.datos.emailNuevo}: ábrelo para confirmar. Hasta entonces sigues entrando con ${usuario.email}.`
+        ).focus();
+      } catch (error) {
+        ponerCargando(enviar, false);
+        if (error.campos?.emailNuevo || error.campos?.contrasena) {
+          ponerErrorCampo(nuevo, error.campos.emailNuevo ?? null);
+          ponerErrorCampo(contrasena, error.campos.contrasena ?? null);
+          (error.campos.emailNuevo ? nuevo : contrasena).querySelector('.campo__entrada').focus();
+        } else {
+          aviso.replaceChildren(
+            crearAviso({ mensaje: error.estado === 429 ? error.message : mensajeDeError(error, 'No se ha podido enviar el enlace.') })
+          );
+        }
+      }
+    }
+
+    caja.replaceChildren(
+      el(
+        'form',
+        { class: 'formulario', novalidate: true, onsubmit: alEnviar },
+        el('p', { class: 'tono--tenue' }, `Ahora es ${usuario.email}. Te enviaremos un enlace al nuevo para confirmarlo.`),
+        aviso,
+        nuevo,
+        contrasena,
+        el('div', { class: 'seccion__acciones' }, enviar, cancelar)
+      )
+    );
+    nuevo.querySelector('.campo__entrada').focus();
+  }
+
+  verEmail();
   return el(
     'section',
     { class: 'seccion', 'aria-labelledby': 'titulo-email' },
     el('h2', { class: 'titulo-seccion', id: 'titulo-email' }, 'Email'),
-    el('p', { class: 'texto--fuerte' }, usuario.email),
-    el('p', { class: 'tono--tenue' }, 'Pronto podrás cambiarlo: tendremos que confirmarlo con un correo.')
+    caja
   );
 }

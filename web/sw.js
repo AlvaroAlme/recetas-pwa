@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v31';
+const VERSION = 'app-v32';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -53,6 +53,7 @@ const ARCHIVOS = [
   '/js/pantallas/comunPerfil.js',
   '/js/pantallas/borrarCuenta.js',
   '/js/pantallas/cocinar.js',
+  '/js/pantallas/confirmarEmail.js',
   '/js/pantallas/editarReceta.js',
   '/js/pantallas/entrar.js',
   '/js/pantallas/inventario.js',

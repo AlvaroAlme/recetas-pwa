@@ -10,6 +10,7 @@ import { pantallaAyudante } from './pantallas/ayudante.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
 import { pantallaCocinar } from './pantallas/cocinar.js';
+import { pantallaConfirmarEmail } from './pantallas/confirmarEmail.js';
 import { pantallaEditarReceta } from './pantallas/editarReceta.js';
 import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
@@ -50,6 +51,8 @@ iniciarRouter({
     // "¿Has olvidado la contraseña?" (D-53). /restablecer la abre el enlace del correo.
     { patron: '/recuperar', publica: true, pantalla: pantallaRecuperar },
     { patron: '/restablecer', publica: true, pantalla: pantallaRestablecer },
+    // "Cambiar email" (D-53): la abre el enlace que llega al email nuevo.
+    { patron: '/confirmar-email', publica: true, pantalla: pantallaConfirmarEmail },
     // Privadas: si no hay sesión, la API da 401 y api.js lleva a /entrar.
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
     // Perfil (P-16) y sus apartados (D-52): se abren con el avatar de la cabecera.
