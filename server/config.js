@@ -131,6 +131,29 @@ if (anthropicApiKey !== null && !anthropicApiKey.startsWith('sk-ant-')) {
 }
 
 /**
+ * Key de Resend, para enviar correos (D-53). Es un SECRETO. Como la de
+ * Claude: en Render es obligatoria; en mi PC puede faltar, y entonces los
+ * correos van al "buzón de desarrollo" (la terminal).
+ * @type {string | null}
+ */
+const resendApiKey = entorno === 'production'
+  ? obligatoria('RESEND_API_KEY')
+  : process.env.RESEND_API_KEY?.trim() || null;
+if (resendApiKey !== null && !resendApiKey.startsWith('re_')) {
+  throw new Error('RESEND_API_KEY no parece una key de Resend (empieza por re_).');
+}
+
+/**
+ * Quién envía los correos: "Vigía <no-responder@correo.midominio>", con el
+ * dominio verificado en Resend. Solo hace falta si hay key.
+ * @type {string | null}
+ */
+const correoRemitente = resendApiKey === null ? process.env.CORREO_REMITENTE?.trim() || null : obligatoria('CORREO_REMITENTE');
+if (correoRemitente !== null && !/^[^<>]+ <[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>$/.test(correoRemitente)) {
+  throw new Error('CORREO_REMITENTE debe ser "Nombre <direccion@dominio>".');
+}
+
+/**
  * Configuración ya comprobada y congelada: nadie la puede cambiar sin querer
  * desde otro archivo.
  *
@@ -143,7 +166,9 @@ if (anthropicApiKey !== null && !anthropicApiKey.startsWith('sk-ant-')) {
  *   baseDatos: string,
  *   vapid: Readonly<{ publica: string, privada: string, sujeto: string }>,
  *   cronSecreto: string,
- *   anthropicApiKey: string | null
+ *   anthropicApiKey: string | null,
+ *   resendApiKey: string | null,
+ *   correoRemitente: string | null
  * }>}
  */
 export const config = Object.freeze({
@@ -159,4 +184,6 @@ export const config = Object.freeze({
   vapid: Object.freeze({ publica: vapidPublica, privada: vapidPrivada, sujeto: vapidSujeto }),
   cronSecreto,
   anthropicApiKey,
+  resendApiKey,
+  correoRemitente,
 });

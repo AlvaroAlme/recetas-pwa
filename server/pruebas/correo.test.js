@@ -1,7 +1,8 @@
 /**
  * @file Pruebas de lo que no toca la base de datos en "recuperar la
  * contraseña" y "cambiar el email" (D-53): los tokens y sus URLs, los textos
- * de los correos (escapados) y la validación de lo que llega.
+ * de los correos (escapados), el envío a Resend (con un fetch falso) y la
+ * validación de lo que llega.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,6 +10,7 @@ import { validarCambioEmail, validarContrasenaNueva, validarEmail } from '../../
 import { crearToken, esFormatoToken, hashDeToken, MINUTOS_ENLACE, urlDeEnlace } from '../servicios/enlaces.js';
 import { correoAvisoCambioEmail, correoConfirmarEmail, correoRecuperar, escaparHtml } from '../servicios/mensajesCorreo.js';
 import { leerCambioEmail, leerOlvide, leerRestablecer, leerToken } from '../validacion/auth.js';
+import { cuerpoResend, enviarConResend, esDireccionDePrueba, URL_RESEND } from '../servicios/resend.js';
 
 const ORIGEN = 'https://vigia.example';
 
@@ -123,5 +125,50 @@ describe('validación (compartido y servidor)', () => {
     assert.equal(leerOlvide({ email: ' ANA@prueba.test' }), 'ana@prueba.test');
     assert.throws(() => leerOlvide({ email: 'no' }), { estado: 400, codigo: 'VALIDACION' });
     assert.throws(() => leerCambioEmail({ emailNuevo: 'ana@prueba.test', contrasena: 'x' }, 'ana@prueba.test'), { estado: 400 });
+  });
+});
+
+describe('envío con Resend (con un fetch falso)', () => {
+  const correo = correoRecuperar({ nombre: 'Álvaro', email: 'alvaro@ejemplo.es', url: urlDeEnlace(ORIGEN, '/restablecer', crearToken().token) });
+  const opciones = { apiKey: 're_prueba', remitente: 'Vigía <no-responder@correo.ejemplo.es>' };
+
+  /** Un fetch falso que apunta lo que le piden y contesta lo que le digo. */
+  function fetchFalso(estado, cuerpo) {
+    const llamadas = [];
+    const falso = async (url, init) => {
+      llamadas.push({ url, init });
+      return new Response(JSON.stringify(cuerpo), { status: estado, headers: { 'Content-Type': 'application/json' } });
+    };
+    return { falso, llamadas };
+  }
+
+  it('hace UNA petición POST a la API, con la key en Authorization y el cuerpo que pide Resend', async () => {
+    const { falso, llamadas } = fetchFalso(200, { id: 'abc-123' });
+    const id = await enviarConResend(correo, { ...opciones, fetch: falso });
+    assert.equal(id, 'abc-123');
+    assert.equal(llamadas.length, 1);
+    assert.equal(llamadas[0].url, URL_RESEND);
+    assert.equal(llamadas[0].init.method, 'POST');
+    assert.equal(llamadas[0].init.headers.Authorization, 'Bearer re_prueba');
+    assert.deepEqual(JSON.parse(llamadas[0].init.body), cuerpoResend(correo, opciones.remitente));
+    assert.deepEqual(Object.keys(JSON.parse(llamadas[0].init.body)), ['from', 'to', 'subject', 'text', 'html']);
+    assert.deepEqual(JSON.parse(llamadas[0].init.body).to, ['alvaro@ejemplo.es']);
+    assert.ok(llamadas[0].init.signal, 'con tiempo máximo');
+  });
+
+  it('si Resend da error, lanza uno con el estado y su nombre, sin la dirección ni el enlace', async () => {
+    const { falso } = fetchFalso(429, { name: 'daily_quota_exceeded', message: 'alvaro@ejemplo.es ha superado…' });
+    await assert.rejects(enviarConResend(correo, { ...opciones, fetch: falso }), (error) => {
+      assert.equal(error.message, 'Resend ha respondido 429 (daily_quota_exceeded).');
+      assert.ok(!error.message.includes('@'));
+      return true;
+    });
+  });
+
+  it('las direcciones .test son de prueba: nunca se envían', () => {
+    assert.equal(esDireccionDePrueba('ana@prueba.test'), true);
+    assert.equal(esDireccionDePrueba('ANA@PRUEBA.TEST '), true);
+    assert.equal(esDireccionDePrueba('alvaro@ejemplo.es'), false);
+    assert.equal(esDireccionDePrueba('test@gmail.com'), false);
   });
 });

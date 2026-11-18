@@ -62,10 +62,14 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 Recuperar la contraseña y cambiar el email (Resend + dominio propio;
 Render gratis bloquea el SMTP), 11 Lista de la compra (D-54, se fija en
 su paso 1) y 12 cierre.
-**Siguiente: fase 10, paso 4** (`correo.js` con la API de Resend:
-`RESEND_API_KEY` y `CORREO_REMITENTE` en `config.js` y `.env.ejemplo`;
-primer correo de verdad a la dirección del autor, preguntando antes).
-Paso 3 hecho: `009_correo.sql` (aplicada solo en desarrollo),
+**Siguiente: fase 10, paso 5** (pantallas Recuperar contraseña y
+Contraseña nueva, el enlace en Entrar y Resend en Privacidad). Paso 4
+hecho: `resend.js` (POST a la API con `fetch`, sin config: pruebas con
+un fetch falso), `correo.js` (Resend con key; sin key, buzón; las
+direcciones `.test` NUNCA se envían, van al buzón), `config.js` y
+`.env.ejemplo` con `RESEND_API_KEY` y `CORREO_REMITENTE`. Primer correo
+de verdad enviado el 2026-11-18 a la dirección del autor (con su
+permiso). Paso 3 hecho: `009_correo.sql` (aplicada solo en desarrollo),
 `enlaces.js` y `mensajesCorreo.js` (sin BD, con pruebas),
 `recuperacion.js`, `correo.js` (de momento solo el buzón: en producción
 lanza un error) y las rutas `auth/olvide` (202 siempre, sin esperar al

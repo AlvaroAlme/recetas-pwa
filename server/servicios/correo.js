@@ -1,12 +1,14 @@
 /**
- * @file Enviar correos (D-53).
+ * @file Enviar correos (D-53). Con key de Resend, los envío de verdad
+ * (resend.js); sin key (solo puede pasar en desarrollo: en Render es
+ * obligatoria), van al "buzón de desarrollo": se escriben en la terminal
+ * de npm run dev, con su enlace, y así pruebo todo sin enviar nada.
  *
- * Paso 3 de la fase 10: de momento solo existe el "buzón de desarrollo": el
- * correo se escribe en la terminal de npm run dev (con su enlace), así puedo
- * probar todo sin enviar nada. En el paso 4 añado el envío de verdad con la
- * API de Resend.
+ * Las direcciones .test (las cuentas de prueba) van SIEMPRE al buzón: no
+ * existen, y un rebote empeora la reputación del dominio.
  */
 import { config } from '../config.js';
+import { enviarConResend, esDireccionDePrueba } from './resend.js';
 
 /**
  * Envía un correo.
@@ -15,19 +17,23 @@ import { config } from '../config.js';
  * @throws {Error} Si no se ha podido enviar.
  */
 export async function enviarCorreo(correo) {
-  if (config.esProduccion) {
-    // Hasta el paso 4 no hay envío de verdad: mejor un error claro que un
-    // correo que nunca llega.
-    throw new Error('El envío de correos todavía no está configurado.');
+  if (config.resendApiKey && !esDireccionDePrueba(correo.para)) {
+    await enviarConResend(correo, { apiKey: config.resendApiKey, remitente: config.correoRemitente });
+    return;
   }
   escribirEnBuzon(correo);
 }
 
 /**
- * El buzón de desarrollo: el correo, en texto, en la terminal. SOLO en mi PC
- * (en producción nunca escribo un enlace en los logs: es como una contraseña).
+ * El buzón de desarrollo: el correo, en texto, en la terminal. En producción
+ * NUNCA escribo el texto (lleva el enlace, que vale como una contraseña): solo
+ * que no lo he enviado porque la dirección es de prueba.
  * @param {import('./mensajesCorreo.js').Correo} correo
  */
 function escribirEnBuzon({ para, asunto, texto }) {
+  if (config.esProduccion) {
+    console.info('Correo no enviado: la dirección es de prueba (.test).');
+    return;
+  }
   console.info(['', '══════ Buzón de desarrollo (no se ha enviado) ══════', `Para: ${para}`, `Asunto: ${asunto}`, '', texto, '═══════════════════════════════════════════════════', ''].join('\n'));
 }
