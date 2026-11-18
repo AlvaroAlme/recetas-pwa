@@ -61,8 +61,13 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (desplegar `app-v40` y volver a probar el
-"Hecho cuando" en el iPhone; con permiso, un ticket real para ver el
+**Siguiente: fase 11, paso 6** (desplegar `app-v41` y volver a probar en
+el iPhone las pantallas y "Otro avatar"; segunda prueba con `app-v40`:
+botones y lo demás bien, pero al cambiar de pantalla se veía la rueda de
+"Cargando…" y la ruleta apenas se notaba. Arreglado en `app-v41`: el
+router espera hasta 500 ms a que la pantalla nueva tenga sus datos
+(`esperarContenido`) y `.carga` solo aparece pasados 0,3 s; "Otro
+avatar" usa la ruleta flotante, `componentes/ruleta.js`, unos 3,9 s; con permiso, un ticket real para ver el
 avatar que piensa). Primera prueba en el iPhone (2026-11-18, `app-v39`):
 no se veía nada (ni transiciones, ni ruleta, ni detalles). En Chrome, en
 producción, sí iba. Arreglado en `app-v40`: (1) la app instalada seguía

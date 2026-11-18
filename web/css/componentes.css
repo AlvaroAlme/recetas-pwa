@@ -558,6 +558,14 @@ input:focus-visible + .chip {
 }
 .carga {
   color: var(--color-texto-secundario);
+  /* Solo se ve si la carga tarda de verdad (más de 0,3 s): si los datos
+     llegan antes, no hay parpadeo de "Cargando…" (2026-11-18). */
+  animation: aparecer-carga var(--duracion-media) ease-out 300ms both;
+}
+@keyframes aparecer-carga {
+  from {
+    opacity: 0;
+  }
 }
 .carga__indicador {
   width: 32px;
@@ -1794,5 +1802,47 @@ html[data-sentido='pestana']::view-transition-new(root) {
 @keyframes pop-avatar {
   from {
     transform: scale(0.85);
+  }
+}
+
+/* ---- La ruleta flotante de "Otro avatar" (ruleta.js) ----
+   Una ventana (el mismo <dialog> que confirmar) con el avatar grande,
+   centrada. Entra creciendo un poco y se va fundiéndose. */
+.ruleta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-m);
+  width: min(300px, calc(100% - 2 * var(--espacio-l)));
+  margin: auto;
+  text-align: center;
+}
+.ruleta:not([open]) {
+  display: none;
+}
+.ruleta[open] {
+  animation: entrar-ruleta var(--duracion-media) var(--curva-salida);
+}
+.ruleta[open]::backdrop {
+  animation: fundir-dentro var(--duracion-media) ease-out;
+}
+.ruleta--saliendo,
+.ruleta--saliendo::backdrop {
+  animation: fundir-fuera var(--duracion-media) ease-in forwards;
+}
+.ruleta__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+}
+.ruleta__texto {
+  font-weight: var(--peso-fuerte);
+}
+@keyframes entrar-ruleta {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
 }

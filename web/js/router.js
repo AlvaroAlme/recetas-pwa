@@ -179,6 +179,35 @@ function decidirSentido(pedido, ruta) {
   return pedido;
 }
 
+/** Lo que espero, como mucho, a que la pantalla nueva cargue antes de animar. */
+const ESPERA_CONTENIDO_MS = 500;
+
+/**
+ * Espera a que la pantalla nueva deje de enseñar "Cargando…" (el .carga de
+ * crearCarga), o ESPERA_CONTENIDO_MS como mucho. Mientras, se sigue viendo
+ * la pantalla de antes, como en una app del móvil. Las pantallas cargan
+ * sus datos aunque todavía no estén en la página, así que puedo mirarlas
+ * con un MutationObserver.
+ * @param {Node} contenido
+ * @returns {Promise<void>}
+ */
+function esperarContenido(contenido) {
+  const cargando = () => contenido instanceof Element && contenido.querySelector('.carga') !== null;
+  if (!cargando()) return Promise.resolve();
+  return new Promise((resolver) => {
+    const terminar = () => {
+      observador.disconnect();
+      clearTimeout(reloj);
+      resolver();
+    };
+    const observador = new MutationObserver(() => {
+      if (!cargando()) terminar();
+    });
+    observador.observe(contenido, { childList: true, subtree: true });
+    const reloj = setTimeout(terminar, ESPERA_CONTENIDO_MS);
+  });
+}
+
 /**
  * Cambio la página dentro de una View Transition si se puede: el navegador
  * hace una foto de la pantalla vieja, cambio el DOM y anima de la una a la
@@ -230,6 +259,12 @@ async function pintar({ esPrimera = false, volviendo = false, sentido = null } =
   if (miTurno !== turno) return;
 
   const sentidoFinal = decidirSentido(sentido, ruta);
+  // Si voy a animar, espero (un poco) a que la pantalla nueva tenga sus
+  // datos: así se desliza la pantalla de verdad y no un "Cargando…".
+  if (sentidoFinal) {
+    await esperarContenido(vista.contenido);
+    if (miTurno !== turno) return;
+  }
   rutaPintada = ruta;
   caminoPintado = location.pathname;
   conTransicion(sentidoFinal, () => ponerVista(ruta, vista, { esPrimera, volviendo }));

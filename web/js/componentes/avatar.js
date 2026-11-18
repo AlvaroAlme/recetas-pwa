@@ -126,13 +126,14 @@ function semillaAlAzar() {
 
 /**
  * La pausa de cada vuelta: crece como un cuadrado, así la ruleta empieza
- * rápida y frena al final (de 90 a 260 ms).
+ * rápida y frena al final (por defecto, de 90 a 260 ms).
  * @param {number} vuelta 0, 1, 2…
  * @param {number} vueltas
+ * @param {{ primera: number, ultima: number }} pausas
  */
-function pausaDeVuelta(vuelta, vueltas) {
+function pausaDeVuelta(vuelta, vueltas, pausas) {
   const avance = vueltas > 1 ? vuelta / (vueltas - 1) : 1;
-  return PAUSA_RULETA_MS.primera + (PAUSA_RULETA_MS.ultima - PAUSA_RULETA_MS.primera) * avance ** 2;
+  return pausas.primera + (pausas.ultima - pausas.primera) * avance ** 2;
 }
 
 /**
@@ -143,16 +144,17 @@ function pausaDeVuelta(vuelta, vueltas) {
  * Con "Reducir movimiento", pongo el tuyo directamente.
  * @param {HTMLElement} marco Donde va el avatar.
  * @param {string} semilla La de la persona.
- * @param {{ tamano: number, vueltas: number }} opciones
+ * @param {{ tamano: number, vueltas: number, pausas?: { primera: number, ultima: number } }} opciones
+ *   pausas: la primera y la última, en ms (la ruleta flotante va más despacio).
  * @returns {Promise<SVGSVGElement>} El avatar final, cuando termina.
  */
-export async function nacerAvatar(marco, semilla, { tamano, vueltas }) {
+export async function nacerAvatar(marco, semilla, { tamano, vueltas, pausas = PAUSA_RULETA_MS }) {
   if (!sinMovimiento()) {
     for (let vuelta = 0; vuelta < vueltas; vuelta++) {
       const deMentira = crearAvatarVivo({ semilla: semillaAlAzar(), tamano });
       deMentira.classList.add('avatar--pop');
       marco.replaceChildren(deMentira);
-      await new Promise((resolver) => setTimeout(resolver, pausaDeVuelta(vuelta, vueltas)));
+      await new Promise((resolver) => setTimeout(resolver, pausaDeVuelta(vuelta, vueltas, pausas)));
     }
   }
   const avatar = crearAvatarVivo({ semilla, tamano });

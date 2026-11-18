@@ -5,13 +5,11 @@
 import { validarCambioEmail, validarNombrePersona } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
 import { crearAvatarVivo, mirarAlToque, nacerAvatar } from '../componentes/avatar.js';
+import { barajarFlotante } from '../componentes/ruleta.js';
 import { crearAviso, crearCampo, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { ponerUsuario } from '../yo.js';
 import { pantallaDePerfil } from './comunPerfil.js';
-
-/** Vueltas de la ruleta con "Otro avatar" (D-56). */
-const VUELTAS_OTRO = 4;
 
 /**
  * @returns {import('../router.js').Vista}
@@ -46,12 +44,14 @@ function crearSeccionAvatar(usuario) {
   }
 
   /**
-   * "Otro avatar": la misma ruleta que en Bienvenida (D-56), 4 vueltas.
+   * "Otro avatar": la ruleta sale flotando encima de la pantalla (D-56) y,
+   * al irse, el nuevo aparece aquí con un "pop" y contento.
    * @param {string} semilla
    */
   async function barajar(semilla) {
+    await barajarFlotante(semilla);
     dejarDeMirar();
-    const avatar = await nacerAvatar(marco, semilla, { tamano: 96, vueltas: VUELTAS_OTRO });
+    const avatar = await nacerAvatar(marco, semilla, { tamano: 96, vueltas: 0 });
     dejarDeMirar = mirarAlToque(avatar, seccion);
   }
 

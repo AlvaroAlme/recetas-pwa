@@ -13,6 +13,7 @@ import { esIos, estaInstalada, instalarApp, puedeInstalar } from '../avisos.js';
 import { sad } from '/vendor/blobatar/expression.js';
 import { nacerAvatar, ponerExpresion } from '../componentes/avatar.js';
 import { crearPanelAvisos } from '../componentes/panelAvisos.js';
+import { barajarFlotante } from '../componentes/ruleta.js';
 import { crearAviso, crearCampo, crearCarga, crearSinConexion, leerCampo, ponerCargando, ponerErrorCampo } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
@@ -23,8 +24,8 @@ const PASOS = 4;
 /** Tamaño del avatar de "Este eres tú", en px. */
 const TAMANO_AVATAR = 120;
 
-/** Vueltas de la ruleta: al llegar y con "Otro avatar" (D-56). */
-const VUELTAS = { nacer: 7, otro: 4 };
+/** Vueltas de la ruleta al llegar (D-56). "Otro avatar" usa la flotante (ruleta.js). */
+const VUELTAS = { nacer: 7 };
 
 /** "Saltar" en cualquier paso: al inventario (§7.6). */
 const crearSaltar = () => el('a', { class: 'boton boton--fantasma', href: '/' }, 'Saltar');
@@ -103,7 +104,11 @@ function pasoTu() {
         const { usuario: nuevo } = await api.post('/yo/avatar');
         ponerUsuario(nuevo);
         ponerCargando(otro, false);
-        await girar(nuevo.avatarSemilla, VUELTAS.otro);
+        // La ruleta de "Otro avatar" sale flotando encima (D-56); al irse,
+        // el nuevo aparece aquí sin vueltas.
+        otro.disabled = true;
+        await barajarFlotante(nuevo.avatarSemilla);
+        await girar(nuevo.avatarSemilla, 0);
       } catch (error) {
         ponerCargando(otro, false);
         // Se queda el que había, triste un momento (D-56).
