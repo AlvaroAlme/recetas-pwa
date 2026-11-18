@@ -61,7 +61,13 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (desplegar `app-v45` y probar en el
+**Siguiente: fase 11, paso 6** (desplegar `app-v46` y probar en el
+iPhone que el avatar de la ruleta sale centrado y que Atrás no saca de
+la app. Con `app-v45`: la Bienvenida y la ruleta, bien; pero (1) el
+avatar salía a la izquierda en la ventana de la ruleta (`margin-inline:
+auto`) y (2) Atrás aún volvía a Entrar: el Atrás del sistema no pasa por
+`volver()`; ahora el `popstate` que llega a `/entrar` o `/registro`
+desde la app cambia esa entrada por `/` (Inventario). Antes, con `app-v45`, probar en el
 iPhone "Descubrir mi avatar" al crear la cuenta y que Atrás, flecha o
 gesto, no saque de la app. Con `app-v44`: (1) Crear cuenta llevaba a
 Inventario y no a Bienvenida, porque "Créala" pone siempre `?volver=/` y

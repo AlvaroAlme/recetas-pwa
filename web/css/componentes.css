@@ -1852,6 +1852,12 @@ html[data-sentido='pestana']::view-transition-new(root) {
   justify-content: center;
   width: 160px;
   height: 160px;
+  /* En el iPhone salía a la izquierda: centrado también sin flex. */
+  margin-inline: auto;
+}
+.ruleta__avatar > * {
+  display: block;
+  margin-inline: auto;
 }
 .ruleta__texto {
   font-weight: var(--peso-fuerte);

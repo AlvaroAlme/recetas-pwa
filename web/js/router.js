@@ -421,6 +421,16 @@ export function iniciarRouter(opciones) {
   pantallaNoExiste = opciones.noExiste;
   document.addEventListener('click', alPulsarEnlace);
   window.addEventListener('popstate', () => {
+    // Estaba dentro de la app (con sesión) y el historial me devuelve a
+    // Entrar o Crear cuenta: eso es "salir" sin cerrar sesión. Pasa con el
+    // Atrás del navegador o del sistema, que no pasan por volver(). En vez
+    // de pintarla, cambio esa entrada por el inventario (2026-11-18).
+    if (rutaPintada && !rutaPintada.publica && ['/entrar', '/registro'].includes(location.pathname)) {
+      atrasConFlecha = false;
+      history.replaceState({ profundidad: 0 }, '', '/');
+      pintar({ volviendo: true });
+      return;
+    }
     // Solo animo si ha sido mi flecha; el gesto de iOS ya desliza la pantalla.
     const sentido = atrasConFlecha ? 'atras' : null;
     atrasConFlecha = false;
