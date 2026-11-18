@@ -61,8 +61,14 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 3** (transiciones entre pantallas en
-`router.js`). Paso 2 hecho (2026-11-18): tokens `--duracion-media`,
+**Siguiente: fase 11, paso 4** (expresiones: servir `expression.js`,
+`ponerExpresion()` con pruebas y las reacciones del avatar). Paso 3
+hecho (2026-11-18): View Transitions en `router.js` (`conTransicion`,
+`decidirSentido`, `ponerVista`; `navegar()` adelante y con `reemplazar`
+atrás; `atrasConFlecha` para que el gesto de iOS no se anime dos veces;
+sin animación si el camino no cambia), con su CSS al final de
+`componentes.css` (`view-transition-name` en `.cabecera` y
+`.navegacion`). `sw.js` en `app-v37`. Paso 2 hecho (2026-11-18): tokens `--duracion-media`,
 `--duracion-lenta`, `--curva-salida` y `--curva-suave`; `movimiento.js`
 (`entrar`, `salir`, `sinMovimiento`); botones que se hunden
 (`scale(0.97)`, 0,94 los de icono); el "✓" de los avisos de éxito en su

@@ -13,6 +13,7 @@ import { crearAvatarVivo } from './componentes/avatar.js';
 import { crearIcono } from './componentes/iconos.js';
 import { el } from './dom.js';
 import { logError } from './log.js';
+import { sinMovimiento } from './movimiento.js';
 import { olvidarUsuario, usuarioActual, usuarioSabido } from './yo.js';
 
 /**
@@ -141,10 +142,64 @@ function crearEnlacePerfil() {
 }
 
 /**
- * Pinta la pantalla de la URL actual en el esqueleto de index.html.
- * @param {{ esPrimera?: boolean, volviendo?: boolean }} [opciones]
+ * Hacia dónde se mueve la pantalla al cambiar (D-56): 'adelante' (entra por
+ * la derecha), 'atras' (por la izquierda), 'pestana' (solo se funde) o null
+ * (cambia sin animación).
+ * @typedef {'adelante' | 'atras' | 'pestana' | null} Sentido
  */
-async function pintar({ esPrimera = false, volviendo = false } = {}) {
+
+/** La ruta que está pintada ahora (para saber si paso de pestaña a pestaña). */
+let rutaPintada = null;
+/** El camino pintado ahora: si no cambia (/?ubicacion=…), no animo. */
+let caminoPintado = null;
+
+/**
+ * true justo antes de que la flecha Atrás llame a history.back(): así, en el
+ * "popstate" que llega después, sé que he sido yo. Si no lo pongo yo, ha sido
+ * el gesto de iOS o el Atrás del navegador, que ya animan solos (D-56).
+ */
+let atrasConFlecha = false;
+
+/**
+ * Decido el sentido final: entre dos pestañas, siempre fundido; si el camino
+ * no cambia, sin animación.
+ * @param {Sentido} pedido
+ * @param {Ruta} ruta La que voy a pintar.
+ * @returns {Sentido}
+ */
+function decidirSentido(pedido, ruta) {
+  if (!pedido || location.pathname === caminoPintado) return null;
+  if (ruta.pestana && rutaPintada?.pestana) return 'pestana';
+  return pedido;
+}
+
+/**
+ * Cambio la página dentro de una View Transition si se puede: el navegador
+ * hace una foto de la pantalla vieja, cambio el DOM y anima de la una a la
+ * otra (el CSS, según html[data-sentido]). Sin startViewTransition (Safari
+ * de antes de la 18) o con "Reducir movimiento", cambio sin más.
+ * @param {Sentido} sentido
+ * @param {() => void} cambiar
+ */
+function conTransicion(sentido, cambiar) {
+  if (!sentido || !document.startViewTransition || sinMovimiento()) {
+    cambiar();
+    return;
+  }
+  const raiz = document.documentElement;
+  raiz.dataset.sentido = sentido;
+  const transicion = document.startViewTransition(cambiar);
+  // Si otra navegación la corta, también se cumple: quito el sentido igual.
+  transicion.finished.finally(() => {
+    if (raiz.dataset.sentido === sentido) delete raiz.dataset.sentido;
+  });
+}
+
+/**
+ * Pinta la pantalla de la URL actual en el esqueleto de index.html.
+ * @param {{ esPrimera?: boolean, volviendo?: boolean, sentido?: Sentido }} [opciones]
+ */
+async function pintar({ esPrimera = false, volviendo = false, sentido = null } = {}) {
   const miTurno = ++turno;
   let { ruta, parametros } = buscar(location.pathname);
   if (ruta.redirigir) {
@@ -168,6 +223,19 @@ async function pintar({ esPrimera = false, volviendo = false } = {}) {
   }
   if (miTurno !== turno) return;
 
+  const sentidoFinal = decidirSentido(sentido, ruta);
+  rutaPintada = ruta;
+  caminoPintado = location.pathname;
+  conTransicion(sentidoFinal, () => ponerVista(ruta, vista, { esPrimera, volviendo }));
+}
+
+/**
+ * Pongo la vista en el esqueleto: cabecera, contenido, pie y pestañas.
+ * @param {Ruta} ruta
+ * @param {Vista} vista
+ * @param {{ esPrimera: boolean, volviendo: boolean }} opciones
+ */
+function ponerVista(ruta, vista, { esPrimera, volviendo }) {
   $('titulo').textContent = vista.titulo;
   document.title = `${vista.titulo} · Vigía`;
   $('pantalla').replaceChildren(vista.contenido);
@@ -212,7 +280,8 @@ export function navegar(url, { reemplazar = false, mensaje } = {}) {
   } else {
     history.pushState(estado, '', url);
   }
-  pintar();
+  // Reemplazar es casi siempre "he guardado, vuelvo a donde estaba": hacia atrás.
+  pintar({ sentido: reemplazar ? 'atras' : 'adelante' });
 }
 
 /**
@@ -224,6 +293,7 @@ export function navegar(url, { reemplazar = false, mensaje } = {}) {
  */
 export function volver(porDefecto) {
   if (history.state?.dentro) {
+    atrasConFlecha = true;
     history.back();
   } else {
     navegar(porDefecto, { reemplazar: true });
@@ -290,6 +360,11 @@ export function iniciarRouter(opciones) {
   rutas = opciones.rutas;
   pantallaNoExiste = opciones.noExiste;
   document.addEventListener('click', alPulsarEnlace);
-  window.addEventListener('popstate', () => pintar({ volviendo: true }));
+  window.addEventListener('popstate', () => {
+    // Solo animo si ha sido mi flecha; el gesto de iOS ya desliza la pantalla.
+    const sentido = atrasConFlecha ? 'atras' : null;
+    atrasConFlecha = false;
+    pintar({ volviendo: true, sentido });
+  });
   pintar({ esPrimera: true });
 }

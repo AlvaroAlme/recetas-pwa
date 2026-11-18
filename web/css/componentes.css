@@ -1701,3 +1701,63 @@ label.tarjeta-chat__hueco .casilla__entrada {
     transform: translateX(16px);
   }
 }
+
+/* ---- Transiciones entre pantallas (router.js: conTransicion) ----
+   La cabecera y la barra de pestañas tienen nombre propio: no van en la
+   foto de la página (root), así que no se deslizan; solo se funden si
+   cambian (el título). Lo demás se mueve según html[data-sentido]. */
+.cabecera {
+  view-transition-name: cabecera;
+}
+.navegacion {
+  view-transition-name: navegacion;
+}
+::view-transition-old(cabecera),
+::view-transition-new(cabecera),
+::view-transition-old(navegacion),
+::view-transition-new(navegacion) {
+  animation-duration: var(--duracion-rapida);
+}
+/* La vieja se funde deprisa; la nueva entra 24 px desde su lado. */
+::view-transition-old(root) {
+  animation: fundir-fuera var(--duracion-rapida) ease-out both;
+}
+html[data-sentido='adelante']::view-transition-new(root) {
+  animation: entrar-derecha var(--duracion-media) var(--curva-salida) both;
+}
+html[data-sentido='atras']::view-transition-new(root) {
+  animation: entrar-izquierda var(--duracion-media) var(--curva-salida) both;
+}
+html[data-sentido='pestana']::view-transition-new(root) {
+  animation: fundir-dentro var(--duracion-rapida) ease-out both;
+}
+@keyframes fundir-fuera {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fundir-dentro {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes entrar-derecha {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes entrar-izquierda {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+/* Por si acaso (router.js ya no las lanza con "Reducir movimiento"). */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
