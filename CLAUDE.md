@@ -61,8 +61,14 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (desplegar `app-v41` y volver a probar en
-el iPhone las pantallas y "Otro avatar"; segunda prueba con `app-v40`:
+**Siguiente: fase 11, paso 6** (desplegar `app-v43` y probar en el
+iPhone la ruleta al crear la cuenta y el gesto de deslizar desde el
+borde izquierdo para volver, `gestoAtras.js`, solo en la app instalada; tercera prueba con `app-v41`: todo
+bien salvo que al crear la cuenta no salía la ruleta. Arreglado en
+`app-v42`: Bienvenida usa la ruleta flotante al llegar, solo la primera
+vez, `esperarEnPantalla`. La app instalada en iOS NO tiene gesto de
+"atrás" (solo Safari): el autor pidió hacerlo nosotros (`app-v43`). Antes,
+con `app-v41`, se arregló: las pantallas y "Otro avatar"; segunda prueba con `app-v40`:
 botones y lo demás bien, pero al cambiar de pantalla se veía la rueda de
 "Cargando…" y la ruleta apenas se notaba. Arreglado en `app-v41`: el
 router espera hasta 500 ms a que la pantalla nueva tenga sus datos

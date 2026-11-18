@@ -24,8 +24,31 @@ const PASOS = 4;
 /** Tamaño del avatar de "Este eres tú", en px. */
 const TAMANO_AVATAR = 120;
 
-/** Vueltas de la ruleta al llegar (D-56). "Otro avatar" usa la flotante (ruleta.js). */
-const VUELTAS = { nacer: 7 };
+/**
+ * ¿Ha salido ya la ruleta de bienvenida? Solo la enseño la primera vez: si
+ * vuelves al paso 1 desde el 2, tu avatar ya está ahí, sin ruleta.
+ */
+let yaHaNacido = false;
+
+/** Lo que tarda la transición de pantalla (--duracion-media) y un poco más. */
+const ESPERA_TRAS_TRANSICION_MS = 350;
+
+/**
+ * Espera a que un nodo esté de verdad en la página (el router puede tardar:
+ * espera a los datos y hace la transición) y a que acabe la transición.
+ * Así la ruleta flotante no sale encima de la pantalla anterior.
+ * @param {Element} nodo
+ * @returns {Promise<boolean>} false si no ha llegado a estar (te has ido antes).
+ */
+async function esperarEnPantalla(nodo) {
+  const hasta = Date.now() + 3000;
+  while (!nodo.isConnected && Date.now() < hasta) {
+    await new Promise((resolver) => requestAnimationFrame(resolver));
+  }
+  if (!nodo.isConnected) return false;
+  await new Promise((resolver) => setTimeout(resolver, ESPERA_TRAS_TRANSICION_MS));
+  return nodo.isConnected;
+}
 
 /** "Saltar" en cualquier paso: al inventario (§7.6). */
 const crearSaltar = () => el('a', { class: 'boton boton--fantasma', href: '/' }, 'Saltar');
@@ -117,7 +140,22 @@ function pasoTu() {
       }
     });
 
-    girar(usuario.avatarSemilla, VUELTAS.nacer);
+    /**
+     * Al llegar (D-56): la primera vez, la misma ruleta flotante que "Otro
+     * avatar" (2026-11-18: la de dentro de la tarjeta no se veía al crear la
+     * cuenta); después, el tuyo aparece en la tarjeta.
+     * @param {string} semilla
+     */
+    async function nacer(semilla) {
+      otro.disabled = true;
+      if (!yaHaNacido && (await esperarEnPantalla(marco))) {
+        yaHaNacido = true;
+        await barajarFlotante(semilla, { textoFinal: 'Este es tu avatar' });
+      }
+      await girar(semilla, 0);
+    }
+
+    nacer(usuario.avatarSemilla);
     return [
       el('p', { class: 'bienvenida__saludo' }, `Hola, ${usuario.nombre}. Vamos a dejarlo todo listo en un minuto.`),
       crearEncabezado(1, 'Este eres tú'),

@@ -1,5 +1,5 @@
 /**
- * @file La ruleta flotante de "Otro avatar" (D-56, cambiada el 2026-11-18
+ * @file La ruleta flotante de "Otro avatar" y de Bienvenida (D-56, cambiada el 2026-11-18
  * tras probarla en el iPhone: dentro de la tarjeta apenas se notaba). Sale
  * una ventana encima de la pantalla, con el avatar grande: pasan unos
  * cuantos al azar, cada vez más despacio, se para en el nuevo, se pone
@@ -29,9 +29,11 @@ const esperar = (ms) => new Promise((resolver) => setTimeout(resolver, ms));
 /**
  * Enseña la ruleta flotante y termina en el avatar de `semilla`.
  * @param {string} semilla La semilla nueva (ya guardada en el servidor).
+ * @param {{ textoFinal?: string }} [opciones] Lo que pone al pararse: en
+ *   Bienvenida, "Este es tu avatar" (no es "nuevo": es el primero).
  * @returns {Promise<void>} Cuando la ventana ya se ha ido.
  */
-export async function barajarFlotante(semilla) {
+export async function barajarFlotante(semilla, { textoFinal = 'Este es tu avatar nuevo' } = {}) {
   const marco = el('div', { class: 'ruleta__avatar', 'aria-hidden': 'true' });
   // role="status": el lector anuncia "Barajando…" y luego "Este es tu avatar nuevo".
   const texto = el('p', { class: 'ruleta__texto', role: 'status' }, 'Barajando…');
@@ -44,7 +46,7 @@ export async function barajarFlotante(semilla) {
   dialogo.showModal();
 
   await nacerAvatar(marco, semilla, { tamano: TAMANO, vueltas: VUELTAS, pausas: PAUSAS_MS });
-  texto.textContent = 'Este es tu avatar nuevo';
+  texto.textContent = textoFinal;
   await esperar(PAUSA_FINAL_MS);
 
   dialogo.classList.add('ruleta--saliendo');

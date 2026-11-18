@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v41';
+const VERSION = 'app-v43';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -31,6 +31,7 @@ const ARCHIVOS = [
   '/js/avisos.js',
   '/js/conexion.js',
   '/js/dom.js',
+  '/js/gestoAtras.js',
   '/js/log.js',
   '/js/movimiento.js',
   '/js/reacciones.js',

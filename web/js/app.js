@@ -4,6 +4,7 @@
  */
 import { escucharInstalacion } from './avisos.js';
 import { iniciarConexion } from './conexion.js';
+import { iniciarGestoAtras } from './gestoAtras.js';
 import { logError } from './log.js';
 import { iniciarRouter } from './router.js';
 import { pantallaAyudante } from './pantallas/ayudante.js';
@@ -127,3 +128,7 @@ if ('serviceWorker' in navigator) {
 // En el iPhone, Safari no aplica :active (el botón que se hunde al pulsarlo,
 // D-56) si la página no escucha los toques. Con este escuchador vacío, sí.
 document.addEventListener('touchstart', () => {}, { passive: true });
+
+// En la app instalada, iOS no tiene gesto de "atrás": deslizar desde el
+// borde izquierdo vuelve atrás (gestoAtras.js, D-56).
+iniciarGestoAtras();
