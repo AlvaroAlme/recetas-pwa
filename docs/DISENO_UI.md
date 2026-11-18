@@ -1236,7 +1236,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 
 ### 5.3 Reglas de navegación
 - **Enlaces internos:** `router.js` intercepta los clics en `<a href="/…">` del propio origen y usa `history.pushState`. Los enlaces se pueden abrir en otra pestaña y el gesto de volver de iOS funciona.
-- **Atrás (la flecha):** si la entrada anterior del historial es de la app, `history.back()`; si se ha llegado desde un aviso o un enlace directo (no hay anterior), va a la ruta "Atrás por defecto" de la tabla. Así nunca se sale de la app al pulsarlo.
+- **Atrás (la flecha y el gesto de deslizar):** cada entrada del historial que crea la app lleva `profundidad` (cuántas pantallas de la app hay detrás); al pasar de una pantalla pública (Entrar, Crear cuenta) a la app, empieza en 0, así Atrás nunca te devuelve a Entrar con la sesión abierta (2026-11-18). Si la profundidad es mayor que 0, `history.back()`; si se ha llegado desde un aviso o un enlace directo (no hay anterior), va a la ruta "Atrás por defecto" de la tabla. Así nunca se sale de la app al pulsarlo.
 - **Tras guardar** (equivale a `router.back()` + `Alert` en Expo): se vuelve a la pantalla anterior con un **mensaje de éxito** pasado en `history.state`, que la pantalla de destino muestra como `Aviso` `--exito` ("Ticket guardado. Se han añadido 5 productos al inventario."). Se usa `history.replaceState`, para que "Atrás" no lleve de nuevo al formulario.
 - **Sin sesión:** cualquier ruta privada → `/entrar?volver=/tupper/12` → al entrar, a la ruta original.
 - **Cambio de pantalla:** foco a `<main>`, `document.title` actualizado y scroll arriba (salvo al volver atrás, que restaura la posición).

@@ -74,8 +74,11 @@ export function pantallaRegistro({ consulta }) {
     try {
       const { hogar } = await api.post('/auth/registro', resultado.datos);
       // Si venías de un enlace (?volver=/hogar/unirse…), te llevo allí; si
-      // no, a la Bienvenida, que ya saluda y enseña tu casa (§7.6).
-      if (consulta.has('volver')) {
+      // no, a la Bienvenida, que ya saluda y enseña tu casa (§7.6). Ojo:
+      // "Créala" en Entrar siempre pone ?volver=/ (el inventario): eso NO
+      // es venir de un enlace. Antes miraba consulta.has('volver') y nadie
+      // llegaba nunca a la Bienvenida (2026-11-18).
+      if (volver !== '/') {
         navegar(volver, { reemplazar: true, mensaje: `Ya tienes cuenta. Tu casa, «${hogar.nombre}», está lista.` });
       } else {
         navegar('/bienvenida', { reemplazar: true });

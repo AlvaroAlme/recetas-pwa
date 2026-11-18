@@ -61,10 +61,17 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (desplegar `app-v44` y probar en el
-iPhone "Descubrir mi avatar" al crear la cuenta y el gesto de deslizar
-desde el borde izquierdo para volver, `gestoAtras.js`, solo en la app
-instalada; con `app-v43`, la ruleta al crear la cuenta giraba debajo del
+**Siguiente: fase 11, paso 6** (desplegar `app-v45` y probar en el
+iPhone "Descubrir mi avatar" al crear la cuenta y que Atrás, flecha o
+gesto, no saque de la app. Con `app-v44`: (1) Crear cuenta llevaba a
+Inventario y no a Bienvenida, porque "Créala" pone siempre `?volver=/` y
+`registro.js` miraba `consulta.has('volver')`; ahora, `volver !== '/'`.
+Nadie había llegado nunca a la Bienvenida desde Entrar. (2) Atrás podía
+devolverte a Entrar con la sesión abierta: el router guarda
+`profundidad` en `history.state` (0 al pasar de una pantalla pública a
+la app) y `volver()` solo usa `history.back()` si es mayor que 0.
+Probado con una cuenta `.test` creada y borrada. El gesto de deslizar
+desde el borde, `gestoAtras.js`, funciona en el iPhone; con `app-v43`, la ruleta al crear la cuenta giraba debajo del
 "¿Guardar contraseña?" de iOS: ahora empieza al pulsar "Descubrir mi
 avatar"; tercera prueba con `app-v41`: todo
 bien salvo que al crear la cuenta no salía la ruleta. Arreglado en

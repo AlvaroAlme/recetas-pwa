@@ -313,9 +313,16 @@ function ponerVista(ruta, vista, { esPrimera, volviendo }) {
  *   mensaje: aviso de éxito que enseña la pantalla de destino.
  */
 export function navegar(url, { reemplazar = false, mensaje } = {}) {
-  // "dentro" marca las entradas del historial que creo yo: así "‹ Atrás"
-  // sabe si puede usar history.back() sin salir de la app.
-  const estado = { dentro: true, mensaje };
+  // "profundidad": cuántas pantallas de la app hay detrás de esta en el
+  // historial. Así "Atrás" sabe si puede usar history.back() sin salir de la
+  // app (2026-11-18). Al pasar de Entrar o Crear cuenta a la app, empiezo de
+  // cero: lo de detrás (Entrar) ya no cuenta, aunque esté en el historial.
+  const actual = profundidadActual();
+  const vaALaApp = !buscar(new URL(url, location.origin).pathname).ruta.publica;
+  let profundidad;
+  if (rutaPintada?.publica && vaALaApp) profundidad = 0;
+  else profundidad = reemplazar ? actual : actual + 1;
+  const estado = { profundidad, mensaje };
   if (reemplazar) {
     history.replaceState(estado, '', url);
   } else {
@@ -326,14 +333,26 @@ export function navegar(url, { reemplazar = false, mensaje } = {}) {
 }
 
 /**
- * "‹ Atrás" (DISENO_UI §5.3). Si la pantalla anterior es de la app, vuelvo
- * como el botón del navegador. Si he llegado aquí directamente (un enlace,
- * un aviso, la URL escrita), no hay anterior: voy a la pantalla por defecto.
- * Así "Atrás" nunca saca de la app.
+ * Cuántas pantallas de la app hay detrás de la de ahora. Las entradas de
+ * antes de este cambio llevaban { dentro: true }: cuentan como 1.
+ * @returns {number}
+ */
+function profundidadActual() {
+  const estado = history.state;
+  if (typeof estado?.profundidad === 'number') return estado.profundidad;
+  return estado?.dentro ? 1 : 0;
+}
+
+/**
+ * Atrás: la flecha y el gesto de deslizar (DISENO_UI §5.3). Si detrás hay
+ * otra pantalla de la app, vuelvo como el botón del navegador. Si no (he
+ * llegado directamente: un enlace, un aviso, la URL escrita, o acabo de
+ * entrar desde Entrar o Crear cuenta), voy a la pantalla por defecto. Así
+ * "Atrás" nunca saca de la app ni te devuelve a Entrar.
  * @param {string} porDefecto
  */
 export function volver(porDefecto) {
-  if (history.state?.dentro) {
+  if (profundidadActual() > 0) {
     atrasConFlecha = true;
     history.back();
   } else {
