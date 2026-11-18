@@ -449,8 +449,8 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 - **Se muestra en las pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
 
 #### Cabecera
-`<header class="cabecera"><a class="cabecera__atras" href="/">‹ Atrás</a><h1>Nuevo producto</h1><a class="cabecera__accion" href="/ticket">…Ticket</a></header>`
-- Variantes: de pestaña (título + acción opcional, como el botón "Ticket" de Inventario) y secundaria ("‹ Atrás" + título).
+`<header class="cabecera"><a class="cabecera__atras" href="/">‹ Atrás</a><h1>Nuevo producto</h1></header>`
+- Variantes: de pestaña (título + acción opcional, como "Ir a esta semana" en Semana o "Nueva conversación" en el Ayudante) y secundaria ("‹ Atrás" + título). "Ticket" ya no está en la cabecera de Inventario: es "Escanear ticket" dentro de Nuevo producto (2026-11-18).
 - Comportamiento de "Atrás" en §5.3.
 - **Botón de Perfil (D-52), en todas las cabeceras de pestaña**, el último por la derecha: `<a class="cabecera__perfil" href="/perfil" aria-label="Perfil"><svg class="avatar" aria-hidden="true">…</svg></a>`. Zona táctil de 44 × 44 px con el avatar de 32 px dentro; foco visible como el resto (§2.4). En Perfil y sus apartados no sale (ya estás dentro) y "‹ Atrás" vuelve a la pestaña de la que venías. En escritorio, igual: arriba a la derecha de la columna.
 
@@ -510,7 +510,7 @@ Todas las pantallas usan **una de estas tres plantillas** en escritorio. El cont
 ```
 E-1 · PESTAÑA                                   E-2 · SECUNDARIA CON PIE
 ┌──────┬───────────────────────────────────┐    ┌──────┬───────────────────────────────────┐
-│ [▢]  │      Inventario          [Ticket] │    │ [▢]  │  ‹ Atrás   Nuevo producto         │
+│ [▢]  │      Inventario          (avatar) │    │ [▢]  │  ‹ Atrás   Nuevo producto         │
 │Invent│ ┌───────────────────────────────┐ │    │Invent│ ┌───────────────────────────────┐ │
 │      │ │                               │ │    │      │ │ (formulario)                  │ │
 │ [⑂]  │ │ contenido, máx. 640 px        │ │    │ [⑂]  │ │                               │ │
@@ -590,7 +590,7 @@ Paso 2, "Instala la app" (instrucciones de iOS o un botón en Chrome); paso 3, "
 #### P-04 · Inventario — `/` · E-1
 ```
 ┌──────────────────────────────┐
-│  Inventario       [🧾 Ticket] │
+│  Inventario         (avatar)  │
 │ (●Nevera) ( Despensa ) (Cong.)│
 │──────────────────────────────│
 │  TUPPERS                      │
@@ -615,6 +615,10 @@ El selector de ubicación se recuerda en la URL (`/?ubicacion=despensa`), así q
 ```
 ┌──────────────────────────────┐
 │  ‹ Atrás     Nuevo producto   │
+│  ¿Vienes de la compra? Añade  │  tenue
+│  todo de una vez:             │
+│  [     Escanear ticket     ]  │  secundario → /ticket
+│──────────────────────────────│
 │  Nombre                       │
 │  [Pechuga de pollo_________]  │
 │  Cantidad                     │
@@ -634,7 +638,7 @@ El selector de ubicación se recuerda en la URL (`/?ubicacion=despensa`), así q
 │ [  Añadir al inventario   ]   │
 └──────────────────────────────┘
 ```
-Al **editar**, se añaden la sección "MOVER" con `[A Despensa]° [A Congelador]°`, `[Borrar producto]` (peligro, con confirmación) y el botón "Guardar cambios".
+"Escanear ticket" solo sale al **dar de alta** (2026-11-18: antes era el botón "Ticket" de la cabecera de Inventario; aquí está donde se piensa en añadir productos). Al **editar**, se añaden la sección "MOVER" con `[A Despensa]° [A Congelador]°`, `[Borrar producto]` (peligro, con confirmación) y el botón "Guardar cambios".
 
 #### P-06 · Nuevo tupper — `/tupper/nuevo?ubicacion=` · E-2
 ```
@@ -1232,7 +1236,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 ## 7. Flujos de UX paso a paso
 
 ### 7.1 Escanear ticket → revisar → guardar
-1. **Inventario** → "🧾 Ticket" en la cabecera → `/ticket`.
+1. **Inventario** → "+ Producto" → "Escanear ticket" → `/ticket`.
 2. **Primera vez** (`avisoIaAceptado = false`): tarjeta *info* "Antes de escanear" con "La foto o el PDF del ticket se envía a Anthropic (Claude) para leer los productos. No la guardamos. Te recomendamos recortar la foto para que solo salga la lista de productos." + `‹Política de privacidad›` + `[Entendido, continuar]` → `POST /api/ia/aviso-aceptado`. Sin aceptar no se ven los botones.
 3. **Elegir:** muestra "Te quedan N de 10 consultas de IA hoy". Si es 0, el botón queda deshabilitado con el motivo "Has usado tus 10 consultas de hoy. Vuelve mañana."
    - Un solo botón, "Elegir el ticket", que abre un `<input type="file" accept="image/*,application/pdf">` **sin `capture`** (R-08: `capture` no funciona en todos los navegadores y, si funciona, solo abre la cámara). En iOS el propio menú del sistema ofrece hacer una foto, la fototeca o un archivo (comprobado en el iPhone el 2026-11-11).
@@ -1317,7 +1321,7 @@ Comunes a todas:
 | Pantalla | Cargando | Vacío | Error (+ acción) | Guardando → fallo al guardar | Con datos |
 |---|---|---|---|---|---|
 | Entrar / Registro | — | — | "Email o contraseña incorrectos." · "Ya existe una cuenta con ese email." · "Demasiados intentos. Espera unos minutos." | "Entrando…" / "Creando cuenta…" → "No se ha podido conectar. Inténtalo de nuevo." | Formulario |
-| Inventario | "Cargando inventario…" | "{Nevera} vacía" / "Añade lo que tienes a mano o escanea el ticket de la compra con el botón «Ticket» de arriba." + `[Añadir producto]°` | "No se ha podido cargar el inventario." + `[Reintentar]` | — | Tuppers + productos por caducidad |
+| Inventario | "Cargando inventario…" | "{Nevera} vacía" / "Añade lo que tienes a mano o escanea el ticket desde «+ Producto»." + `[Añadir producto]°` | "No se ha podido cargar el inventario." + `[Reintentar]` | — | Tuppers + productos por caducidad |
 | Nuevo/editar producto | (editar) "Cargando…" | (editar, no existe) "Este producto ya no existe" / "Puede que se haya borrado o agotado." + `[Volver]°` | Errores por campo (los de `FormularioProducto`) | "Guardando…" → "No se ha podido guardar el producto. Inténtalo de nuevo." · Mover: el botón del destino con "Moviendo…" · Borrar: confirmación → "No se ha podido borrar." | Formulario |
 | Nuevo tupper | — | — | "Escribe qué hay en el tupper (ej. Cocido)." · "Debe ser un número entero entre 1 y 365." | "Guardando…" → "No se ha podido guardar el tupper. Inténtalo de nuevo." | Formulario + vista previa |
 | Tupper | "Cargando…" | "Este tupper ya no existe" + `[Volver]°` | "No se ha podido cargar el tupper." + `[Reintentar]` | "Guardando…" → "No se ha podido marcar como consumido. Inténtalo de nuevo." | Ficha |

@@ -70,7 +70,9 @@ arrancar) y probar el "Hecho cuando" en el iPhone. Paso 6 hecho:
 "Cambiar email" en Datos personales (email nuevo + contraseña; enlace
 al nuevo y aviso al actual) y `confirmarEmail.js` (P-29, pública, lee
 `#t=`), `sw.js` en `app-v32`. Probado con Ana (su email vuelve a ser
-ana@prueba.test). Paso 5 hecho:
+ana@prueba.test). Además (2026-11-18): el botón "Ticket" sale de la
+cabecera de Inventario y pasa a "Escanear ticket" arriba de Nuevo
+producto (solo al dar de alta); `sw.js` en `app-v33`. Paso 5 hecho:
 "¿Has olvidado la contraseña?" en Entrar (lleva el email escrito con
 `recordarEmail()`), `recuperar.js` (P-27) y `restablecer.js` (P-28: lee
 `#t=`, lo quita de la barra y lo guarda en memoria; en Safari de iOS

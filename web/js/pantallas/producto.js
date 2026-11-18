@@ -50,7 +50,16 @@ function pantallaNuevo(consulta) {
       });
     },
   });
-  return { titulo: 'Nuevo producto', contenido: formulario, pie: [boton], atras: '/' };
+  // "Escanear ticket" (P-05): antes era un botón en la cabecera del
+  // inventario; aquí está donde se piensa en añadir productos. Si has hecho
+  // la compra, añades todo de una vez en vez de uno a uno.
+  const ticket = el(
+    'div',
+    { class: 'producto__ticket' },
+    el('p', { class: 'tono--tenue' }, '¿Vienes de la compra? Añade todo de una vez:'),
+    el('a', { class: 'boton boton--secundario', href: '/ticket' }, 'Escanear ticket')
+  );
+  return { titulo: 'Nuevo producto', contenido: el('div', {}, ticket, formulario), pie: [boton], atras: '/' };
 }
 
 /**

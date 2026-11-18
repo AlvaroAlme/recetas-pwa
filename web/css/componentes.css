@@ -1606,3 +1606,14 @@ label.tarjeta-chat__hueco .casilla__entrada {
   min-height: var(--tactil);
   margin-block: calc(var(--espacio-s) * -1) 0;
 }
+
+/* ============ Escanear ticket, arriba de Nuevo producto (P-05) ============ */
+/* Separado del formulario con una línea: es otra forma de añadir, no un campo más. */
+.producto__ticket {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+  padding-block-end: var(--espacio-l);
+  margin-block-end: var(--espacio-l);
+  border-bottom: 1px solid var(--color-borde);
+}
