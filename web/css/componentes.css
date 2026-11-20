@@ -1130,7 +1130,9 @@ input:focus-visible + .chip {
 }
 /* "Este eres tú" (D-56): el avatar grande, centrado. El marco tiene su
    tamaño fijo para que la tarjeta no salte mientras gira la ruleta. */
-.bienvenida__tu {
+/* Con tres clases: ".bienvenida .tarjeta" (dos, y más abajo) pone
+   flex-start y ganaba ella: todo salía a la izquierda (2026-11-20). */
+.bienvenida .tarjeta.bienvenida__tu {
   align-items: center;
   text-align: center;
 }
