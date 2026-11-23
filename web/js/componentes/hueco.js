@@ -5,6 +5,7 @@
  */
 import { ETIQUETAS_GRUPO, ETIQUETAS_TIPO, nombrePlato } from '/compartido/plan.js';
 import { el } from '../dom.js';
+import { conMarca } from './ui/index.js';
 
 /**
  * @param {{
@@ -34,7 +35,7 @@ export function crearHueco({ fecha, tipo, hueco }) {
         { class: 'fila__textos' },
         plato
           ? el('span', { class: hueco.fueraDeCasa ? 'fila__titulo tono--tenue' : 'fila__titulo' }, plato)
-          : el('span', { class: 'fila__titulo hueco__anadir' }, '+ Añadir'),
+          : el('span', { class: 'fila__titulo hueco__anadir' }, conMarca('+ Añadir')),
         grupo
       )
     )

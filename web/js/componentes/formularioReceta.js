@@ -13,7 +13,7 @@ import { mensajeDeError } from '../api.js';
 import { el } from '../dom.js';
 import { entrar, salir } from '../movimiento.js';
 import { sugerirNombres } from './sugerenciasNombre.js';
-import { crearAutocompletar, crearAviso, crearCampo, ponerCargando, ponerErrorCampo } from './ui/index.js';
+import { conMarca, crearAutocompletar, crearAviso, crearCampo, ponerCargando, ponerErrorCampo } from './ui/index.js';
 
 /**
  * Una fila de ingrediente tal como la tengo en pantalla.
@@ -83,7 +83,7 @@ export function crearFormularioReceta({ inicial, textoBoton, alGuardar, buscarHi
   const botonAnadir = el(
     'button',
     { class: 'boton boton--secundario', type: 'button', onclick: () => anadirFila(null, true) },
-    '+ Añadir ingrediente'
+    conMarca('+ Añadir ingrediente')
   );
 
   const pasos = crearCampo({
@@ -240,7 +240,7 @@ export function crearFormularioReceta({ inicial, textoBoton, alGuardar, buscarHi
     }
 
     // "Añade al menos un ingrediente" o "Como mucho 30": no es de ningún campo.
-    errorIngredientes.textContent = errores.ingredientes ? `✗ ${errores.ingredientes}` : '';
+    errorIngredientes.replaceChildren(...(errores.ingredientes ? conMarca(`✗ ${errores.ingredientes}`) : []));
     errorIngredientes.hidden = !errores.ingredientes;
     if (errores.general) avisoGeneral.replaceChildren(crearAviso({ mensaje: errores.general }));
 

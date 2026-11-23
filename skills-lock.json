@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "skills": {
+    "design-audit": {
+      "source": "bencium/bencium-marketplace",
+      "commit": "5de46a39b4640fa419560cd0b67e4c4b50dac802",
+      "sourceType": "github",
+      "skillPath": "design-audit/skills/design-audit/SKILL.md",
+      "computedHash": "864c1af4c7379a1d55329e8b69a1e3c73ea770f8df59a4bfa82c0f954f3bbcdc"
+    },
+    "ui-ux-audit": {
+      "source": "brumley-agents/claude-ui-ux-audit-skill",
+      "commit": "67be406331fdda78290120e3b2fe2fc69bcd7ef4",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "236471958a9de887ae72d702afe713dfde3960ea46396c87a6d3aff190797fb1"
+    }
+  }
+}

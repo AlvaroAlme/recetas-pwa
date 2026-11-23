@@ -8,6 +8,7 @@
 import { convertir, estadoIngrediente } from '/compartido/cocina.js';
 import { formatearCantidad } from '/compartido/formato.js';
 import { el } from '../dom.js';
+import { conMarca } from './ui/index.js';
 
 /**
  * Lo que tengo, en la unidad grande si llega a 1000: "4000 ml" se lee
@@ -97,7 +98,7 @@ export function crearVistaReceta({ receta, productos, tuppers, conPasos = true, 
         'li',
         {},
         el('span', { class: 'receta__ingrediente' }, `${ingrediente.nombre} · ${formatearCantidad(ingrediente.cantidad, ingrediente.unidad)}`),
-        el('span', { class: `tono--${tono}` }, texto)
+        el('span', { class: `tono--${tono}` }, conMarca(texto))
       );
     })
   );

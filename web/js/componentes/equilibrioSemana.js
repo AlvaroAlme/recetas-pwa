@@ -6,6 +6,7 @@
  */
 import { FUENTE_AESAN, equilibrioSemana } from '/compartido/plan.js';
 import { el } from '../dom.js';
+import { conMarca } from './ui/index.js';
 
 /** El tono de cada estado: bien en verde; lo demás, en naranja (no es un error). */
 const TONOS = { bien: 'exito', faltan: 'aviso', demasiado: 'aviso' };
@@ -30,7 +31,7 @@ export function crearEquilibrio({ huecos }) {
               'li',
               { class: 'equilibrio__linea' },
               el('span', { class: 'equilibrio__grupo' }, objetivo.etiqueta),
-              el('span', { class: `tono--${TONOS[objetivo.estado]}` }, objetivo.estado === 'bien' ? `✓ ${objetivo.texto}` : objetivo.texto),
+              el('span', { class: `tono--${TONOS[objetivo.estado]}` }, objetivo.estado === 'bien' ? conMarca(`✓ ${objetivo.texto}`) : objetivo.texto),
               // El consejo, en su línea y en naranja: aunque la cifra esté bien, es para mejorar.
               objetivo.consejo && el('span', { class: 'equilibrio__consejo tono--aviso' }, objetivo.consejo)
             )

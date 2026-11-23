@@ -60,6 +60,54 @@ function crearIconoInfo() {
   );
 }
 
+/** Los trazos de las marcas que van delante de un texto (24 × 24). */
+const TRAZOS_MARCA = {
+  bien: 'M5 12.5l4.5 4.5L19 7',
+  mal: 'M6 6l12 12M18 6L6 18',
+  mas: 'M12 5v14M5 12h14',
+};
+/** El carácter que escribo en el texto y la marca que dibujo en su lugar. */
+const CARACTERES_MARCA = { '✓': 'bien', '✗': 'mal', '+': 'mas' };
+
+/**
+ * Una marca (✓, ✗ o +) dibujada en SVG, del tamaño y el color del texto
+ * que la rodea. Antes eran caracteres, y cada tipo de letra los pinta
+ * distinto (los detalles del rediseño, 2026-11-23). El lector la salta: el
+ * texto ya dice lo que pasa ("Guardada", "Te falta"…).
+ * @param {keyof typeof TRAZOS_MARCA} nombre
+ * @returns {SVGElement}
+ */
+export function crearMarca(nombre) {
+  return elSvg(
+    'svg',
+    {
+      class: 'simbolo',
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2.5',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'aria-hidden': 'true',
+      focusable: 'false',
+    },
+    elSvg('path', { d: TRAZOS_MARCA[nombre] })
+  );
+}
+
+/**
+ * Si el texto empieza por "✓ ", "✗ " o "+ ", cambio ese carácter por su
+ * marca en SVG. Así sigo escribiendo los textos como siempre:
+ *   el('p', {}, conMarca('✓ Guardada en Recetas'))
+ * @param {string} texto
+ * @returns {Array<string | SVGElement>} Para meterlo en el() (lo aplana).
+ */
+export function conMarca(texto) {
+  const nombre = CARACTERES_MARCA[texto[0]];
+  if (!nombre || texto[1] !== ' ') return [texto];
+  return [crearMarca(nombre), texto.slice(1)];
+}
+
 /**
  * Chips de opción única. Por dentro son radios nativos: el navegador me da
  * gratis las flechas del teclado y el "1 de 3, seleccionado" del lector.
@@ -242,7 +290,7 @@ export function crearAviso({ tipo = 'error', mensaje, accion }) {
  */
 function partirMarca(tipo, mensaje) {
   if (tipo !== 'exito' || typeof mensaje !== 'string' || !mensaje.startsWith('✓ ')) return [mensaje];
-  return [el('span', { class: 'aviso__marca' }, '✓'), mensaje.slice(1)];
+  return [el('span', { class: 'aviso__marca' }, crearMarca('bien')), mensaje.slice(1)];
 }
 
 /**
@@ -322,14 +370,14 @@ export function crearCampo({ etiqueta, nombre, valor, ayuda, atributos = {}, ele
 
 /**
  * Pone (o quita, sin mensaje) el error de un campo o de un selector. El
- * error no depende solo del color: lleva "✗" y texto, y el lector lo lee
+ * error no depende solo del color: lleva la marca "✗" y texto, y el lector lo lee
  * porque el campo apunta a él con aria-describedby.
  * @param {HTMLElement} campo Lo que devuelve crearCampo() o crearSelector().
  * @param {string | null | undefined} mensaje
  */
 export function ponerErrorCampo(campo, mensaje) {
   const error = campo.querySelector('.campo__error');
-  error.textContent = mensaje ? `✗ ${mensaje}` : '';
+  error.replaceChildren(...(mensaje ? conMarca(`✗ ${mensaje}`) : []));
   error.hidden = !mensaje;
 
   const entrada = campo.querySelector('.campo__entrada');

@@ -17,3 +17,8 @@ graphify-out/
 
 # Configuración de Claude en este equipo (launch.json del panel del navegador)
 .claude/
+
+# Muestra temporal de avatares (fase 9): solo en mi equipo, no se sube
+web/muestra-avatares.html
+web/js/muestraAvatares.js
+web/js/muestraAvatares.css

@@ -9,7 +9,7 @@
  */
 import { formatearCantidad } from '/compartido/formato.js';
 import { mensajeDeError } from '../api.js';
-import { crearAviso, ponerCargando } from './ui/index.js';
+import { conMarca, crearAviso, ponerCargando } from './ui/index.js';
 import { crearVistaReceta } from './vistaReceta.js';
 import { el } from '../dom.js';
 
@@ -118,7 +118,7 @@ export function crearTarjetaReceta({ tarjeta, inventario, guardar, descartar, al
   /** Cómo queda la tarjeta según su estado. */
   function pintarPie(estado, resultado, conFoco = false) {
     if (estado === 'guardada') {
-      const texto = el('p', { class: 'tono--exito', tabindex: '-1' }, '✓ Guardada en Recetas');
+      const texto = el('p', { class: 'tono--exito', tabindex: '-1' }, conMarca('✓ Guardada en Recetas'));
       pie.replaceChildren(
         texto,
         resultado?.recetaId && el('a', { class: 'boton boton--fantasma boton--ajustado', href: `/receta/${resultado.recetaId}` }, 'Ver receta')

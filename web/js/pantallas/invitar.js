@@ -3,7 +3,7 @@
  * al abrir la pantalla: si no, cada recarga gastaría uno de los 3 por hora.
  */
 import { api, mensajeDeError } from '../api.js';
-import { crearAviso, ponerCargando } from '../componentes/ui/index.js';
+import { conMarca, crearAviso, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 
 /** "6S4AJMRB" → "6S4A-JMRB": con el guion se dicta y se copia mejor. */
@@ -43,7 +43,7 @@ export function pantallaInvitar() {
         onclick: async () => {
           try {
             await navigator.clipboard.writeText(codigo);
-            estado.textContent = '✓ Código copiado.';
+            estado.replaceChildren(...conMarca('✓ Código copiado.'));
           } catch {
             estado.textContent = 'No se ha podido copiar: apúntalo a mano.';
           }

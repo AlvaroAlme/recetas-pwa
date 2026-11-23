@@ -6,7 +6,7 @@
 import { mensajeDeError } from '../api.js';
 import { activarAvisos, desactivarAvisos, enviarPrueba, estadoAvisos } from '../avisos.js';
 import { el } from '../dom.js';
-import { crearAviso, crearCarga, ponerCargando } from './ui/index.js';
+import { conMarca, crearAviso, crearCarga, ponerCargando } from './ui/index.js';
 
 /** Lo que explico antes del botón de activar (§7.6). La parte del plan llega en la fase 7. */
 const PARA_QUE = 'Te avisaremos el día antes de que caduque un tupper, a las 10:00.';
@@ -65,7 +65,7 @@ export function crearPanelAvisos() {
       );
     } else {
       panel.replaceChildren(
-        el('p', { class: 'panel-avisos__activados' }, '✓ Activados en este dispositivo'),
+        el('p', { class: 'panel-avisos__activados' }, conMarca('✓ Activados en este dispositivo')),
         el(
           'div',
           { class: 'seccion__acciones' },

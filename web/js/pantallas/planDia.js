@@ -9,7 +9,7 @@ import { TIPOS_COMIDA } from '/compartido/constantes.js';
 import { esFechaIso, hoyIso, sumarDias } from '/compartido/fechas.js';
 import { ETIQUETAS_TIPO, dentroDelMargen, lunesDe, textoDia, textoDiaLargo } from '/compartido/plan.js';
 import { api, mensajeDeError } from '../api.js';
-import { crearAviso, crearCarga, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
+import { conMarca, crearAviso, crearCarga, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
 import { crearVistaReceta } from '../componentes/vistaReceta.js';
 import { el } from '../dom.js';
 import { cargarInventarioCompleto } from './receta.js';
@@ -138,7 +138,7 @@ function crearLoQueHay(plato, productos) {
   if (encontrados.length === 0) {
     return [
       el('p', { class: 'tono--tenue' }, 'Plato escrito a mano: no tiene lista de ingredientes.'),
-      el('p', { class: 'tono--peligro' }, '✗ No hay nada para este plato en el inventario.'),
+      el('p', { class: 'tono--peligro' }, conMarca('✗ No hay nada para este plato en el inventario.')),
     ];
   }
   return [
@@ -147,7 +147,7 @@ function crearLoQueHay(plato, productos) {
       'ul',
       { class: 'receta__ingredientes' },
       encontrados.map((producto) =>
-        el('li', {}, el('span', { class: 'tono--exito' }, `✓ ${producto.nombre}: ${formatearCantidad(producto.cantidad, producto.unidad)}`))
+        el('li', {}, el('span', { class: 'tono--exito' }, conMarca(`✓ ${producto.nombre}: ${formatearCantidad(producto.cantidad, producto.unidad)}`)))
       )
     ),
   ];

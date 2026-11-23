@@ -649,14 +649,27 @@ input:focus-visible + .chip {
   }
 }
 /* Etiqueta flotante: sin escribir, en el centro, como si fuera el texto de relleno. */
+/* Solo se anima transform (D-56): antes cambiaban top y font-size, que
+   obligan al navegador a recolocar todo en cada fotograma (2026-11-23).
+   Ahora la etiqueta está SIEMPRE arriba y a tamaño normal, y:
+   - sin escribir, la bajo al centro con translateY: la mitad de lo que
+     el campo tiene de más (relleno de arriba + de abajo + 2 px de borde),
+     menos lo que ya está bajada (top);
+   - al subir, la encojo con scale (13 / 16 px) desde su esquina de
+     arriba a la izquierda, así se queda en su sitio. */
 .campo__etiqueta {
   position: absolute;
-  top: 50%;
+  top: calc(var(--espacio-xs) + 1px);
   left: calc(var(--espacio-m) + 1px);
-  transform: translateY(-50%);
+  transform-origin: left top;
+  transform: translateY(
+    calc(
+      (var(--texto-pequeno) * var(--linea-pequeno) + 2 * var(--espacio-s) + 2px) / 2 - var(--espacio-xs) - 1px
+    )
+  );
   color: var(--color-texto-tenue);
   pointer-events: none;
-  transition: top 0.15s ease, transform 0.15s ease, font-size 0.15s ease;
+  transition: transform var(--duracion-rapida) var(--curva-salida);
 }
 /* Sube arriba, en pequeño, si el campo tiene el foco o ya tiene algo escrito.
    Las fechas siempre (el navegador dibuja su formato dentro). */
@@ -666,11 +679,8 @@ input:focus-visible + .chip {
 .campo:has(.campo__entrada[type='time']) .campo__etiqueta,
 .campo:has(select.campo__entrada) .campo__etiqueta,
 .campo:has(textarea.campo__entrada) .campo__etiqueta {
-  top: calc(var(--espacio-xs) + 1px);
-  transform: none;
+  transform: scale(calc(13 / 16));
   color: var(--color-texto-secundario);
-  font-size: var(--texto-pequeno);
-  line-height: var(--linea-pequeno);
   font-weight: var(--peso-fuerte);
 }
 .campo:focus-within .campo__etiqueta {
@@ -717,6 +727,15 @@ input:focus-visible + .chip {
   flex: none;
   width: 1em;
   height: 1em;
+}
+/* Las marcas ✓, ✗ y + (crearMarca): del tamaño de la letra y en la línea
+   del texto. "simbolo" y no "marca": .marca ya es el logo de Vigía. */
+.simbolo {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
 }
 .campo__error {
   color: var(--color-peligro);

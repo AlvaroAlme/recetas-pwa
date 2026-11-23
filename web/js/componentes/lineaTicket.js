@@ -9,7 +9,7 @@ import { formatearCantidad } from '/compartido/formato.js';
 import { ETIQUETAS_UBICACION, listarUbicaciones, ubicacionesPosibles } from '/compartido/ubicaciones.js';
 import { validarProducto } from '/compartido/validacion.js';
 import { el } from '../dom.js';
-import { crearCampo, crearSelector, elegirEnSelector, ponerErrorCampo, recomendarEnSelector } from './ui/index.js';
+import { conMarca, crearCampo, crearSelector, elegirEnSelector, ponerErrorCampo, recomendarEnSelector } from './ui/index.js';
 
 /**
  * Una línea del ticket mientras la reviso.
@@ -76,7 +76,7 @@ export function crearLineaTicket({ linea, numero, alCambiar, alEliminar }) {
       el(
         'button',
         { class: 'linea-ticket__resumen', type: 'button', onclick: editar },
-        el('span', {}, `✓ ${linea.nombre} · ${cantidad} · ${ETIQUETAS_UBICACION[linea.ubicacion]}`),
+        el('span', {}, conMarca(`✓ ${linea.nombre} · ${cantidad} · ${ETIQUETAS_UBICACION[linea.ubicacion]}`)),
         el('span', { class: 'tono--tenue' }, 'Toca para editar')
       ),
     ];
@@ -189,7 +189,7 @@ export function crearLineaTicket({ linea, numero, alCambiar, alEliminar }) {
       'div',
       { class: 'linea-ticket__acciones' },
       el('button', { class: 'boton boton--fantasma boton--ajustado', type: 'button', onclick: alEliminar }, 'Eliminar'),
-      el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: confirmar }, '✓ Confirmar')
+      el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button', onclick: confirmar }, conMarca('✓ Confirmar'))
     );
     actualizarPregunta();
     return [nombre, cantidad, unidad, el('div', {}, pregunta, ubicacion), acciones];

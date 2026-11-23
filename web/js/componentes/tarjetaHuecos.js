@@ -9,7 +9,7 @@
  * descartar().
  */
 import { ETIQUETAS_GRUPO, ETIQUETAS_TIPO, lunesDe, textoDia } from '/compartido/plan.js';
-import { ponerCargando } from './ui/index.js';
+import { conMarca, ponerCargando } from './ui/index.js';
 import { falloEnTarjeta } from './tarjetaReceta.js';
 import { el } from '../dom.js';
 
@@ -115,7 +115,7 @@ export function crearTarjetaHuecos({ tarjeta, guardar, descartar, alCambiar }) {
       let titulo = `✓ Añadidos ${guardados} huecos`;
       if (guardados === 1) titulo = '✓ Añadido 1 hueco';
       else if (guardados === 0) titulo = 'No se ha añadido ningún hueco';
-      texto = el('p', { class: guardados > 0 ? 'tono--exito' : 'tono--aviso', tabindex: '-1' }, titulo);
+      texto = el('p', { class: guardados > 0 ? 'tono--exito' : 'tono--aviso', tabindex: '-1' }, conMarca(titulo));
       pie.replaceChildren(
         texto,
         ...saltados.map((saltado) => el('p', { class: 'tono--tenue' }, textoSaltado(saltado))),

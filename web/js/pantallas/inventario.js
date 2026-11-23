@@ -10,7 +10,7 @@ import { UBICACIONES } from '/compartido/constantes.js';
 import { avisoCaducidad, formatearCantidad } from '/compartido/formato.js';
 import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
 import { api, mensajeDeError } from '../api.js';
-import { crearAviso, crearCarga, crearFila, crearSelector, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
+import { conMarca, crearAviso, crearCarga, crearFila, crearSelector, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { tomarMensaje } from '../router.js';
 
@@ -33,8 +33,8 @@ export function pantallaInventario({ consulta }) {
   let ubicacion = UBICACIONES.includes(pedida) ? pedida : 'nevera';
 
   const zona = el('div', { class: 'inventario__zona' });
-  const botonNuevo = el('a', { class: 'boton boton--primario' }, '+ Producto');
-  const botonTupper = el('a', { class: 'boton boton--secundario' }, '+ Tupper');
+  const botonNuevo = el('a', { class: 'boton boton--primario' }, conMarca('+ Producto'));
+  const botonTupper = el('a', { class: 'boton boton--secundario' }, conMarca('+ Tupper'));
   // Igual que en el router: si cambio de ubicación mientras carga, la
   // respuesta vieja no pinta encima de la nueva.
   let turno = 0;

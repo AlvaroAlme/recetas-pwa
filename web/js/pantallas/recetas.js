@@ -4,7 +4,7 @@
  * nueva. "Qué me falta" no va aquí: está en el detalle (P-11).
  */
 import { api, mensajeDeError } from '../api.js';
-import { crearAviso, crearCarga, crearFila, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
+import { conMarca, crearAviso, crearCarga, crearFila, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { tomarMensaje } from '../router.js';
 
@@ -23,7 +23,7 @@ export function pantallaRecetas() {
   // "«Tortilla» borrada." si vengo de borrar una receta.
   const mensaje = tomarMensaje();
   const zona = el('div');
-  const botonNueva = el('a', { class: 'boton boton--primario', href: '/receta/nueva' }, '+ Receta');
+  const botonNueva = el('a', { class: 'boton boton--primario', href: '/receta/nueva' }, conMarca('+ Receta'));
 
   async function cargar() {
     zona.replaceChildren(crearCarga('Cargando…'));
@@ -46,7 +46,7 @@ export function pantallaRecetas() {
     return crearVacio({
       titulo: 'Aún no tienes recetas',
       descripcion: 'Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte.',
-      accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: '/receta/nueva' }, '+ Receta'),
+      accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: '/receta/nueva' }, conMarca('+ Receta')),
     });
   }
 

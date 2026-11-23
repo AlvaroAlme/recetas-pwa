@@ -267,6 +267,7 @@ Reglas:
   - **Botones:** al pulsar, `scale(0.97)` (en iOS, `:active` solo funciona si la página escucha `touchstart`: hay uno vacío y pasivo en `app.js`) (`scale(0.94)` los de icono y la píldora de Perfil, que son pequeños).
   - **Dónde están:** `web/js/movimiento.js` (`entrar(nodo)`, `salir(nodo)`, que espera a que acabe y lo quita, y `sinMovimiento()`) y las clases `.entra`, `.sale` y `.aviso__marca` de `componentes.css`. Hoy entran y salen las filas de ingrediente (Nueva receta), las líneas del ticket que descartas y los mensajes del Ayudante.
   - **Avisos de éxito:** el "✓" hace un "pop" (de 0,6 a 1).
+  - **Etiqueta flotante de los campos** (2026-11-23): solo `transform`. Está siempre arriba y a tamaño normal; sin escribir, `translateY` la baja al centro del campo, y al subir se encoge con `scale(13 / 16)` desde su esquina de arriba a la izquierda (`transform-origin: left top`), en 150 ms con `--curva-salida`. Antes animaba `top` y `font-size`.
   - **El avatar:** nace en Bienvenida y tiene expresiones (§3, Avatar).
 
 `primario` sobre `fondo` es uno de los pares medidos, así que el anillo de foco contrasta en los dos modos.

@@ -49,7 +49,8 @@ Proyecto de portfolio de un estudiante de DAW.
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
 3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15), 7
-(2026-11-16), 8 (2026-11-17), 9 (2026-11-18) y 10 (2026-11-18). El detalle de cada paso
+(2026-11-16), 8 (2026-11-17), 9 (2026-11-18), 10 (2026-11-18) y 11
+(2026-11-23). El detalle de cada paso
 está en los commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
@@ -61,7 +62,21 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 11, paso 6** (desplegar `app-v46` y probar en el
+**Siguiente: fase 12 (Lista de la compra, D-54), paso 1** (fijar D-54
+en la documentación antes de escribir código).
+
+**Fase 11 (Animaciones, D-56): aprobada** (2026-11-23, "ok" del autor
+tras probarla en el iPhone con `app-v48`). Al cerrarla (`app-v49`): la
+etiqueta flotante ya solo anima `transform` (`translateY` en reposo y
+`scale(13 / 16)` arriba); los caracteres ✓, ✗ y + son SVG
+(`crearMarca()` y `conMarca(texto)` en `ui/index.js`, clase `.simbolo`:
+`.marca` ya era el logo); D-57, los avisos de privacidad de la IA en una
+ventana al entrar (`avisoPrivacidad.js`); `skills-lock.json` subido
+(skills design-audit y ui-ux-audit, en `.claude/skills`, que no se
+sube); la muestra de avatares, en `.gitignore`. Queda para el autor:
+probar con un ticket real el avatar que "piensa" (gasta IA) y, a partir
+del 2026-12-09, subir DMARC a `p=quarantine` en Cloudflare. Historia de
+la fase: (antes, paso 6: desplegar `app-v46` y probar en el
 iPhone que el avatar de la ruleta sale centrado y que Atrás no saca de
 la app. Con `app-v45`: la Bienvenida y la ruleta, bien; pero (1) el
 avatar salía a la izquierda en la ventana de la ruleta (`margin-inline:
@@ -127,7 +142,7 @@ sin animación si el camino no cambia), con su CSS al final de
 (`scale(0.97)`, 0,94 los de icono); el "✓" de los avisos de éxito en su
 `<span class="aviso__marca">` con "pop" (`crearAviso`); entran y salen
 las filas de ingrediente, las líneas del ticket y los mensajes del
-Ayudante. `sw.js` en `app-v36`. Pendiente: la etiqueta flotante de los
+Ayudante. `sw.js` en `app-v36`. Arreglado el 2026-11-23: la etiqueta flotante de los
 campos anima `top` y `font-size` (rompe la regla de D-56; pasarla a
 `transform`). Paso 1 hecho (2026-11-18): D-56 en
 ARQUITECTURA (§10 y §11) y DISENO_UI (§2.4 Movimiento, Avatar con
@@ -343,10 +358,9 @@ todos los detalles de estilo (`sw.js` en `app-v18`).
 **Versión 2 (tras desplegar):** ideas apuntadas en ARQUITECTURA §10
 ("Versión 2"): V2-01 consejos de cocina con IA, V2-02 productos de temporada.
 
-**Detalles del rediseño pendientes:** el lema de `entrar.js` sin punto
-final; cambiar por SVG los caracteres "‹" (`router.js`), "+"
-(`inventario.js`) y "✓"/"✗" (mensajes y `ponerErrorCampo`); probar en el
-iPhone el icono instalado, la barra con `theme-color` y VoiceOver.
+**Detalles del rediseño pendientes:** probar en el iPhone el icono
+instalado, la barra con `theme-color` y VoiceOver (hechos el 2026-11-23:
+el lema sin punto, la flecha Atrás en SVG, D-55, y ✓, ✗ y + en SVG).
 
 **Hecho (2026-11-08):** botón "Mostrar / Ocultar" en los campos de
 contraseña (lo pone `crearCampo()` cuando `type: 'password'`; vale para

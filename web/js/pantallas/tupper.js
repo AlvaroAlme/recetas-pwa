@@ -12,6 +12,7 @@ import { validarTupper } from '/compartido/validacion.js';
 import { api, mensajeDeError } from '../api.js';
 import { estadoAvisos } from '../avisos.js';
 import {
+  conMarca,
   crearAviso,
   crearCampo,
   crearCarga,
@@ -238,7 +239,7 @@ function pantallaFicha(id) {
    */
   function crearDatos(tupper) {
     const estado = tupper.consumido
-      ? el('p', { class: 'ficha__estado ficha__estado--exito' }, '✓ Consumido')
+      ? el('p', { class: 'ficha__estado ficha__estado--exito' }, conMarca('✓ Consumido'))
       : (() => {
           const { texto, tono } = avisoCaducidad(tupper.fechaLimite);
           return el('p', { class: `ficha__estado tono--${tono}` }, texto);
