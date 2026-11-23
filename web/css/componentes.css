@@ -1895,3 +1895,60 @@ html[data-sentido='pestana']::view-transition-new(root) {
     transform: scale(0.9);
   }
 }
+
+/* Tick de guardado (D-58): la única excepción a "solo transform y
+   opacity" (el trazo anima stroke-dashoffset). */
+.tick-guardado {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-s);
+  pointer-events: none;
+  animation: tick-fuera 1500ms var(--curva-suave) forwards;
+}
+.tick-guardado__dibujo {
+  width: 80px;
+  height: 80px;
+  fill: none;
+  stroke: var(--color-exito);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tick-guardado__aro,
+.tick-guardado__marca {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: tick-trazo 450ms var(--curva-salida) forwards;
+}
+/* El aro empieza arriba (por defecto, un círculo empieza a las 3). */
+.tick-guardado__aro {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+.tick-guardado__marca {
+  animation-duration: 300ms;
+  animation-delay: 450ms;
+}
+.tick-guardado__detalle {
+  color: var(--color-exito);
+  font-weight: var(--peso-fuerte);
+}
+@keyframes tick-trazo {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes tick-fuera {
+  0%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+/* Con "Reducir movimiento", base.css deja todo en 0,01 ms: el trazo sale
+   ya dibujado, pero la capa no debe desvanecerse al instante. */
+@media (prefers-reduced-motion: reduce) {
+  .tick-guardado {
+    animation: none !important;
+  }
+}

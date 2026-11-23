@@ -62,8 +62,25 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54), paso 1** (fijar D-54
-en la documentación antes de escribir código).
+**Siguiente: D-58 (tick de guardado), paso 2**; después, fase 12
+(Lista de la compra, D-54), paso 1 (fijar D-54 en la documentación
+antes de escribir código).
+
+**D-58, tick de guardado (2026-11-23, pedido por el autor):** en vez
+de la banda verde, al volver a Inventario tras añadir, editar, mover o
+borrar un producto, guardar un ticket o marcar un tupper como consumido,
+sale un aro verde que se dibuja y su tick (la opción 2 de la muestra;
+excepción a D-56: anima `stroke-dashoffset`). Tras un ticket, "N
+productos" debajo. "✓ Confirmar" en Ticket no anima: todo se guarda de
+una vez con `/api/productos/lote`. Paso 1 hecho: `tickGuardado.js`
+(`mostrarTickGuardado({ texto, detalle })`, `pathLength: '1'`,
+`role="status"` en `.solo-lector`) y su CSS al final de
+`componentes.css` (con "Reducir movimiento", `animation: none
+!important` en la capa). Aún no lo usa nadie. Paso 2: Inventario lo
+llama en vez de la banda (los demás mensajes, como "Ya vives en…",
+siguen como banda); los mensajes de `producto.js`, `tupper.js` y
+`ticket.js` dicen que llevan tick; `sw.js` a `app-v50` con el archivo
+en `ARCHIVOS`. Borrar `muestra-ticks.html` (raíz, sin subir).
 
 **Fase 11 (Animaciones, D-56): aprobada** (2026-11-23, "ok" del autor
 tras probarla en el iPhone con `app-v48`). Al cerrarla (`app-v49`): la
