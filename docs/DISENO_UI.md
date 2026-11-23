@@ -761,7 +761,7 @@ ELEGIR                              REVISAR
 │  [   Elegir el ticket    ]    │   │ [ Faltan 1 por confirmar ]   │
 └──────────────────────────────┘   └──────────────────────────────┘
 ```
-La primera vez, antes de "Elegir", aparece el **aviso de privacidad** (SEC-04, §7.1) y el pie dice `[Entendido, continuar]`. Un **solo botón** con un `<input type="file">` sin `capture` (R-08): el menú del sistema ofrece cámara, fotos y archivo.
+La primera vez, antes de "Elegir", se abre la **ventana del aviso de privacidad** (SEC-04, §7.1, D-57); si dices "Ahora no", el pie dice `[Ver el aviso]`. Un **solo botón** con un `<input type="file">` sin `capture` (R-08): el menú del sistema ofrece cámara, fotos y archivo.
 
 #### P-09 · Recetas — `/recetas` · E-1 (sin IA, D-48)
 ```
@@ -1291,7 +1291,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 
 ### 7.1 Escanear ticket → revisar → guardar
 1. **Inventario** → "+ Producto" → "Escanear ticket" → `/ticket`.
-2. **Primera vez** (`avisoIaAceptado = false`): tarjeta *info* "Antes de escanear" con "La foto o el PDF del ticket se envía a Anthropic (Claude) para leer los productos. No la guardamos. Te recomendamos recortar la foto para que solo salga la lista de productos." + `‹Política de privacidad›` + `[Entendido, continuar]` → `POST /api/ia/aviso-aceptado`. Sin aceptar no se ven los botones.
+2. **Primera vez** (`avisoIaAceptado = false`): al entrar se abre una **ventana** (D-57, `avisoPrivacidad.js`) "Antes de escanear" con "La foto o el PDF del ticket se envía a Anthropic (Claude) para leer los productos. No la guardamos. Te recomendamos recortar la foto para que solo salga la lista de productos." + `‹Leer la política de privacidad›` (abre `/privacidad`) + `[Ahora no]` `[Aceptar]` → `POST /api/ia/aviso-aceptado`. Con "Ahora no", la pantalla dice "Para escanear tickets con la IA tienes que aceptar antes el aviso de privacidad." y el pie `[Ver el aviso]`. Sin aceptar no se puede elegir el ticket.
 3. **Elegir:** muestra "Te quedan N de 10 consultas de IA hoy". Si es 0, el botón queda deshabilitado con el motivo "Has usado tus 10 consultas de hoy. Vuelve mañana."
    - Un solo botón, "Elegir el ticket", que abre un `<input type="file" accept="image/*,application/pdf">` **sin `capture`** (R-08: `capture` no funciona en todos los navegadores y, si funciona, solo abre la cámara). En iOS el propio menú del sistema ofrece hacer una foto, la fototeca o un archivo (comprobado en el iPhone el 2026-11-11).
 4. **Preparar** (`web/js/archivoTicket.js`): si es una foto, se reduce en el navegador con `<canvas>` (lado mayor 2000 px, JPEG al 0,8; comprobado en el iPhone el 2026-11-11 que Claude la lee bien) para no pasar de los 5 MB. Si es un PDF de más de 20 MB (D-47) → "El PDF es demasiado grande (máximo 20 MB)." sin llamar al servidor.
@@ -1356,7 +1356,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 7. **Un dispositivo nuevo de la misma persona** (por ejemplo, el PC): tras entrar, Perfil › Avisos muestra el estado de los avisos **de ese dispositivo**.
 
 ### 7.7 Preguntar al Ayudante → tarjeta → guardar (fase 8, D-51)
-1. **Ayudante** (`/ayudante`) → la primera vez, el aviso de privacidad → `[Empezar]`.
+1. **Ayudante** (`/ayudante`) → la primera vez, la ventana del aviso de privacidad (D-57) → `[Aceptar]` (con "Ahora no", el pie dice `[Ver el aviso]`).
 2. Escribe "Rellena las cenas de esta semana" → Enviar → aparece su mensaje y, debajo, "Mirando tu semana…", "Mirando tu inventario…" mientras el ayudante usa las herramientas.
 3. La respuesta llega a trozos y termina con una `TarjetaHuecos`: los días que faltan, con grupos distintos, lo que caduca antes primero y nunca un hueco "fuera de casa".
 4. Desmarca uno → `[Añadir 3 al cuadrante]` → "Guardando…" → "✓ Añadidos 3 huecos" + `‹Ver la semana›` (→ P-13, con el equilibrio recalculado).

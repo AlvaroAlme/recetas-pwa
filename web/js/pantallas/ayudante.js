@@ -13,6 +13,7 @@ import {
   MAX_PREGUNTAS_CONVERSACION,
 } from '/compartido/constantes.js';
 import { api, mensajeDeError } from '../api.js';
+import { pedirAvisoPrivacidad } from '../componentes/avisoPrivacidad.js';
 import { crearIcono } from '../componentes/iconos.js';
 import { crearMensajeChat } from '../componentes/mensajeChat.js';
 import { crearTarjetaHuecos } from '../componentes/tarjetaHuecos.js';
@@ -153,7 +154,7 @@ export function pantallaAyudante() {
     el('form', { class: 'chat__formulario', novalidate: true, onsubmit: alEnviar }, campo, botonEnviar),
     el('div', { class: 'chat__bajo' }, cuota, contador)
   );
-  const botonEmpezar = el('button', { class: 'boton boton--primario', type: 'button', 'data-escribe': true, onclick: aceptarAviso }, 'Empezar');
+  const botonEmpezar = el('button', { class: 'boton boton--primario', type: 'button', onclick: abrirAviso }, 'Ver el aviso');
 
   /**
    * Pido la conversación y la pinto entera.
@@ -177,6 +178,8 @@ export function pantallaAyudante() {
       return;
     }
     pintar();
+    // La primera vez, el aviso sale solo al entrar (luego, con "Ver el aviso").
+    if (!datos.avisoAceptado && !mensaje) abrirAviso();
     if (mensaje) zonaAviso.replaceChildren(crearAviso({ tipo: 'aviso', mensaje }));
     bajar();
   }
@@ -247,34 +250,33 @@ export function pantallaAyudante() {
     return crearTarjetaReceta({ tarjeta, inventario, ...acciones });
   }
 
-  /** La primera vez (SEC-04): qué se envía a Anthropic y cuánto se guarda. */
+  /**
+   * La primera vez (SEC-04), mientras no lo acepte: lo que se ve detrás de
+   * la ventana del aviso, o si digo "Ahora no".
+   */
   function crearAvisoPrivacidad() {
     return el(
-      'section',
-      { class: 'tarjeta', 'aria-labelledby': 'titulo-aviso-chat' },
-      el('h2', { id: 'titulo-aviso-chat' }, 'Antes de empezar'),
-      el(
-        'p',
-        {},
-        'Tus mensajes, y lo que el ayudante lea de tu inventario, tus recetas y tu plan, se envían a Anthropic (la empresa de Claude) para responderte. ',
-        `La conversación se guarda ${DIAS_CONVERSACION} días y solo la ves tú.`
-      ),
-      el('a', { href: '/privacidad' }, 'Más información')
+      'p',
+      { class: 'tono--tenue' },
+      'Para hablar con el ayudante tienes que aceptar antes el aviso de privacidad.'
     );
   }
 
-  async function aceptarAviso() {
-    ponerCargando(botonEmpezar, true, 'Un momento…');
-    try {
-      await api.post('/chat/aviso-aceptado');
-      datos.avisoAceptado = true;
-      pintar();
-      area.focus();
-    } catch (error) {
-      zona.append(crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido guardar. Inténtalo de nuevo.') }));
-    } finally {
-      ponerCargando(botonEmpezar, false);
-    }
+  /** La ventana del aviso: qué se envía a Anthropic y cuánto se guarda. */
+  async function abrirAviso() {
+    const aceptado = await pedirAvisoPrivacidad({
+      titulo: 'Antes de empezar',
+      parrafos: [
+        'Tus mensajes, y lo que el ayudante lea de tu inventario, tus recetas y tu plan, se envían a Anthropic (la empresa de Claude) para responderte.',
+        `La conversación se guarda ${DIAS_CONVERSACION} días y solo la ves tú.`,
+      ],
+      aceptar: () => api.post('/chat/aviso-aceptado'),
+    });
+    // Si me he ido (a /privacidad), esta pantalla ya no está: no pinto nada.
+    if (!aceptado || !zona.isConnected) return;
+    datos.avisoAceptado = true;
+    pintar();
+    area.focus();
   }
 
   /** El área crece con el texto (hasta 4 líneas, lo limita el CSS) y el contador. */

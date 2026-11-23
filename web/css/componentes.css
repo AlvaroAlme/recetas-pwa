@@ -892,6 +892,12 @@ input:focus-visible + .chip {
 .dialogo__acciones > * {
   flex: 1;
 }
+/* El aviso de privacidad de la IA (avisoPrivacidad.js): sus párrafos
+   separados, como en cualquier texto. */
+.aviso-privacidad p + p,
+.aviso-privacidad p + div:not(:empty) {
+  margin-top: var(--espacio-s);
+}
 /* En el móvil, abajo, como una hoja de iOS (DISENO_UI §6.2). */
 @media (max-width: 47.99em) {
   .dialogo {

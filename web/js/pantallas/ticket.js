@@ -8,6 +8,7 @@ import { thinking } from '/vendor/blobatar/expression.js';
 import { api, mensajeDeError } from '../api.js';
 import { ErrorArchivo, prepararArchivoTicket } from '../archivoTicket.js';
 import { crearAvatarVivo, ponerExpresion } from '../componentes/avatar.js';
+import { pedirAvisoPrivacidad } from '../componentes/avisoPrivacidad.js';
 import { crearLinea, crearLineaTicket, problemaLinea } from '../componentes/lineaTicket.js';
 import { crearAviso, crearCarga, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
@@ -47,8 +48,8 @@ export function pantallaTicket() {
   // Los tres botones del pie (aceptar, elegir y guardar); solo se ve uno cada vez.
   const aceptar = el(
     'button',
-    { class: 'boton boton--primario', type: 'button', hidden: true, 'data-escribe': true, onclick: aceptarAviso },
-    'Entendido, continuar'
+    { class: 'boton boton--primario', type: 'button', hidden: true, onclick: abrirAviso },
+    'Ver el aviso'
   );
   const elegir = el(
     'button',
@@ -67,7 +68,10 @@ export function pantallaTicket() {
       const yo = await api.get('/yo');
       cuota = yo.cuotaIa;
       if (yo.avisoIaAceptado) mostrarElegir();
-      else mostrarAvisoPrivacidad();
+      else {
+        mostrarAvisoPendiente();
+        abrirAviso();
+      }
     } catch (error) {
       zona.replaceChildren(
         crearAviso({
@@ -78,32 +82,35 @@ export function pantallaTicket() {
     }
   }
 
-  /** La primera vez (SEC-04): sin aceptar, no hay botón para elegir. */
-  function mostrarAvisoPrivacidad() {
+  /**
+   * La primera vez (SEC-04): sin aceptar, no hay botón para elegir. Si
+   * digo "Ahora no", me quedo aquí con "Ver el aviso" en el pie.
+   */
+  function mostrarAvisoPendiente() {
     aceptar.hidden = false;
     zona.replaceChildren(
       el(
-        'section',
-        { class: 'tarjeta', 'aria-labelledby': 'titulo-aviso-ia' },
-        el('h2', { id: 'titulo-aviso-ia' }, 'Antes de escanear'),
-        el('p', {}, 'La foto o el PDF del ticket se envía a Anthropic (Claude) para leer los productos. No la guardamos.'),
-        el('p', {}, 'Te recomendamos recortar la foto para que solo salga la lista de productos.'),
-        el('a', { href: '/privacidad' }, 'Política de privacidad')
+        'p',
+        { class: 'tono--tenue' },
+        'Para escanear tickets con la IA tienes que aceptar antes el aviso de privacidad.'
       )
     );
   }
 
-  async function aceptarAviso() {
-    ponerCargando(aceptar, true, 'Un momento…');
-    try {
-      await api.post('/ia/aviso-aceptado');
-      ponerCargando(aceptar, false);
-      aceptar.hidden = true;
-      mostrarElegir();
-    } catch (error) {
-      ponerCargando(aceptar, false);
-      zona.append(crearAviso({ mensaje: mensajeDeError(error, 'No se ha podido guardar. Inténtalo de nuevo.') }));
-    }
+  /** La ventana del aviso; si lo acepto, ya puedo elegir el ticket. */
+  async function abrirAviso() {
+    const aceptado = await pedirAvisoPrivacidad({
+      titulo: 'Antes de escanear',
+      parrafos: [
+        'La foto o el PDF del ticket se envía a Anthropic (Claude) para leer los productos. No la guardamos.',
+        'Te recomendamos recortar la foto para que solo salga la lista de productos.',
+      ],
+      aceptar: () => api.post('/ia/aviso-aceptado'),
+    });
+    // Si me he ido (a /privacidad), esta pantalla ya no está: no pinto nada.
+    if (!aceptado || !zona.isConnected) return;
+    aceptar.hidden = true;
+    mostrarElegir();
   }
 
   /**
