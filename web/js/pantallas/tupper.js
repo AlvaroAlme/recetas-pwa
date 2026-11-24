@@ -159,7 +159,7 @@ function pantallaNuevo(consulta) {
       navegar(`/?ubicacion=${resultado.datos.ubicacion}`, {
         reemplazar: true,
         mensaje: avisoActivo
-          ? `Tupper de ${resultado.datos.nombre} guardado.`
+          ? { tick: true, texto: `Tupper de ${resultado.datos.nombre} guardado.` }
           : { tipo: 'aviso', texto: 'Tupper guardado sin aviso: nadie de tu casa tiene los avisos activados.' },
       });
     } catch (error) {
@@ -271,7 +271,7 @@ function pantallaFicha(id) {
         await api.post(`/tuppers/${id}/consumir`);
         navegar(`/?ubicacion=${tupper.ubicacion}`, {
           reemplazar: true,
-          mensaje: `«${tupper.nombre}» marcado como consumido.`,
+          mensaje: { tick: true, texto: `«${tupper.nombre}» marcado como consumido.` },
         });
       } catch (error) {
         ponerCargando(boton, false);

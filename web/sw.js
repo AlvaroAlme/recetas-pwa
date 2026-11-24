@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v49';
+const VERSION = 'app-v50';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -49,6 +49,7 @@ const ARCHIVOS = [
   '/js/componentes/panelAvisos.js',
   '/js/componentes/ruleta.js',
   '/js/componentes/avisoPrivacidad.js',
+  '/js/componentes/tickGuardado.js',
   '/js/componentes/sugerenciasNombre.js',
   '/js/componentes/tarjetaHuecos.js',
   '/js/componentes/tarjetaReceta.js',

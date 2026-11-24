@@ -25,6 +25,8 @@ import { olvidarUsuario, usuarioActual, usuarioSabido } from './yo.js';
  * @property {Node} [accion] Botón de la cabecera, a la derecha del título.
  * @property {string} [atras] Pantalla a la que lleva "‹ Atrás" si no hay
  *  una anterior de la app ('/'). Sin ella, no hay botón Atrás (pestañas).
+ * @property {() => void} [alMostrar] La llamo cuando la pantalla ya se ve:
+ *  puesta en la página y acabada su transición (el tick de D-58).
  */
 
 /**
@@ -215,17 +217,18 @@ function esperarContenido(contenido) {
  * de antes de la 18) o con "Reducir movimiento", cambio sin más.
  * @param {Sentido} sentido
  * @param {() => void} cambiar
+ * @returns {Promise<void>} Se cumple cuando la pantalla nueva ya se ve.
  */
 function conTransicion(sentido, cambiar) {
   if (!sentido || !document.startViewTransition || sinMovimiento()) {
     cambiar();
-    return;
+    return Promise.resolve();
   }
   const raiz = document.documentElement;
   raiz.dataset.sentido = sentido;
   const transicion = document.startViewTransition(cambiar);
   // Si otra navegación la corta, también se cumple: quito el sentido igual.
-  transicion.finished.finally(() => {
+  return transicion.finished.catch(() => {}).finally(() => {
     if (raiz.dataset.sentido === sentido) delete raiz.dataset.sentido;
   });
 }
@@ -267,7 +270,9 @@ async function pintar({ esPrimera = false, volviendo = false, sentido = null } =
   }
   rutaPintada = ruta;
   caminoPintado = location.pathname;
-  conTransicion(sentidoFinal, () => ponerVista(ruta, vista, { esPrimera, volviendo }));
+  conTransicion(sentidoFinal, () => ponerVista(ruta, vista, { esPrimera, volviendo })).then(() => {
+    if (miTurno === turno) vista.alMostrar?.();
+  });
 }
 
 /**
@@ -307,7 +312,7 @@ function ponerVista(ruta, vista, { esPrimera, volviendo }) {
 /**
  * Va a otra pantalla de la app sin recargar.
  * @param {string} url '/producto/7', '/?ubicacion=despensa'…
- * @param {{ reemplazar?: boolean, mensaje?: string | { texto: string, tipo: 'aviso' } }} [opciones]
+ * @param {{ reemplazar?: boolean, mensaje?: string | { texto: string, tipo: 'aviso' } | { texto: string, tick: true, detalle?: string } }} [opciones]
  *   reemplazar: no deja la pantalla actual en el historial (tras guardar un
  *   formulario, para que "Atrás" no vuelva a él).
  *   mensaje: aviso de éxito que enseña la pantalla de destino.

@@ -62,7 +62,7 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: D-58 (tick de guardado), paso 2**; después, fase 12
+**Siguiente: probar D-58 en el iPhone (`app-v50`)**; después, fase 12
 (Lista de la compra, D-54), paso 1 (fijar D-54 en la documentación
 antes de escribir código).
 
@@ -76,11 +76,17 @@ una vez con `/api/productos/lote`. Paso 1 hecho: `tickGuardado.js`
 (`mostrarTickGuardado({ texto, detalle })`, `pathLength: '1'`,
 `role="status"` en `.solo-lector`) y su CSS al final de
 `componentes.css` (con "Reducir movimiento", `animation: none
-!important` en la capa). Aún no lo usa nadie. Paso 2: Inventario lo
-llama en vez de la banda (los demás mensajes, como "Ya vives en…",
-siguen como banda); los mensajes de `producto.js`, `tupper.js` y
-`ticket.js` dicen que llevan tick; `sw.js` a `app-v50` con el archivo
-en `ARCHIVOS`. Borrar `muestra-ticks.html` (raíz, sin subir).
+!important` en la capa). Paso 2 hecho (2026-11-24, `app-v50`, lo
+escribió Claude a petición del autor): el mensaje de `navegar()` puede
+ser `{ tick: true, texto, detalle? }` (producto añadir/editar/mover/
+borrar, tupper guardado con aviso y consumido, ticket con "N
+productos"); Inventario no pinta la banda y llama a
+`mostrarTickGuardado()` desde `intentarTick()`, cuando la lista ha
+cargado Y la pantalla ya se ve: nuevo `alMostrar` en la Vista, que el
+router llama al cumplirse `conTransicion()` (ahora devuelve una
+promesa). Probado en el navegador (todo menos el ticket, que gasta IA,
+"Reducir movimiento" y el tupper con aviso). Borrar
+`muestra-ticks.html` (raíz, sin subir).
 
 **Fase 11 (Animaciones, D-56): aprobada** (2026-11-23, "ok" del autor
 tras probarla en el iPhone con `app-v48`). Al cerrarla (`app-v49`): la

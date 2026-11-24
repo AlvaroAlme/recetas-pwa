@@ -250,7 +250,11 @@ export function pantallaTicket() {
     ponerCargando(guardar, true);
     try {
       const { creados } = await api.post('/productos/lote', { clave, productos });
-      navegar('/', { reemplazar: true, mensaje: `Ticket guardado. Se han añadido ${creados} productos al inventario.` });
+      const cuantos = creados === 1 ? '1 producto' : `${creados} productos`;
+      navegar('/', {
+        reemplazar: true,
+        mensaje: { tick: true, texto: `Ticket guardado. Se han añadido ${cuantos} al inventario.`, detalle: cuantos },
+      });
     } catch (error) {
       ponerCargando(guardar, false);
       actualizarPie();

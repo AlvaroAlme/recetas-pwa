@@ -11,6 +11,7 @@ import { avisoCaducidad, formatearCantidad } from '/compartido/formato.js';
 import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
 import { api, mensajeDeError } from '../api.js';
 import { conMarca, crearAviso, crearCarga, crearFila, crearSelector, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
+import { mostrarTickGuardado } from '../componentes/tickGuardado.js';
 import { el } from '../dom.js';
 import { tomarMensaje } from '../router.js';
 
@@ -21,10 +22,15 @@ import { tomarMensaje } from '../router.js';
 export function pantallaInventario({ consulta }) {
   // "Producto añadido.", "Cambios guardados."… si vengo de guardar algo.
   const mensaje = tomarMensaje();
+  // D-58: si trae tick, no hay banda; lo enseño cuando la lista ya esté pintada.
+  let tickPendiente = mensaje?.tick ? mensaje : null;
+  let enPantalla = false;
+  let cargado = false;
   // Lo guardo en una constante para poder quitarlo al cambiar de ubicación.
   // Si llega como { texto, tipo: 'aviso' } (tupper guardado sin aviso), va en amarillo y sin ✓.
   const avisoMensaje =
     mensaje &&
+    !tickPendiente &&
     (typeof mensaje === 'string'
       ? crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` })
       : crearAviso({ tipo: mensaje.tipo, mensaje: mensaje.texto }));
@@ -76,6 +82,22 @@ export function pantallaInventario({ consulta }) {
             })
       );
     }
+    // Con la lista pintada (o con el error: el guardado ya ha ido bien
+    // aunque ahora falle la carga), ya puede salir el tick.
+    if (miTurno === turno) {
+      cargado = true;
+      intentarTick();
+    }
+  }
+
+  /**
+   * D-58: el tick sale una sola vez y cuando ya ves la lista: con la
+   * pantalla puesta (alMostrar, acabada la transición) y la carga terminada.
+   */
+  function intentarTick() {
+    if (!tickPendiente || !enPantalla || !cargado) return;
+    mostrarTickGuardado(tickPendiente);
+    tickPendiente = null;
   }
 
   function crearEstadoVacio() {
@@ -170,5 +192,9 @@ export function pantallaInventario({ consulta }) {
       zona
     ),
     pie: [botonTupper, botonNuevo],
+    alMostrar: () => {
+      enPantalla = true;
+      intentarTick();
+    },
   };
 }

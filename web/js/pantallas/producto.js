@@ -46,7 +46,7 @@ function pantallaNuevo(consulta) {
       // Reemplazar: así "Atrás" desde el inventario no vuelve al formulario ya guardado.
       navegar(`/?ubicacion=${datos.ubicacion}`, {
         reemplazar: true,
-        mensaje: `«${datos.nombre}» añadido al inventario.`,
+        mensaje: { tick: true, texto: `«${datos.nombre}» añadido al inventario.` },
       });
     },
   });
@@ -95,7 +95,7 @@ function pantallaEditar(id) {
       buscarHistorial,
       alGuardar: async (datos) => {
         await api.put(`/productos/${id}`, datos);
-        navegar(`/?ubicacion=${datos.ubicacion}`, { reemplazar: true, mensaje: 'Cambios guardados.' });
+        navegar(`/?ubicacion=${datos.ubicacion}`, { reemplazar: true, mensaje: { tick: true, texto: 'Cambios guardados.' } });
       },
     });
     zona.replaceChildren(formulario, ...crearAcciones(producto));
@@ -136,7 +136,7 @@ function pantallaEditar(id) {
         await api.patch(`/productos/${id}`, { ubicacion: destino });
         navegar(`/?ubicacion=${destino}`, {
           reemplazar: true,
-          mensaje: `«${producto.nombre}» movido a ${ETIQUETAS_UBICACION[destino]}.`,
+          mensaje: { tick: true, texto: `«${producto.nombre}» movido a ${ETIQUETAS_UBICACION[destino]}.` },
         });
       } catch (error) {
         ponerCargando(boton, false);
@@ -158,7 +158,7 @@ function pantallaEditar(id) {
         await api.borrar(`/productos/${id}`);
         navegar(`/?ubicacion=${producto.ubicacion}`, {
           reemplazar: true,
-          mensaje: `«${producto.nombre}» borrado del inventario.`,
+          mensaje: { tick: true, texto: `«${producto.nombre}» borrado del inventario.` },
         });
       } catch (error) {
         ponerCargando(botonBorrar, false);
