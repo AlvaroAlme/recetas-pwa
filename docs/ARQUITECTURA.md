@@ -579,6 +579,16 @@ Leyenda: **TX** = transacción (o todo, o nada). 🔑 = exige sesión.
 | `POST /api/tuppers` 🔑 | `{ nombre, ubicacion, diasMaximos }` | 201 `{ tupper, avisoActivo }` | 400 | Días enteros de 1 a 365. `fecha_limite` = hoy **en la zona del hogar** + días. `avisoActivo` = algún miembro tiene una suscripción push (para el mensaje "Tupper guardado sin aviso"). Recalcula la agenda |
 | `POST /api/tuppers/:id/consumir` 🔑 | — | 200 `{ tupper }` | 404 | **Idempotente**: si ya estaba consumido, devuelve 200 igual. Recalcula la agenda |
 
+#### Lista de la compra (fase 12, D-54) — 🔑, la del hogar
+
+| Método y ruta | Cuerpo | Respuesta | Errores | Validación |
+|---|---|---|---|---|
+| `GET /api/lista` 🔑 | — | 200 `{ lineas: [{ id, nombre, cantidad, unidad, origen, creadaEn, compradaEn }] }` | — | Sin tachar primero (las últimas apuntadas arriba) y después las tachadas (las últimas tachadas arriba) |
+| `POST /api/lista` 🔑 | `{ nombre, cantidad?, unidad? }` | 201 `{ linea, yaEstaba: false }` o 200 `{ linea, yaEstaba: true }` | 400, 409 `LISTA_LLENA` | `validarLineaLista()`: cantidad y unidad, las dos o ninguna. Si ya está sin tachar (mismo nombre normalizado), devuelve la que había. Como mucho `MAX_LINEAS_LISTA` (200) sin tachar |
+| `PATCH /api/lista/:id` 🔑 | `{ comprada: boolean }` | 200 `{ linea }` | 400, 404 | Tachar conserva la hora si ya lo estaba. Al destachar, si ya hay otra igual sin tachar, se borra esta y se devuelve la otra (el `id` cambia) |
+| `DELETE /api/lista/comprados` 🔑 | — | 200 `{ borradas }` | — | "Borrar comprados" |
+| `DELETE /api/lista/:id` 🔑 | — | 204 | 404 | — |
+
 #### IA (Claude): el ticket — 🔑, cuota diaria (D-15) y una sola petición a la vez por persona
 
 | Método y ruta | Cuerpo | Respuesta | Errores | Validación |

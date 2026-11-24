@@ -35,6 +35,9 @@ export const MAX_DIAS_TUPPER = 365;
 /** Productos que se pueden guardar de una vez desde un ticket. SEC-05. */
 export const MAX_PRODUCTOS_TICKET = 100;
 
+/** Líneas SIN TACHAR que puede tener la lista de la compra de un hogar (D-54). SEC-05. */
+export const MAX_LINEAS_LISTA = 200;
+
 /** Llamadas a Claude al día por persona para el ticket (D-15). */
 export const CUOTA_IA_DIARIA = 10;
 

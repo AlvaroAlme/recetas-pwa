@@ -157,6 +157,60 @@ export function validarTupper(entrada) {
   return { ok: true, datos: { nombre: nombreLimpio, ubicacion, diasMaximos } };
 }
 
+// ============ Lista de la compra ============
+
+/**
+ * Una línea de la lista ya comprobada y limpia (D-54).
+ * @typedef {Object} DatosLineaLista
+ * @property {string} nombre Sin espacios a los lados.
+ * @property {number | null} cantidad null si no la han puesto.
+ * @property {import('./constantes.js').Unidad | null} unidad null a la vez que cantidad.
+ */
+
+/**
+ * Comprueba una línea nueva de la lista (P-30). La cantidad y la unidad son
+ * opcionales, pero van juntas: las dos o ninguna (como el CHECK de la tabla).
+ * Una cantidad vacía ('' del campo) cuenta como que no la han puesto.
+ * @param {unknown} entrada
+ * @returns {{ ok: true, datos: DatosLineaLista } | { ok: false, errores: Record<string, string> }}
+ */
+export function validarLineaLista(entrada) {
+  if (!esObjeto(entrada)) {
+    return { ok: false, errores: { general: 'Los datos de la lista no son válidos.' } };
+  }
+  const { nombre, cantidad = null, unidad = null } = entrada;
+  /** @type {Record<string, string>} */
+  const errores = {};
+
+  const nombreLimpio = typeof nombre === 'string' ? nombre.trim() : '';
+  if (nombreLimpio === '') {
+    errores.nombre = 'Escribe qué tienes que comprar.';
+  } else if (nombreLimpio.length > MAX_LONGITUD_NOMBRE) {
+    errores.nombre = `El nombre puede tener como mucho ${MAX_LONGITUD_NOMBRE} caracteres.`;
+  }
+
+  const sinCantidad = cantidad === null || cantidad === '';
+  const sinUnidad = unidad === null || unidad === '';
+  let cantidadLimpia = null;
+  if (!sinCantidad) {
+    const cantidadLeida = leerCantidad(cantidad);
+    if ('error' in cantidadLeida) errores.cantidad = cantidadLeida.error;
+    else cantidadLimpia = cantidadLeida.valor;
+    if (sinUnidad) errores.unidad = 'Elige una unidad.';
+  }
+  if (!sinUnidad && !UNIDADES.includes(unidad)) {
+    errores.unidad = 'Elige una unidad.';
+  } else if (!sinUnidad && sinCantidad) {
+    errores.cantidad = 'Escribe cuánto, o quita la unidad.';
+  }
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return {
+    ok: true,
+    datos: { nombre: nombreLimpio, cantidad: cantidadLimpia, unidad: sinUnidad ? null : unidad },
+  };
+}
+
 // ============ Cuentas ============
 
 /**

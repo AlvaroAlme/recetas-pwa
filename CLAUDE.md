@@ -62,13 +62,23 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54), paso 3** (servicio y
-rutas de `/api/lista`). Paso 2 hecho (2026-11-24, lo escribió Claude a
+**Siguiente: fase 12 (Lista de la compra, D-54), paso 4** (lo automático:
+`cantidad_inicial` al dar de alta y editar, añadir sola al cruzar el
+10 %, tachar sola al entrar un producto, y borrar las tachadas de más de
+7 días en la tarea de avisos). Paso 3 hecho (2026-11-24, lo escribió
+Claude a petición del autor): `/api/lista` (`rutas/lista.js`,
+`servicios/lista.js`, `validacion/lista.js`, `validarLineaLista()` y
+`MAX_LINEAS_LISTA` en `compartido/`, 10 pruebas en `lista.test.js`; 254
+en total) y su tabla en ARQUITECTURA §5. Al destachar con otra igual sin
+tachar, se borra la tachada (elección del autor; el id cambia). Probado
+contra el servidor con Ana. Paso 2 hecho (2026-11-24, lo escribió Claude a
 petición del autor): `010_lista.sql` (`productos.cantidad_inicial`,
 rellenada con la cantidad actual salvo los agotados, y `lista_compra`
 con el índice único parcial de las líneas sin tachar), aplicada SOLO en
 desarrollo y comprobada (repetida → no entra; tachada → se puede volver
-a apuntar; cantidad sin unidad → rechazada). Paso 1 hecho
+a apuntar; cantidad sin unidad → rechazada). Commit `fc7c183` SIN
+push, a propósito: `server/index.js` migra al arrancar, así que el push
+la aplicaría en producción; se sube junto con el paso 3. Paso 1 hecho
 (2026-11-24): D-54 en ARQUITECTURA (§10 con su "Hecho cuando" y §11; el
 autor eligió referencia = cantidad al entrar, mismo nombre normalizado,
 cantidad opcional en la línea y tachadas fuera a los 7 días) y P-30

@@ -21,6 +21,7 @@ import { rutasAuth } from './rutas/auth.js';
 import { rutasChat } from './rutas/chat.js';
 import { rutasHogar } from './rutas/hogar.js';
 import { rutasIa } from './rutas/ia.js';
+import { rutasLista } from './rutas/lista.js';
 import { rutasPlan } from './rutas/plan.js';
 import { rutasProductos } from './rutas/productos.js';
 import { rutasPush } from './rutas/push.js';
@@ -106,6 +107,9 @@ app.use('/api/productos', exigirSesion, rutasProductos);
 
 // Tuppers (fase 4): igual, solo los de TU hogar.
 app.use('/api/tuppers', exigirSesion, rutasTuppers);
+
+// Lista de la compra (fase 12, D-54): la de TU hogar.
+app.use('/api/lista', exigirSesion, rutasLista);
 
 // Recetario del hogar (fase 6): solo las recetas de TU hogar.
 app.use('/api/recetas', exigirSesion, rutasRecetas);
