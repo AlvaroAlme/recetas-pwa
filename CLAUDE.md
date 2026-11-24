@@ -62,8 +62,17 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54), paso 5** (la pantalla
-P-30 Lista y la quinta pestaña). Paso 4 hecho (2026-11-24, lo escribió
+**Siguiente: fase 12 (Lista de la compra, D-54): probar en el iPhone
+(`app-v53`) el "Hecho cuando" de ARQUITECTURA §10** (también con dos
+personas de la casa a la vez) y cerrar la fase. Paso 5 hecho
+(2026-11-24, lo escribió Claude a petición del autor): P-30 en
+`pantallas/lista.js` (apuntar con autocompletado y cantidad opcional,
+tachar con `aria-pressed`, ✗ para quitar, "Comprados (N)" y "Borrar
+comprados", recarga en `visibilitychange`), la ruta `/lista`, la quinta
+pestaña en `index.html`, su CSS (`.lista-compra`, `.linea-lista`) y
+`sw.js` en `app-v53`. Probado en el navegador (claro, oscuro, 375 px).
+Ojo al probar: tras `formulario.reset()` hay que lanzar `input` en el
+nombre, o el autocompletado pinta la búsqueda pendiente encima. Paso 4 hecho (2026-11-24, lo escribió
 Claude a petición del autor): `cruzaUmbral()` en `compartido/lista.js`
 (`UMBRAL_LISTA` y `DIAS_LISTA_COMPRADAS` en constantes);
 `tacharAlEntrar()`, `anadirSola()` y `borrarAntiguas()` en

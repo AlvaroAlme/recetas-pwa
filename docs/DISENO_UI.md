@@ -1187,7 +1187,7 @@ Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-ema
 │[▢]Inv [☰]Lis [⑂]Rec [▦]Sem [◌]Ayu│
 └──────────────────────────────┘
 ```
-- **Quinta pestaña**, detrás de Inventario (icono de lista en `componentes/iconos.js`). En la cabecera, el botón del avatar como en las demás pestañas.
+- **Quinta pestaña**, detrás de Inventario (icono de lista con marcas, en `index.html` como los de las otras pestañas). En la cabecera, el botón del avatar como en las demás pestañas.
 - **Añadir arriba**, no en el pie: es lo que más se hace y así el teclado no tapa el botón. Nombre con el autocompletado de D-42 (al elegir un nombre del historial **no** se rellena la cantidad: es opcional); cantidad y unidad en una fila, las dos o ninguna (el mismo error que en P-05 si solo hay una). Enter en el nombre añade. Tras añadir, el campo se vacía y **mantiene el foco** para apuntar otra cosa seguida. Si ya está sin tachar, aviso suave "«Pan» ya está en la lista." (no es un error).
 - **Cada línea:** un botón grande a la izquierda (todo el ancho del nombre, 44 px de alto) que tacha o destacha, con `aria-pressed` y el nombre en su `aria-label` ("Leche entera, comprado"); la cantidad a la derecha con `formatearCantidad()`; y `[✗]` (`.boton-icono`, `aria-label="Quitar «Leche entera»"`) que la borra sin preguntar (se puede volver a añadir). Las automáticas llevan debajo "Añadida sola" (tono tenue), para saber por qué está ahí.
 - **Orden:** sin tachar, las más nuevas arriba; **Comprados (N)** debajo, con `text-decoration: line-through` y tono tenue, los últimos tachados arriba. Al tachar, la fila sale (`salir`) y entra en Comprados (`entrar`), D-56. Las que se tacharon solas porque el producto entró en el inventario se ven igual.

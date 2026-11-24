@@ -16,6 +16,7 @@ import { pantallaEditarReceta } from './pantallas/editarReceta.js';
 import { pantallaEntrar } from './pantallas/entrar.js';
 import { pantallaInventario } from './pantallas/inventario.js';
 import { pantallaInvitar } from './pantallas/invitar.js';
+import { pantallaLista } from './pantallas/lista.js';
 import { pantallaNoExiste } from './pantallas/noExiste.js';
 import { pantallaPerfil } from './pantallas/perfil.js';
 import { pantallaPerfilAvisos } from './pantallas/perfilAvisos.js';
@@ -56,6 +57,8 @@ iniciarRouter({
     { patron: '/confirmar-email', publica: true, pantalla: pantallaConfirmarEmail },
     // Privadas: si no hay sesión, la API da 401 y api.js lleva a /entrar.
     { patron: '/', pestana: '/', pantalla: pantallaInventario },
+    // La lista de la compra del hogar (P-30, D-54): quinta pestaña.
+    { patron: '/lista', pestana: '/lista', pantalla: pantallaLista },
     // Perfil (P-16) y sus apartados (D-52): se abren con el avatar de la cabecera.
     { patron: '/perfil', pantalla: pantallaPerfil },
     { patron: '/perfil/datos', pantalla: pantallaPerfilDatos },

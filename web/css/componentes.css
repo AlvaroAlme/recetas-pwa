@@ -1308,6 +1308,123 @@ textarea.campo__entrada {
   justify-content: flex-end;
 }
 
+/* ============ Lista de la compra (P-30, D-54) ============ */
+.lista-compra {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.lista-compra__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-s);
+}
+/* Cantidad, unidad y "Añadir" en una fila; el botón, a su medida. */
+.lista-compra__cuanto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--espacio-s);
+  align-items: start;
+}
+.lista-compra__zona {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.lista-compra__zona .seccion {
+  margin-block: var(--espacio-l) 0;
+}
+/* Una línea: el botón que tacha ocupa todo menos la ✗. La raya de abajo
+   va en el <li>, como en las filas de siempre. */
+.linea-lista {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-borde);
+}
+.linea-lista__marcar {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--espacio-m);
+  min-width: 0;
+  min-height: 60px;
+  padding: var(--espacio-s) 0 var(--espacio-s) var(--espacio-l);
+  border: 0;
+  background: transparent;
+  color: var(--color-texto);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--duracion-rapida) ease-out;
+}
+.linea-lista__marcar:active {
+  background: var(--color-superficie-2);
+}
+.linea-lista__marcar:focus-visible {
+  outline-offset: calc(var(--foco-separacion) * -2);
+  border-radius: var(--radio-m);
+}
+/* La casilla redonda: vacía sin tachar, verde con su ✓ al comprar. */
+.linea-lista__casilla {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-borde-control);
+  border-radius: 50%;
+  color: var(--color-sobre-primario);
+}
+.linea-lista__casilla .simbolo {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+}
+.linea-lista__marcar[aria-pressed='true'] .linea-lista__casilla {
+  border-color: var(--color-primario);
+  background: var(--color-primario);
+}
+.linea-lista__marcar[aria-pressed='true'] .linea-lista__casilla .simbolo {
+  opacity: 1;
+}
+.linea-lista__textos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espacio-xs);
+  min-width: 0;
+}
+.linea-lista__nombre {
+  font-weight: var(--peso-fuerte);
+  overflow-wrap: anywhere;
+}
+.linea-lista__origen {
+  color: var(--color-texto-tenue);
+  font-size: var(--texto-secundario);
+  line-height: var(--linea-secundario);
+}
+.linea-lista__cantidad {
+  color: var(--color-texto-secundario);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Lo comprado: tachado y en gris (no solo el color: también la raya). */
+.linea-lista__marcar[aria-pressed='true'] .linea-lista__nombre,
+.linea-lista__marcar[aria-pressed='true'] .linea-lista__cantidad {
+  color: var(--color-texto-tenue);
+  font-weight: normal;
+  text-decoration: line-through;
+}
+.linea-lista__quitar {
+  margin-inline-end: var(--espacio-xs);
+  color: var(--color-texto-tenue);
+}
+@media (hover: hover) {
+  .linea-lista__marcar:hover {
+    background: var(--color-superficie-2);
+  }
+}
+
 /* ============ Receta (P-11) ============ */
 .receta {
   display: flex;
