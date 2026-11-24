@@ -62,9 +62,22 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: probar D-58 en el iPhone (`app-v50`)**; después, fase 12
-(Lista de la compra, D-54), paso 1 (fijar D-54 en la documentación
-antes de escribir código).
+**Siguiente: fase 12 (Lista de la compra, D-54), paso 2.** Paso 1 hecho
+(2026-11-24): D-54 en ARQUITECTURA (§10 con su "Hecho cuando" y §11; el
+autor eligió referencia = cantidad al entrar, mismo nombre normalizado,
+cantidad opcional en la línea y tachadas fuera a los 7 días) y P-30
+Lista (`/lista`, quinta pestaña) en DISENO_UI §4 y §5.2.
+
+**D-58, tick de guardado: hecho** (2026-11-24, "se ve bien" del autor
+en el iPhone con `app-v52`). Al probarlo se añadió: el velo
+(`--color-velo`) con `backdrop-filter: blur(4px)` en la propia capa (en
+un hijo, el `opacity` animado de la capa lo anularía), la capa entra
+fundiéndose (150 ms) y el aro va en una tarjeta `superficie` con
+sombra que entra con `scale(0.9)` (en modo claro, el verde `#1b6a43`
+no se veía sobre el velo); trazo de 4. Sin probar aún: el tick tras un
+ticket real (gasta IA), con "Reducir movimiento" y el tupper con aviso.
+Ojo: con el panel del navegador de Claude oculto, las animaciones no
+avanzan (para capturar, `getAnimations()`, `pause()` y `currentTime`).
 
 **D-58, tick de guardado (2026-11-23, pedido por el autor):** en vez
 de la banda verde, al volver a Inventario tras añadir, editar, mover o

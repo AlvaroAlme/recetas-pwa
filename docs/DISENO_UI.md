@@ -1166,6 +1166,36 @@ Pública; la abre el enlace del correo. El token se lee de `location.hash` y se 
 #### P-29 · Confirmar email — `/confirmar-email#t=…` · E-3 (D-53)
 Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-email` con el token (y lo borra de la barra de direcciones). "Confirmando…" → "✓ Tu email ahora es nuevo@….", con `[Ir a Vigía]`; o "Este enlace ya no sirve. Vuelve a pedir el cambio desde Perfil › Datos personales." / "Ese email ya lo usa otra cuenta."
 
+#### P-30 · Lista de la compra — `/lista` · E-1 (D-54)
+```
+┌──────────────────────────────┐
+│  Lista                   (◉›) │
+│  [Leche entera_____________]  │  (autocompletado, D-42)
+│  [6______] [l ▾]  [ Añadir ]  │  (cantidad y unidad opcionales)
+│ ┌──────────────────────────┐ │
+│ │ ○ Leche entera      6 l ✗│ │
+│ │   Añadida sola           │ │  (origen auto, tenue)
+│ ├──────────────────────────┤ │
+│ │ ○ Pan                   ✗│ │
+│ └──────────────────────────┘ │
+│  COMPRADOS (2)                │
+│ ┌──────────────────────────┐ │
+│ │ ● Huevos         12 ud. ✗│ │  (tachado, tenue)
+│ └──────────────────────────┘ │
+│  [ Borrar comprados ]         │
+├──────────────────────────────┤
+│[▢]Inv [☰]Lis [⑂]Rec [▦]Sem [◌]Ayu│
+└──────────────────────────────┘
+```
+- **Quinta pestaña**, detrás de Inventario (icono de lista en `componentes/iconos.js`). En la cabecera, el botón del avatar como en las demás pestañas.
+- **Añadir arriba**, no en el pie: es lo que más se hace y así el teclado no tapa el botón. Nombre con el autocompletado de D-42 (al elegir un nombre del historial **no** se rellena la cantidad: es opcional); cantidad y unidad en una fila, las dos o ninguna (el mismo error que en P-05 si solo hay una). Enter en el nombre añade. Tras añadir, el campo se vacía y **mantiene el foco** para apuntar otra cosa seguida. Si ya está sin tachar, aviso suave "«Pan» ya está en la lista." (no es un error).
+- **Cada línea:** un botón grande a la izquierda (todo el ancho del nombre, 44 px de alto) que tacha o destacha, con `aria-pressed` y el nombre en su `aria-label` ("Leche entera, comprado"); la cantidad a la derecha con `formatearCantidad()`; y `[✗]` (`.boton-icono`, `aria-label="Quitar «Leche entera»"`) que la borra sin preguntar (se puede volver a añadir). Las automáticas llevan debajo "Añadida sola" (tono tenue), para saber por qué está ahí.
+- **Orden:** sin tachar, las más nuevas arriba; **Comprados (N)** debajo, con `text-decoration: line-through` y tono tenue, los últimos tachados arriba. Al tachar, la fila sale (`salir`) y entra en Comprados (`entrar`), D-56. Las que se tacharon solas porque el producto entró en el inventario se ven igual.
+- `[Borrar comprados]` (secundario, ajustado) solo si hay alguna; sin confirmar (son cosas ya compradas). Las de más de 7 días desaparecen solas (D-54).
+- **Compartida:** la lista es del hogar. Se recarga al entrar en la pestaña y al volver a la app (`visibilitychange`); no hay tiempo real.
+- **Vacía:** `EstadoVacio` "La lista está vacía" / "Apunta lo que te falta. Cuando algo se esté acabando en casa, Vigía lo añadirá solo." (el formulario de arriba sigue visible).
+- **Sin red:** se ve la última copia (SW, §8.1) con la franja de "datos de las…"; añadir y tachar dan el error de siempre.
+
 #### P-17 · Invitar / unirse — `/hogar/invitar` · `/hogar/unirse` · E-2
 ```
 INVITAR                             UNIRSE
@@ -1211,6 +1241,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/tupper/nuevo` | P-06 | Inventario | igual que producto | `/` |
 | `/tupper/:id` | P-07 | Inventario | `id` entero > 0 | `/` |
 | `/ticket` | P-08 | Inventario | — | `/` |
+| `/lista` | P-30 | Lista | — | — |
 | `/recetas` | P-09 | Recetas | — | — |
 | `/receta/nueva` | P-20 | Recetas | — (va antes que `/receta/:id`) | `/recetas` |
 | `/receta/:id` | P-11 | Recetas | `id` entero > 0 | `/recetas` |
