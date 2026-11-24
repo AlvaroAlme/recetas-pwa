@@ -22,13 +22,15 @@ export function mostrarTickGuardado({ texto, detalle }) {
     elSvg('circle', { class: 'tick-guardado__aro', cx: '32', cy: '32', r: '29', pathLength: '1' }),
     elSvg('path', { class: 'tick-guardado__marca', d: 'M20 33l8 8L45 23', pathLength: '1' })
   );
-  const capa = el(
+  // El tick va en una tarjeta clara: sin ella, el verde oscuro del modo
+  // claro apenas se ve sobre el velo.
+  const tarjeta = el(
     'div',
-    { class: 'tick-guardado' },
+    { class: 'tick-guardado__tarjeta' },
     dibujo,
-    detalle && el('p', { class: 'tick-guardado__detalle', 'aria-hidden': 'true' }, detalle),
-    el('p', { class: 'solo-lector', role: 'status' }, texto)
+    detalle && el('p', { class: 'tick-guardado__detalle', 'aria-hidden': 'true' }, detalle)
   );
+  const capa = el('div', { class: 'tick-guardado' }, tarjeta, el('p', { class: 'solo-lector', role: 'status' }, texto));
   document.body.append(capa);
   setTimeout(() => capa.remove(), DURACION);
 }

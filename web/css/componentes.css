@@ -1915,12 +1915,25 @@ html[data-sentido='pestana']::view-transition-new(root) {
   backdrop-filter: blur(4px);
   animation: tick-fuera 1500ms var(--curva-suave) forwards;
 }
+/* La tarjeta clara sobre el velo: así el verde resalta en claro y en oscuro. */
+.tick-guardado__tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-s);
+  min-width: 140px;
+  padding: var(--espacio-l);
+  border-radius: var(--radio-l);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-flotante);
+  animation: tick-pop var(--duracion-media) var(--curva-salida);
+}
 .tick-guardado__dibujo {
   width: 80px;
   height: 80px;
   fill: none;
   stroke: var(--color-exito);
-  stroke-width: 3;
+  stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -1945,6 +1958,9 @@ html[data-sentido='pestana']::view-transition-new(root) {
 }
 @keyframes tick-trazo {
   to { stroke-dashoffset: 0; }
+}
+@keyframes tick-pop {
+  from { transform: scale(0.9); }
 }
 @keyframes tick-fuera {
   0% { opacity: 0; }
