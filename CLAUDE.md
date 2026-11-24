@@ -62,7 +62,13 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54), paso 2.** Paso 1 hecho
+**Siguiente: fase 12 (Lista de la compra, D-54), paso 3** (servicio y
+rutas de `/api/lista`). Paso 2 hecho (2026-11-24, lo escribió Claude a
+petición del autor): `010_lista.sql` (`productos.cantidad_inicial`,
+rellenada con la cantidad actual salvo los agotados, y `lista_compra`
+con el índice único parcial de las líneas sin tachar), aplicada SOLO en
+desarrollo y comprobada (repetida → no entra; tachada → se puede volver
+a apuntar; cantidad sin unidad → rechazada). Paso 1 hecho
 (2026-11-24): D-54 en ARQUITECTURA (§10 con su "Hecho cuando" y §11; el
 autor eligió referencia = cantidad al entrar, mismo nombre normalizado,
 cantidad opcional en la línea y tachadas fuera a los 7 días) y P-30
