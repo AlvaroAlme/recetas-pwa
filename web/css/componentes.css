@@ -1908,6 +1908,11 @@ html[data-sentido='pestana']::view-transition-new(root) {
   justify-content: center;
   gap: var(--espacio-s);
   pointer-events: none;
+  /* Oscurece y difumina la lista para que el tick destaque. El difuminado
+     va en la propia capa: en un hijo, el opacity de la capa lo anularía. */
+  background: var(--color-velo);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   animation: tick-fuera 1500ms var(--curva-suave) forwards;
 }
 .tick-guardado__dibujo {
@@ -1942,7 +1947,8 @@ html[data-sentido='pestana']::view-transition-new(root) {
   to { stroke-dashoffset: 0; }
 }
 @keyframes tick-fuera {
-  0%, 80% { opacity: 1; }
+  0% { opacity: 0; }
+  10%, 80% { opacity: 1; }
   100% { opacity: 0; }
 }
 /* Con "Reducir movimiento", base.css deja todo en 0,01 ms: el trazo sale
