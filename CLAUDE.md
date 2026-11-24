@@ -62,9 +62,19 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54): probar en el iPhone
-(`app-v53`) el "Hecho cuando" de ARQUITECTURA §10** (también con dos
-personas de la casa a la vez) y cerrar la fase. Paso 5 hecho
+**Siguiente: fase 12 (Lista de la compra, D-54): dos correcciones que
+pidió el autor tras la primera prueba en el iPhone (2026-11-24, `app-v53`)
+y luego el resto del "Hecho cuando" de ARQUITECTURA §10** (con dos
+personas de la casa a la vez, el ticket que tacha) y cerrar la fase.
+Probado y bien: apuntar, tachar, quitar y "Añadida sola". Por corregir
+(las dos cambian D-54: apuntarlo en §11 antes de tocar código):
+1. Nombres: "turrón de chocolate" no tacha "turrón chocolate". Comparar
+   sin palabras vacías ("de", "del", "con"…), no solo con `normalizar()`
+   (ojo: el índice único usa `nombre_normalizado`).
+2. Umbral en unidades: el 10 % casi nunca llega. Con `unidades`, si
+   entraron más de 1, apuntar al quedar 1 (4 yogures → al quedar 1); si
+   entró 1, al gastarse (1 solomillo → al llegar a 0). El 10 % sigue
+   para g, kg, ml y l (`cruzaUmbral()` y sus pruebas). Paso 5 hecho
 (2026-11-24, lo escribió Claude a petición del autor): P-30 en
 `pantallas/lista.js` (apuntar con autocompletado y cantidad opcional,
 tachar con `aria-pressed`, ✗ para quitar, "Comprados (N)" y "Borrar
