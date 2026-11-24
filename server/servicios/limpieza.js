@@ -7,6 +7,7 @@
  */
 import { pool } from '../bd/pool.js';
 import * as conversaciones from './conversaciones.js';
+import * as lista from './lista.js';
 import * as operaciones from './operaciones.js';
 import * as plan from './plan.js';
 import * as recuperacion from './recuperacion.js';
@@ -22,7 +23,8 @@ const DIAS_USO_IA = 30;
  *   enviados hace más de 7 días (plan);
  * - las conversaciones del chat sin mensajes desde hace más de 30 días;
  * - la cuota de IA de hace más de 30 días;
- * - los enlaces por correo caducados hace más de 7 días (D-53).
+ * - los enlaces por correo caducados hace más de 7 días (D-53);
+ * - las líneas de la lista de la compra tachadas hace más de 7 días (D-54).
  */
 export async function limpiar() {
   await operaciones.borrarAntiguas();
@@ -30,4 +32,5 @@ export async function limpiar() {
   await conversaciones.borrarAntiguas();
   await pool.query('DELETE FROM uso_ia WHERE fecha < current_date - $1::int', [DIAS_USO_IA]);
   await recuperacion.borrarAntiguos();
+  await lista.borrarAntiguas();
 }

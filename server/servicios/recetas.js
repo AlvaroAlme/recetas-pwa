@@ -9,7 +9,9 @@
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
 import { redondear } from '../../compartido/cocina.js';
+import { cruzaUmbral } from '../../compartido/lista.js';
 import { ErrorApi } from '../errores.js';
+import * as lista from './lista.js';
 import { conClave } from './operaciones.js';
 
 /** @typedef {import('../../compartido/validacion.js').DatosReceta} DatosReceta */
@@ -210,7 +212,7 @@ export async function cocinar(hogarId, usuarioId, clave, descuentos, tuppersCons
       // Bloqueo las filas hasta el COMMIT, siempre en el mismo orden (ORDER BY
       // id): dos personas cocinando a la vez nunca se esperan en círculo.
       const { rows } = await cliente.query(
-        `SELECT id, nombre, cantidad FROM productos
+        `SELECT id, nombre, cantidad, unidad, cantidad_inicial FROM productos
           WHERE hogar_id = $1 AND id = ANY($2::bigint[]) AND NOT agotado
           ORDER BY id
           FOR UPDATE`,
@@ -229,6 +231,11 @@ export async function cocinar(hogarId, usuarioId, clave, descuentos, tuppersCons
         const restante = redondear(Number(fila.cantidad) - porProducto.get(Number(fila.id)));
         await cliente.query('UPDATE productos SET cantidad = $1::numeric, agotado = ($1::numeric = 0) WHERE id = $2', [restante, fila.id]);
         if (restante === 0) agotados.push(fila.nombre);
+        // Si con esto baja del 10 % de lo que se compró, a la lista de la compra (D-54).
+        const referencia = fila.cantidad_inicial === null ? null : Number(fila.cantidad_inicial);
+        if (cruzaUmbral(Number(fila.cantidad), restante, referencia)) {
+          await lista.anadirSola(cliente, hogarId, usuarioId, { nombre: fila.nombre, cantidad: referencia, unidad: fila.unidad });
+        }
       }
 
       if (tuppersConsumidos.length > 0) {

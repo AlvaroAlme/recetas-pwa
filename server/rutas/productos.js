@@ -71,7 +71,7 @@ rutasProductos.post('/', async (req, res) => {
 rutasProductos.put('/:id', async (req, res) => {
   const id = leerId(req.params.id);
   const datos = leerProducto(req.body);
-  const producto = await inventario.actualizarProducto(req.hogarId, id, datos);
+  const producto = await inventario.actualizarProducto(req.hogarId, req.usuario.id, id, datos);
   res.json({ producto: comprobarQueExiste(producto) });
 });
 

@@ -9,7 +9,7 @@
  * llamar a una función de JavaScript): con él, el índice único no deja
  * tener dos "leche entera" sin tachar en la misma casa.
  */
-import { MAX_LINEAS_LISTA } from '../../compartido/constantes.js';
+import { DIAS_LISTA_COMPRADAS, MAX_LINEAS_LISTA } from '../../compartido/constantes.js';
 import { normalizar } from '../../compartido/texto.js';
 import { pool } from '../bd/pool.js';
 import { ErrorApi } from '../errores.js';
@@ -171,4 +171,59 @@ export async function borrarComprados(hogarId) {
     [hogarId]
   );
   return rowCount ?? 0;
+}
+
+// ============ Lo automático (paso 4 de la fase 12) ============
+// Estas funciones reciben el `cliente` de la transacción de quien me llama
+// (inventario.js, recetas.js): así la lista cambia en la MISMA transacción
+// que el inventario, y si algo falla no se guarda ni lo uno ni lo otro.
+
+/**
+ * Han entrado productos en el inventario (a mano o con el ticket): tacho las
+ * líneas sin tachar con el mismo nombre normalizado ("Leche entera" tacha
+ * "leche entera", pero no "Leche").
+ * @param {import('pg').PoolClient} cliente
+ * @param {number} hogarId
+ * @param {string[]} nombres Los nombres de los productos que han entrado.
+ */
+export async function tacharAlEntrar(cliente, hogarId, nombres) {
+  // Set: si el ticket trae dos veces "Leche", la busco una sola vez.
+  const normalizados = [...new Set(nombres.map(normalizar))];
+  await cliente.query(
+    `UPDATE lista_compra SET comprada_en = now()
+      WHERE hogar_id = $1 AND comprada_en IS NULL AND nombre_normalizado = ANY($2::text[])`,
+    [hogarId, normalizados]
+  );
+}
+
+/**
+ * Un producto acaba de bajar al 10 % (cruzaUmbral): lo apunto solo, con lo
+ * que se compró la última vez (cantidad_inicial). Si ya está sin tachar, o
+ * la lista está llena, no hago nada: no es un error de quien gasta.
+ * @param {import('pg').PoolClient} cliente
+ * @param {number} hogarId
+ * @param {number} usuarioId Quien ha gastado (queda como creada_por).
+ * @param {{ nombre: string, cantidad: number, unidad: string }} producto
+ */
+export async function anadirSola(cliente, hogarId, usuarioId, { nombre, cantidad, unidad }) {
+  // INSERT … SELECT … WHERE: solo inserta si la cuenta de pendientes no ha
+  // llegado al máximo. Con SELECT, PostgreSQL no sabe de qué tipo es cada $n
+  // (en VALUES lo deduce de la columna): por eso los ::bigint, ::text…
+  await cliente.query(
+    `INSERT INTO lista_compra (hogar_id, nombre, nombre_normalizado, cantidad, unidad, origen, creada_por)
+     SELECT $1::bigint, $2::text, $3::text, $4::numeric, $5::text, 'auto', $6::bigint
+      WHERE (SELECT count(*) FROM lista_compra WHERE hogar_id = $1 AND comprada_en IS NULL) < $7::int
+     ON CONFLICT (hogar_id, nombre_normalizado) WHERE comprada_en IS NULL DO NOTHING`,
+    [hogarId, nombre, normalizar(nombre), cantidad, unidad, usuarioId, MAX_LINEAS_LISTA]
+  );
+}
+
+/**
+ * Limpieza diaria: borro las líneas tachadas hace más de DIAS_LISTA_COMPRADAS.
+ */
+export async function borrarAntiguas() {
+  await pool.query(
+    'DELETE FROM lista_compra WHERE comprada_en < now() - make_interval(days => $1)',
+    [DIAS_LISTA_COMPRADAS]
+  );
 }

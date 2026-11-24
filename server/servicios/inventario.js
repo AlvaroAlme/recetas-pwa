@@ -8,8 +8,10 @@
  * Traduzco las columnas de la base de datos (snake_case) a los nombres de la
  * API (camelCase) en un solo sitio: aProducto().
  */
+import { cruzaUmbral } from '../../compartido/lista.js';
 import { pool } from '../bd/pool.js';
 import { conTransaccion } from '../bd/transaccion.js';
+import * as lista from './lista.js';
 import { conClave } from './operaciones.js';
 
 /**
@@ -87,40 +89,68 @@ export async function obtenerProducto(hogarId, id) {
 
 /**
  * Crea un producto (los datos ya vienen validados) y lo devuelve.
- * La fecha de alta la pone la base de datos (DEFAULT now()).
+ * La fecha de alta la pone la base de datos (DEFAULT now()). Su cantidad es
+ * también la cantidad_inicial (la referencia del 10 %, D-54), y si estaba en
+ * la lista de la compra, se tacha sola: todo en una transacción.
  * @param {number} hogarId
  * @param {DatosProducto} datos
  * @returns {Promise<Producto>}
  */
 export async function crearProducto(hogarId, datos) {
-  const { rows } = await pool.query(
-    `INSERT INTO productos (hogar_id, nombre, cantidad, unidad, ubicacion, fecha_caducidad)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING ${COLUMNAS}`,
-    [hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
-  );
-  return aProducto(rows[0]);
+  return conTransaccion(async (cliente) => {
+    // $3 dos veces: la cantidad de ahora es la inicial.
+    const { rows } = await cliente.query(
+      `INSERT INTO productos (hogar_id, nombre, cantidad, cantidad_inicial, unidad, ubicacion, fecha_caducidad)
+       VALUES ($1, $2, $3, $3, $4, $5, $6)
+       RETURNING ${COLUMNAS}`,
+      [hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
+    );
+    await lista.tacharAlEntrar(cliente, hogarId, [datos.nombre]);
+    return aProducto(rows[0]);
+  });
 }
 
 /**
  * Cambia los 5 campos de un producto (los datos ya vienen validados).
  * Como la cantidad que llega siempre es mayor que 0, el producto deja de
  * estar agotado: si no lo pongo a false, el CHECK de la tabla me lo rechaza.
+ *
+ * Lista de la compra (D-54): si pongo más que la cantidad_inicial, la
+ * referencia sube; si cambio la unidad, empieza de nuevo (500 g no se
+ * comparan con 1 kg). Y si al gastarlo baja del 10 %, se apunta solo.
  * @param {number} hogarId
+ * @param {number} usuarioId Quien lo edita (por si se apunta solo en la lista).
  * @param {number} id
  * @param {DatosProducto} datos
  * @returns {Promise<Producto | null>} null si no existe o es de otro hogar.
  */
-export async function actualizarProducto(hogarId, id, datos) {
-  const { rows } = await pool.query(
-    `UPDATE productos
-        SET nombre = $3, cantidad = $4, unidad = $5, ubicacion = $6,
-            fecha_caducidad = $7, agotado = false
-      WHERE id = $1 AND hogar_id = $2
-      RETURNING ${COLUMNAS}`,
-    [id, hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
-  );
-  return rows.length > 0 ? aProducto(rows[0]) : null;
+export async function actualizarProducto(hogarId, usuarioId, id, datos) {
+  return conTransaccion(async (cliente) => {
+    // Lo de antes, bloqueado hasta el COMMIT: si dos personas lo editan a la
+    // vez, la segunda espera y ve lo que dejó la primera.
+    const { rows: antes } = await cliente.query(
+      'SELECT cantidad, unidad FROM productos WHERE id = $1 AND hogar_id = $2 FOR UPDATE',
+      [id, hogarId]
+    );
+    if (antes.length === 0) return null;
+
+    // En el SET, "unidad" y "cantidad_inicial" son los valores de ANTES.
+    const { rows } = await cliente.query(
+      `UPDATE productos
+          SET nombre = $3, cantidad = $4, unidad = $5, ubicacion = $6,
+              fecha_caducidad = $7, agotado = false,
+              cantidad_inicial = CASE WHEN unidad = $5 THEN GREATEST(cantidad_inicial, $4) ELSE $4 END
+        WHERE id = $1 AND hogar_id = $2
+        RETURNING ${COLUMNAS}, cantidad_inicial`,
+      [id, hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
+    );
+    const referencia = Number(rows[0].cantidad_inicial);
+    const mismaUnidad = antes[0].unidad === datos.unidad;
+    if (mismaUnidad && cruzaUmbral(Number(antes[0].cantidad), datos.cantidad, referencia)) {
+      await lista.anadirSola(cliente, hogarId, usuarioId, { nombre: datos.nombre, cantidad: referencia, unidad: datos.unidad });
+    }
+    return aProducto(rows[0]);
+  });
 }
 
 /**
@@ -161,20 +191,22 @@ export async function borrarProducto(hogarId, id) {
  * @param {number} hogarId
  * @param {number} usuarioId
  * @param {string} clave
- * @param {DatosProducto[]} lista Ya validados, uno a uno.
+ * @param {DatosProducto[]} productos Ya validados, uno a uno.
  * @returns {Promise<{ creados: number }>}
  */
-export async function crearProductos(hogarId, usuarioId, clave, lista) {
+export async function crearProductos(hogarId, usuarioId, clave, productos) {
   return conTransaccion((cliente) =>
     conClave(cliente, clave, usuarioId, async () => {
-      for (const datos of lista) {
+      for (const datos of productos) {
         await cliente.query(
-          `INSERT INTO productos (hogar_id, nombre, cantidad, unidad, ubicacion, fecha_caducidad)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
+          `INSERT INTO productos (hogar_id, nombre, cantidad, cantidad_inicial, unidad, ubicacion, fecha_caducidad)
+           VALUES ($1, $2, $3, $3, $4, $5, $6)`,
           [hogarId, datos.nombre, datos.cantidad, datos.unidad, datos.ubicacion, datos.fechaCaducidad]
         );
       }
-      return { creados: lista.length };
+      // Lo que estaba en la lista de la compra y ha entrado con el ticket.
+      await lista.tacharAlEntrar(cliente, hogarId, productos.map((datos) => datos.nombre));
+      return { creados: productos.length };
     })
   );
 }

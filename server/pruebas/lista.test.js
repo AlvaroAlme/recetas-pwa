@@ -1,10 +1,12 @@
 /**
  * @file Pruebas de la lista de la compra (D-54): validarLineaLista()
- * (compartido/validacion.js) y leerComprada() (server/validacion/lista.js).
+ * (compartido/validacion.js), leerComprada() (server/validacion/lista.js)
+ * y cruzaUmbral() (compartido/lista.js).
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { MAX_LONGITUD_NOMBRE } from '../../compartido/constantes.js';
+import { cruzaUmbral } from '../../compartido/lista.js';
 import { validarLineaLista } from '../../compartido/validacion.js';
 import { leerComprada, leerLineaLista } from '../validacion/lista.js';
 
@@ -69,5 +71,34 @@ describe('leerLineaLista() y leerComprada() (POST y PATCH /api/lista)', () => {
     for (const cuerpo of [{}, { comprada: 'true' }, { comprada: 1 }, null]) {
       assert.throws(() => leerComprada(cuerpo), { estado: 400 });
     }
+  });
+});
+
+describe('cruzaUmbral() (se apunta solo al bajar al 10 %)', () => {
+  it('de más del 10 % a 10 % o menos: sí', () => {
+    assert.equal(cruzaUmbral(0.5, 0.1, 1), true);
+    assert.equal(cruzaUmbral(6, 0.5, 6), true);
+    assert.equal(cruzaUmbral(2, 0, 2), true);
+  });
+
+  it('justo en el 10 % ya cuenta (decimales incluidos)', () => {
+    assert.equal(cruzaUmbral(0.3, 0.03, 0.3), true);
+  });
+
+  it('si sigue por encima, no', () => {
+    assert.equal(cruzaUmbral(1, 0.5, 1), false);
+  });
+
+  it('si ya estaba por debajo, no se vuelve a apuntar', () => {
+    assert.equal(cruzaUmbral(0.1, 0.05, 1), false);
+  });
+
+  it('si sube (he comprado más), no', () => {
+    assert.equal(cruzaUmbral(0.05, 2, 1), false);
+  });
+
+  it('sin referencia, nunca', () => {
+    assert.equal(cruzaUmbral(5, 0, null), false);
+    assert.equal(cruzaUmbral(5, 0, 0), false);
   });
 });

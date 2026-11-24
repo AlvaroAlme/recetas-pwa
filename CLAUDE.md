@@ -62,10 +62,19 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54), paso 4** (lo automático:
-`cantidad_inicial` al dar de alta y editar, añadir sola al cruzar el
-10 %, tachar sola al entrar un producto, y borrar las tachadas de más de
-7 días en la tarea de avisos). Paso 3 hecho (2026-11-24, lo escribió
+**Siguiente: fase 12 (Lista de la compra, D-54), paso 5** (la pantalla
+P-30 Lista y la quinta pestaña). Paso 4 hecho (2026-11-24, lo escribió
+Claude a petición del autor): `cruzaUmbral()` en `compartido/lista.js`
+(`UMBRAL_LISTA` y `DIAS_LISTA_COMPRADAS` en constantes);
+`tacharAlEntrar()`, `anadirSola()` y `borrarAntiguas()` en
+`servicios/lista.js`, que reciben el `cliente` de la transacción de
+quien llama; alta y lote ponen `cantidad_inicial` y tachan;
+`actualizarProducto(hogarId, usuarioId, id, datos)` (ahora en TX con
+`FOR UPDATE`) sube la referencia, la reinicia si cambia la unidad y
+apunta al cruzar; "La he cocinado" apunta al cruzar; la limpieza diaria
+borra las tachadas de más de 7 días. 260 pruebas. Probado contra el
+servidor con Ana (alta, lote, editar, cambio de unidad, cocinar y
+limpieza). Paso 3 hecho (2026-11-24, lo escribió
 Claude a petición del autor): `/api/lista` (`rutas/lista.js`,
 `servicios/lista.js`, `validacion/lista.js`, `validarLineaLista()` y
 `MAX_LINEAS_LISTA` en `compartido/`, 10 pruebas en `lista.test.js`; 254
@@ -76,9 +85,9 @@ petición del autor): `010_lista.sql` (`productos.cantidad_inicial`,
 rellenada con la cantidad actual salvo los agotados, y `lista_compra`
 con el índice único parcial de las líneas sin tachar), aplicada SOLO en
 desarrollo y comprobada (repetida → no entra; tachada → se puede volver
-a apuntar; cantidad sin unidad → rechazada). Commit `fc7c183` SIN
-push, a propósito: `server/index.js` migra al arrancar, así que el push
-la aplicaría en producción; se sube junto con el paso 3. Paso 1 hecho
+a apuntar; cantidad sin unidad → rechazada). Subida con el paso 3 (el
+2026-11-24): `server/index.js` migra al arrancar, así que `010_lista`
+ya está en producción y solo se puede cambiar con otra migración. Paso 1 hecho
 (2026-11-24): D-54 en ARQUITECTURA (§10 con su "Hecho cuando" y §11; el
 autor eligió referencia = cantidad al entrar, mismo nombre normalizado,
 cantidad opcional en la línea y tachadas fuera a los 7 días) y P-30

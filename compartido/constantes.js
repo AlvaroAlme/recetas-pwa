@@ -38,6 +38,12 @@ export const MAX_PRODUCTOS_TICKET = 100;
 /** Líneas SIN TACHAR que puede tener la lista de la compra de un hogar (D-54). SEC-05. */
 export const MAX_LINEAS_LISTA = 200;
 
+/** Un producto pasa solo a la lista al bajar a esta parte de su cantidad_inicial (el 10 %, D-54). */
+export const UMBRAL_LISTA = 0.1;
+
+/** Días que se quedan las líneas tachadas antes de borrarse solas (D-54). */
+export const DIAS_LISTA_COMPRADAS = 7;
+
 /** Llamadas a Claude al día por persona para el ticket (D-15). */
 export const CUOTA_IA_DIARIA = 10;
 
