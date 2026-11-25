@@ -49,8 +49,8 @@ Proyecto de portfolio de un estudiante de DAW.
 ## Estado actual
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
 3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15), 7
-(2026-11-16), 8 (2026-11-17), 9 (2026-11-18), 10 (2026-11-18) y 11
-(2026-11-23). El detalle de cada paso
+(2026-11-16), 8 (2026-11-17), 9 (2026-11-18), 10 (2026-11-18), 11
+(2026-11-23) y 12 (2026-11-25). El detalle de cada paso
 está en los commits (`git log`).
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
@@ -62,11 +62,17 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54): probar en el iPhone
-(`app-v54`) las dos correcciones y el resto del "Hecho cuando" de
-ARQUITECTURA §10** (con dos personas de la casa a la vez, el ticket que
-tacha) y cerrar la fase. Probado y bien con `app-v53`: apuntar, tachar,
-quitar y "Añadida sola". **Correcciones hechas** (2026-11-25, lo
+**Siguiente: fase 13 (Cierre, ARQUITECTURA §10):** revisión de
+accesibilidad, `npm audit` sin vulnerabilidades altas, README que permita
+levantar el proyecto desde cero y la auditoría actualizada. Pendientes
+que conviene repasar en ella: el tick tras un ticket real, con "Reducir
+movimiento" y el tupper con aviso (D-58); el avatar que "piensa" con un
+ticket real; el icono instalado, `theme-color` y VoiceOver; DMARC a
+`p=quarantine` desde el 2026-12-09; borrar `muestra-ticks.html`.
+
+**Fase 12 (Lista de la compra, D-54): aprobada** (2026-11-25, "ok" del
+autor con `app-v54`). Probado en el iPhone con `app-v53`: apuntar,
+tachar, quitar y "Añadida sola". **Correcciones hechas** (2026-11-25, lo
 escribió Claude a petición del autor; cambios del autor a D-54, en §11):
 1. Nombres: `claveNombre()` en `compartido/texto.js` (`normalizar()` sin
    `de, del, la, el, los, las, con, y, en, al, a`; si solo hay de esas,
