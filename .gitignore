@@ -22,3 +22,8 @@ graphify-out/
 web/muestra-avatares.html
 web/js/muestraAvatares.js
 web/js/muestraAvatares.css
+
+# Auditoría de la fase 13: se sube solo el informe (audit/report.md); las
+# capturas y los JSON de Lighthouse se regeneran con la skill ui-ux-audit
+audit/screenshots/
+audit/*.json

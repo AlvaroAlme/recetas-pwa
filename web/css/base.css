@@ -77,6 +77,14 @@ img, svg {
   color: var(--color-texto);
 }
 
+/* Los enlaces sueltos en un texto (Privacidad, AESAN, el aviso de la IA), con
+   el verde de la marca y no con el azul (o el morado, si ya lo visité) del
+   navegador. Los botones, las filas y las pestañas ponen su propio color. */
+a {
+  color: var(--color-primario-texto);
+  text-underline-offset: 0.2em;
+}
+
 :focus-visible {
   outline: var(--foco);
   outline-offset: var(--foco-separacion);

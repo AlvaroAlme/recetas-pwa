@@ -164,7 +164,7 @@ function crearSeccionSesiones() {
     aviso,
     el(
       'div',
-      { class: 'seccion__acciones' },
+      { class: 'seccion__acciones seccion__acciones--columna' },
       otras,
       cerrar,
       el('a', { class: 'boton boton--fantasma', href: '/cuenta/borrar' }, 'Borrar cuenta')

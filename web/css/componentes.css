@@ -882,6 +882,15 @@ input:focus-visible + .chip {
 .seccion__acciones > * {
   flex: 1;
 }
+/* Uno debajo de otro y a todo el ancho: en Seguridad, los tres botones de
+   sesiones no caben en una fila a 375 px ("Cerrar las demás sesiones" se
+   partía en tres líneas). */
+.seccion__acciones--columna {
+  flex-direction: column;
+}
+.seccion__acciones--columna > * {
+  flex: none;
+}
 
 /* ============ Diálogo (confirmar) ============ */
 .dialogo {
