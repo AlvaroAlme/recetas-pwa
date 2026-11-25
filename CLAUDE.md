@@ -52,7 +52,7 @@ Proyecto de portfolio de un estudiante de DAW.
 **Fases aprobadas:** 0 (2026-10-27), 1 (2026-11-02), 2 (2026-11-04),
 3 (2026-11-08), 4 (2026-11-09), 5 (2026-11-12), 6 (2026-11-15), 7
 (2026-11-16), 8 (2026-11-17), 9 (2026-11-18), 10 (2026-11-18), 11
-(2026-11-23) y 12 (2026-11-25). El detalle de cada paso
+(2026-11-23), 12 (2026-11-25) y 13 (2026-11-25). El detalle de cada paso
 está en los commits (`git log`).
 
 **Rebranding a Stockpot (D-59): hecho, desplegado y probado en el
@@ -80,8 +80,10 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Fase 13 (Cierre): hecha, falta el "ok" del autor** (2026-11-25, lo
-escribió Claude a petición del autor; detalle en ARQUITECTURA §10 y §9.11).
+**Fase 13 (Cierre): aprobada** (2026-11-25, "ok" del autor tras probar
+`app-v57` en el iPhone: el tupper con aviso, el avatar que "piensa" y
+VoiceOver; lo escribió Claude a petición del autor; detalle en
+ARQUITECTURA §10 y §9.11). **Todas las fases del plan están cerradas.**
 express 5.3.0 y `npm audit` con 0 vulnerabilidades; revisión de seguridad
 sin hallazgos altos ni medios (§9.11); `README.md`; P3 de la auditoría
 decididos (foco en "Ahora no" en `avisoPrivacidad.js`; la barra sigue
@@ -89,10 +91,9 @@ antes del contenido; `--ancho-maximo` 800 px desde 64em); tick tras un
 ticket real probado en desarrollo y arreglado con "Reducir movimiento"
 (la marca esperaba su `animation-delay`); `muestra-ticks.html` borrado;
 `sw.js` en `app-v57`. Ana quedó como estaba (productos de prueba borrados,
-`aviso_ia_aceptado_en = NULL`, `uso_ia` del día borrado). **Queda para el
-autor:** desplegar `app-v57`; en el iPhone, el tupper con aviso, el avatar
-que "piensa" entrando a Ticket desde Inventario y VoiceOver; DMARC a
-`p=quarantine` en Cloudflare desde el 2026-12-09.
+`aviso_ia_aceptado_en = NULL`, `uso_ia` del día borrado). Desplegada
+(`app-v57`). **Solo queda:** subir DMARC a `p=quarantine` en Cloudflare a
+partir del 2026-12-09. Después, la Versión 2 (ARQUITECTURA §10).
 
 **Fase 12 (Lista de la compra, D-54): aprobada** (2026-11-25, "ok" del
 autor con `app-v54`). Probado en el iPhone con `app-v53`: apuntar,
