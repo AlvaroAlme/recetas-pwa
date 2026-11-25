@@ -231,9 +231,9 @@ export async function cocinar(hogarId, usuarioId, clave, descuentos, tuppersCons
         const restante = redondear(Number(fila.cantidad) - porProducto.get(Number(fila.id)));
         await cliente.query('UPDATE productos SET cantidad = $1::numeric, agotado = ($1::numeric = 0) WHERE id = $2', [restante, fila.id]);
         if (restante === 0) agotados.push(fila.nombre);
-        // Si con esto baja del 10 % de lo que se compró, a la lista de la compra (D-54).
+        // Si con esto se está acabando (10 %, o 1 unidad), a la lista de la compra (D-54).
         const referencia = fila.cantidad_inicial === null ? null : Number(fila.cantidad_inicial);
-        if (cruzaUmbral(Number(fila.cantidad), restante, referencia)) {
+        if (cruzaUmbral(Number(fila.cantidad), restante, referencia, fila.unidad)) {
           await lista.anadirSola(cliente, hogarId, usuarioId, { nombre: fila.nombre, cantidad: referencia, unidad: fila.unidad });
         }
       }

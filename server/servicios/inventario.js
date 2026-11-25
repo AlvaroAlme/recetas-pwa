@@ -90,7 +90,7 @@ export async function obtenerProducto(hogarId, id) {
 /**
  * Crea un producto (los datos ya vienen validados) y lo devuelve.
  * La fecha de alta la pone la base de datos (DEFAULT now()). Su cantidad es
- * también la cantidad_inicial (la referencia del 10 %, D-54), y si estaba en
+ * también la cantidad_inicial (la referencia de la lista, D-54), y si estaba en
  * la lista de la compra, se tacha sola: todo en una transacción.
  * @param {number} hogarId
  * @param {DatosProducto} datos
@@ -117,7 +117,7 @@ export async function crearProducto(hogarId, datos) {
  *
  * Lista de la compra (D-54): si pongo más que la cantidad_inicial, la
  * referencia sube; si cambio la unidad, empieza de nuevo (500 g no se
- * comparan con 1 kg). Y si al gastarlo baja del 10 %, se apunta solo.
+ * comparan con 1 kg). Y si al gastarlo se está acabando (cruzaUmbral), se apunta solo.
  * @param {number} hogarId
  * @param {number} usuarioId Quien lo edita (por si se apunta solo en la lista).
  * @param {number} id
@@ -146,7 +146,7 @@ export async function actualizarProducto(hogarId, usuarioId, id, datos) {
     );
     const referencia = Number(rows[0].cantidad_inicial);
     const mismaUnidad = antes[0].unidad === datos.unidad;
-    if (mismaUnidad && cruzaUmbral(Number(antes[0].cantidad), datos.cantidad, referencia)) {
+    if (mismaUnidad && cruzaUmbral(Number(antes[0].cantidad), datos.cantidad, referencia, datos.unidad)) {
       await lista.anadirSola(cliente, hogarId, usuarioId, { nombre: datos.nombre, cantidad: referencia, unidad: datos.unidad });
     }
     return aProducto(rows[0]);

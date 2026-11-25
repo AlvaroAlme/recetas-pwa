@@ -62,19 +62,24 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 12 (Lista de la compra, D-54): dos correcciones que
-pidió el autor tras la primera prueba en el iPhone (2026-11-24, `app-v53`)
-y luego el resto del "Hecho cuando" de ARQUITECTURA §10** (con dos
-personas de la casa a la vez, el ticket que tacha) y cerrar la fase.
-Probado y bien: apuntar, tachar, quitar y "Añadida sola". Por corregir
-(las dos cambian D-54: apuntarlo en §11 antes de tocar código):
-1. Nombres: "turrón de chocolate" no tacha "turrón chocolate". Comparar
-   sin palabras vacías ("de", "del", "con"…), no solo con `normalizar()`
-   (ojo: el índice único usa `nombre_normalizado`).
-2. Umbral en unidades: el 10 % casi nunca llega. Con `unidades`, si
-   entraron más de 1, apuntar al quedar 1 (4 yogures → al quedar 1); si
-   entró 1, al gastarse (1 solomillo → al llegar a 0). El 10 % sigue
-   para g, kg, ml y l (`cruzaUmbral()` y sus pruebas). Paso 5 hecho
+**Siguiente: fase 12 (Lista de la compra, D-54): probar en el iPhone
+(`app-v54`) las dos correcciones y el resto del "Hecho cuando" de
+ARQUITECTURA §10** (con dos personas de la casa a la vez, el ticket que
+tacha) y cerrar la fase. Probado y bien con `app-v53`: apuntar, tachar,
+quitar y "Añadida sola". **Correcciones hechas** (2026-11-25, lo
+escribió Claude a petición del autor; cambios del autor a D-54, en §11):
+1. Nombres: `claveNombre()` en `compartido/texto.js` (`normalizar()` sin
+   `de, del, la, el, los, las, con, y, en, al, a`; si solo hay de esas,
+   todas) es lo que se guarda en `nombre_normalizado`: "Turrón de
+   chocolate" tacha "turrón chocolate". `011_lista_clave.sql` recalcula
+   las líneas que ya había (si dos quedan iguales sin tachar, deja la
+   más antigua). Aplicada SOLO en desarrollo y comprobada; entra en
+   producción con el push.
+2. Unidades: `umbralLista(referencia, unidad)` en `compartido/lista.js`;
+   `cruzaUmbral(antes, despues, referencia, unidad)`. En `unidades`, 1 si
+   entraron más de 1 y 0 si entró 1; el 10 % sigue en g, kg, ml y l.
+268 pruebas. Probado contra el servidor con Ana (turrón, 4 yogures → al
+quedar 1, 1 solomillo cocinado → se apunta). Paso 5 hecho
 (2026-11-24, lo escribió Claude a petición del autor): P-30 en
 `pantallas/lista.js` (apuntar con autocompletado y cantidad opcional,
 tachar con `aria-pressed`, ✗ para quitar, "Comprados (N)" y "Borrar

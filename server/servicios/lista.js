@@ -5,12 +5,13 @@
  * parámetro y filtran por él, y traduzco las columnas a los nombres de la
  * API en un solo sitio: aLinea().
  *
- * nombre_normalizado lo calculo aquí con normalizar() (PostgreSQL no puede
+ * nombre_normalizado lo calculo aquí con claveNombre() (PostgreSQL no puede
  * llamar a una función de JavaScript): con él, el índice único no deja
- * tener dos "leche entera" sin tachar en la misma casa.
+ * tener dos "leche entera" sin tachar en la misma casa, ni "turrón de
+ * chocolate" y "turrón chocolate" (claveNombre() quita las palabras vacías).
  */
 import { DIAS_LISTA_COMPRADAS, MAX_LINEAS_LISTA } from '../../compartido/constantes.js';
-import { normalizar } from '../../compartido/texto.js';
+import { claveNombre } from '../../compartido/texto.js';
 import { pool } from '../bd/pool.js';
 import { ErrorApi } from '../errores.js';
 
@@ -73,7 +74,7 @@ export async function listarLista(hogarId) {
  * @throws {ErrorApi} 409 LISTA_LLENA si ya hay MAX_LINEAS_LISTA sin tachar.
  */
 export async function anadirLinea(hogarId, usuarioId, { nombre, cantidad, unidad }) {
-  const nombreNormalizado = normalizar(nombre);
+  const nombreNormalizado = claveNombre(nombre);
   const pendiente = await buscarPendiente(hogarId, nombreNormalizado);
   if (pendiente) return { linea: pendiente, yaEstaba: true };
 
@@ -100,7 +101,7 @@ export async function anadirLinea(hogarId, usuarioId, { nombre, cantidad, unidad
 }
 
 /**
- * La línea SIN TACHAR con ese nombre normalizado, o null.
+ * La línea SIN TACHAR con esa clave de nombre, o null.
  * @param {number} hogarId
  * @param {string} nombreNormalizado
  * @returns {Promise<LineaLista | null>}
@@ -180,15 +181,16 @@ export async function borrarComprados(hogarId) {
 
 /**
  * Han entrado productos en el inventario (a mano o con el ticket): tacho las
- * líneas sin tachar con el mismo nombre normalizado ("Leche entera" tacha
- * "leche entera", pero no "Leche").
+ * líneas sin tachar con la misma clave de nombre ("Leche entera" tacha
+ * "leche entera" y "Turrón de chocolate" tacha "turrón chocolate", pero
+ * no "Leche").
  * @param {import('pg').PoolClient} cliente
  * @param {number} hogarId
  * @param {string[]} nombres Los nombres de los productos que han entrado.
  */
 export async function tacharAlEntrar(cliente, hogarId, nombres) {
   // Set: si el ticket trae dos veces "Leche", la busco una sola vez.
-  const normalizados = [...new Set(nombres.map(normalizar))];
+  const normalizados = [...new Set(nombres.map(claveNombre))];
   await cliente.query(
     `UPDATE lista_compra SET comprada_en = now()
       WHERE hogar_id = $1 AND comprada_en IS NULL AND nombre_normalizado = ANY($2::text[])`,
@@ -197,7 +199,7 @@ export async function tacharAlEntrar(cliente, hogarId, nombres) {
 }
 
 /**
- * Un producto acaba de bajar al 10 % (cruzaUmbral): lo apunto solo, con lo
+ * Un producto se está acabando (cruzaUmbral): lo apunto solo, con lo
  * que se compró la última vez (cantidad_inicial). Si ya está sin tachar, o
  * la lista está llena, no hago nada: no es un error de quien gasta.
  * @param {import('pg').PoolClient} cliente
@@ -214,7 +216,7 @@ export async function anadirSola(cliente, hogarId, usuarioId, { nombre, cantidad
      SELECT $1::bigint, $2::text, $3::text, $4::numeric, $5::text, 'auto', $6::bigint
       WHERE (SELECT count(*) FROM lista_compra WHERE hogar_id = $1 AND comprada_en IS NULL) < $7::int
      ON CONFLICT (hogar_id, nombre_normalizado) WHERE comprada_en IS NULL DO NOTHING`,
-    [hogarId, nombre, normalizar(nombre), cantidad, unidad, usuarioId, MAX_LINEAS_LISTA]
+    [hogarId, nombre, claveNombre(nombre), cantidad, unidad, usuarioId, MAX_LINEAS_LISTA]
   );
 }
 
