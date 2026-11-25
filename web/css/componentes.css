@@ -22,8 +22,9 @@
 
 /* ============ Estructura ============ */
 .app {
-  /* Lo que ocupa abajo la barra de pestañas en el móvil (con la zona segura del iPhone). */
-  --hueco-navegacion: calc(var(--alto-navegacion) + env(safe-area-inset-bottom, 0px));
+  /* Lo que ocupa abajo la barra de pestañas en el móvil: la barra y, debajo,
+     12 px o la zona segura del iPhone si es mayor (como su padding-bottom). */
+  --hueco-navegacion: calc(var(--alto-navegacion) + max(var(--espacio-m), env(safe-area-inset-bottom, 0px)));
   min-height: 100dvh;
 }
 
@@ -187,64 +188,135 @@
   display: none;
 }
 
-/* ============ Navegación: abajo en el móvil ============ */
+/* ============ Navegación: barra flotante abajo en el móvil (D-59) ============ */
+/* El <nav> es solo el hueco de abajo, transparente: dentro flotan la barra
+   (el <ul>) y, a su derecha, el botón redondo del Ayudante. */
 .navegacion {
   position: fixed;
   inset-inline: 0;
   bottom: 0;
   z-index: 3;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
-  background: var(--color-fondo);
-  border-top: 1px solid var(--color-borde);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-s);
+  padding-top: var(--espacio-s);
+  padding-bottom: max(var(--espacio-m), env(safe-area-inset-bottom, 0px));
+  padding-inline: max(var(--espacio-m), env(safe-area-inset-left, 0px)) max(var(--espacio-m), env(safe-area-inset-right, 0px));
+  /* Los toques en el hueco transparente llegan a la página; en la barra y
+     en el botón, no (pointer-events: auto). */
+  pointer-events: none;
 }
 .navegacion ul {
-  display: grid;
-  /* Una columna por pestaña, sean 4 o 5 (como mucho 5: DISENO_UI §3.2). */
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  padding: 0;
-  list-style: none;
-}
-.navegacion a {
-  position: relative;
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: var(--alto-navegacion);
+  justify-content: space-between;
+  height: var(--alto-barra);
+  padding: 0 var(--espacio-s);
+  list-style: none;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pildora);
+  box-shadow: var(--sombra-flotante);
+  pointer-events: auto;
+}
+/* Cada pestaña es una rejilla de dos columnas: el icono y el nombre. La del
+   nombre mide 0fr (nada) y, en la activa, 1fr (lo que mide el nombre): así
+   la pastilla crece hasta su ancho real. Excepción a D-56 (D-59): anima
+   grid-template-columns, que cambia el layout, pero solo el de esta barra. */
+.navegacion ul a {
+  display: grid;
+  grid-template-columns: auto 0fr;
+  align-items: center;
+  column-gap: 0;
+  min-width: var(--tactil);
+  min-height: var(--tactil);
+  padding-inline: 10px;
+  border-radius: var(--radio-pildora);
   color: var(--color-texto-tenue);
   font-size: var(--texto-pequeno);
   line-height: var(--linea-pequeno);
-  text-decoration: none;
-}
-/* Pestaña activa: color, negrita y una barrita. Nunca solo el color. */
-.navegacion a[aria-current='page'] {
-  color: var(--color-primario-texto);
   font-weight: var(--peso-fuerte);
+  text-decoration: none;
+  transition:
+    grid-template-columns var(--duracion-media) var(--curva-salida),
+    column-gap var(--duracion-media) var(--curva-salida),
+    background-color var(--duracion-rapida),
+    color var(--duracion-rapida);
 }
-.navegacion a[aria-current='page']::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  inset-inline: 25%;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
+/* El nombre: recortado a 0 de ancho, pero sigue en la página (el lector lo
+   lee). Al activarse aparece fundiéndose y llegando 4 px desde el icono. */
+.navegacion ul span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--duracion-rapida),
+    transform var(--duracion-media) var(--curva-salida);
+}
+/* Pestaña activa: pastilla marino con el nombre. Nunca solo el color. */
+.navegacion ul a[aria-current='page'] {
+  grid-template-columns: auto 1fr;
+  column-gap: 6px;
   background: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+.navegacion ul a[aria-current='page'] span {
+  opacity: 1;
+  transform: none;
+  /* Al irse, el nombre se apaga deprisa, antes de que la pastilla encoja. */
+  transition-delay: 50ms;
+}
+@media (hover: hover) {
+  .navegacion ul a:not([aria-current='page']):hover {
+    background: var(--color-superficie-2);
+    color: var(--color-texto);
+  }
 }
 
-/* Muy estrecho (un móvil con zoom al 200 %): los nombres de las pestañas no
-   caben y se pisan. Se ocultan a la vista, pero el lector los sigue leyendo
-   (como .solo-lector); el icono queda solo, con la misma zona de toque. */
-@media (max-width: 19.99em) {
-  .navegacion a span {
+/* El Ayudante: redondo, azul polvo con el icono marino. Su nombre no se ve,
+   pero el lector lo lee (como .solo-lector). Cuando es la página actual,
+   un aro de 3 px (por dentro, para que no cambie de tamaño). */
+.navegacion__ayudante {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--alto-barra);
+  height: var(--alto-barra);
+  border-radius: 50%;
+  background: var(--color-tinte);
+  color: var(--color-sobre-tinte);
+  box-shadow: var(--sombra-flotante);
+  pointer-events: auto;
+  transition: box-shadow var(--duracion-rapida);
+}
+.navegacion__ayudante[aria-current='page'] {
+  box-shadow: inset 0 0 0 3px var(--color-sobre-tinte), var(--sombra-flotante);
+}
+.navegacion__ayudante span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Muy estrecho (un móvil pequeño o con zoom): el nombre de la activa no cabe
+   y empujaría las otras pestañas fuera de la barra. Se oculta a la vista,
+   pero el lector lo sigue leyendo; la activa se sigue viendo por la pastilla. */
+@media (max-width: 21.99em) {
+  .navegacion ul span {
     position: absolute;
     width: 1px;
     height: 1px;
-    overflow: hidden;
     clip-path: inset(50%);
-    white-space: nowrap;
+  }
+  .navegacion ul a[aria-current='page'] {
+    column-gap: 0;
   }
 }
 
@@ -291,31 +363,54 @@
     display: grid;
     grid-template-columns: var(--ancho-barra-lateral) 1fr;
   }
+  /* D-27 sigue: barra lateral, con el icono y el nombre siempre a la vista;
+     la activa, una pastilla marino; el Ayudante, el botón redondo debajo. */
   .navegacion {
     position: sticky;
     top: 0;
+    flex-direction: column;
+    gap: var(--espacio-l);
     height: 100dvh;
-    padding-block: var(--espacio-l);
-    border-top: 0;
+    padding: var(--espacio-l) var(--espacio-s);
+    background: var(--color-fondo);
     border-right: 1px solid var(--color-borde);
+    pointer-events: auto;
   }
   .navegacion ul {
-    grid-auto-flow: row;
-    grid-template-columns: 1fr;
+    flex: none;
+    flex-direction: column;
     gap: var(--espacio-s);
-  }
-  .navegacion a[aria-current='page']::before {
-    top: 25%;
-    bottom: 25%;
-    left: 0;
-    right: auto;
-    width: 3px;
+    width: 100%;
     height: auto;
-    border-radius: 0 3px 3px 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .navegacion ul a,
+  .navegacion ul a[aria-current='page'] {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 2px;
+    column-gap: 0;
+    width: 100%;
+    padding: var(--espacio-s) var(--espacio-xs);
+    border-radius: var(--radio-m);
+  }
+  .navegacion ul span {
+    opacity: 1;
+    transform: none;
+  }
+  .navegacion__ayudante {
+    box-shadow: none;
+  }
+  .navegacion__ayudante[aria-current='page'] {
+    box-shadow: inset 0 0 0 3px var(--color-sobre-tinte);
   }
     /* En escritorio, la barra lateral se ve siempre. */
   .app--secundaria .navegacion {
-    display: block;
+    display: flex;
   }
 }
 
@@ -420,11 +515,13 @@
   cursor: pointer;
   user-select: none;
 }
-/* El radio está oculto: el estado se dibuja en la etiqueta que va justo detrás. */
+/* El radio está oculto: el estado se dibuja en la etiqueta que va justo detrás.
+   Elegido = relleno de tinte azul polvo con borde y texto marinos (D-59): se
+   distingue del botón principal, que es marino lleno. */
 input:checked + .chip {
-  background: var(--color-primario);
+  background: var(--color-tinte);
   border-color: var(--color-primario);
-  color: var(--color-sobre-primario);
+  color: var(--color-sobre-tinte);
   font-weight: var(--peso-fuerte);
 }
 input:focus-visible + .chip {
@@ -531,18 +628,21 @@ input:focus-visible + .chip {
   /* Punto lleno: todo bien. */
   --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Ccircle cx='6' cy='6' r='4' fill='black'/%3E%3C/svg%3E");
   background: var(--color-fondo-ok);
+  border: 1px solid var(--color-borde-ok);
   color: var(--color-ok);
 }
 .fila__subtitulo.tono--aviso {
   /* Reloj: queda poco. */
   --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='4.6'/%3E%3Cpath d='M6 3.4V6l1.7 1.1'/%3E%3C/svg%3E");
   background: var(--color-fondo-pronto);
+  border: 1px solid var(--color-borde-pronto);
   color: var(--color-pronto);
 }
 .fila__subtitulo.tono--peligro {
   /* Aspa: caducado. */
   --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 3l6 6M9 3l-6 6'/%3E%3C/svg%3E");
   background: var(--color-fondo-caducado);
+  border: 1px solid var(--color-borde-caducado);
   color: var(--color-caducado);
 }
 
@@ -593,16 +693,21 @@ input:focus-visible + .chip {
   padding: var(--espacio-m) var(--espacio-l);
   border-radius: var(--radio-m);
 }
+/* Cada aviso con el borde de su estado (D-59): sobre la arena, el fondo
+   solo apenas se distingue. */
 .aviso--error {
   background: var(--color-fondo-peligro);
+  border: 1px solid var(--color-borde-peligro);
   color: var(--color-peligro);
 }
 .aviso--aviso {
   background: var(--color-fondo-aviso);
+  border: 1px solid var(--color-borde-aviso);
   color: var(--color-aviso);
 }
 .aviso--exito {
   background: var(--color-fondo-exito);
+  border: 1px solid var(--color-borde-exito);
   color: var(--color-exito);
 }
 /* El "✓" de un aviso de éxito hace un "pop" al aparecer (D-56). Es un
@@ -729,7 +834,7 @@ input:focus-visible + .chip {
   height: 1em;
 }
 /* Las marcas ✓, ✗ y + (crearMarca): del tamaño de la letra y en la línea
-   del texto. "simbolo" y no "marca": .marca ya es el logo de Vigía. */
+   del texto. "simbolo" y no "marca": .marca ya es el logo de Stockpot. */
 .simbolo {
   display: inline-block;
   flex: none;
@@ -963,7 +1068,7 @@ input:focus-visible + .chip {
   color: var(--color-texto-secundario);
   text-align: center;
 }
-/* Entrar: el icono de Vigía encima del lema. Es un fondo (decorativo), así
+/* Entrar: el icono de Stockpot encima del lema. Es un fondo (decorativo), así
    que el lector de pantallas no lo lee. */
 .acceso__lema {
   display: flex;
@@ -1914,6 +2019,14 @@ label.tarjeta-chat__hueco .casilla__entrada {
 ::view-transition-old(navegacion),
 ::view-transition-new(navegacion) {
   animation-duration: var(--duracion-rapida);
+}
+/* Entre pestañas la barra no se funde: la pastilla ya se anima sola (D-59)
+   y la foto vieja encima se vería doble. Se ve solo la barra real. */
+html[data-sentido='pestana']::view-transition-old(navegacion) {
+  display: none;
+}
+html[data-sentido='pestana']::view-transition-new(navegacion) {
+  animation: none;
 }
 /* La vieja se funde deprisa; la nueva entra 24 px desde su lado. */
 ::view-transition-old(root) {

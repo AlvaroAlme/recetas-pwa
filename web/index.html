@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="Controla lo que hay en tu nevera, despensa y congelador, y no tires comida.">
-    <meta name="theme-color" content="#f6f5f0" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#121614" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f6ead2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0b1822" media="(prefers-color-scheme: dark)">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/iconos/icono.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/iconos/apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-title" content="Vigía">
-    <link rel="preload" href="/fuentes/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+    <meta name="apple-mobile-web-app-title" content="Stockpot">
+    <link rel="preload" href="/fuentes/fraunces.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/css/tokens.css">
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/componentes.css">
     <!-- La animación del avatar vivo de Perfil (blobatar, D-52). -->
     <link rel="stylesheet" href="/vendor/blobatar/motion.css">
-    <title>Vigía</title>
+    <title>Stockpot</title>
   </head>
   <body>
     <a class="saltar" href="#contenido">Saltar al contenido</a>
@@ -26,7 +26,7 @@
         <!-- La marca, solo en la barra lateral del escritorio (en el móvil no cabe). -->
         <p class="marca">
           <img class="marca__icono" src="/iconos/icono.svg" alt="" width="40" height="40">
-          <span class="marca__nombre">Vigía</span>
+          <span class="marca__nombre">Stockpot</span>
         </p>
         <ul>
           <li>
@@ -53,20 +53,20 @@
               <span>Semana</span>
             </a>
           </li>
-          <li>
-            <a href="/ayudante">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-8l-4.5 3.5V17H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.6"/></svg>
-              <span>Ayudante</span>
-            </a>
-          </li>
         </ul>
+        <!-- El Ayudante, fuera de la barra: botón redondo a la derecha (D-59).
+             Sigue dentro de .navegacion: el router le pone aria-current igual. -->
+        <a class="navegacion__ayudante" href="/ayudante">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-8l-4.5 3.5V17H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.6"/></svg>
+          <span>Ayudante</span>
+        </a>
       </nav>
 
       <div class="pagina">
         <header class="cabecera">
             <div class="cabecera__interior">
             <div class="cabecera__lado" id="atras-cabecera"></div>
-            <h1 class="cabecera__titulo" id="titulo">Recetas Nevera</h1>
+            <h1 class="cabecera__titulo" id="titulo">Stockpot</h1>
             <div class="cabecera__lado" id="accion-cabecera"></div>
           </div>
         </header>

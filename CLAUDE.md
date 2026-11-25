@@ -1,9 +1,11 @@
-# Vigía (antes Recetas Nevera PWA)
+# Stockpot (antes Vigía y Recetas Nevera PWA)
 
 PWA instalable (iPhone) para controlar lo que hay en la nevera, la despensa,
 el congelador y los tuppers, y no tirar comida, con recetas generadas por IA.
-Nombre comercial "Vigía" desde el 2026-11-07 (D-45); la carpeta y el repo
-siguen como `recetas-nevera-pwa`. Recreación de la app Expo "Recetas Nevera".
+Nombre comercial "Stockpot" desde el 2026-11-25 (D-59, `docs/marca.md`;
+antes "Vigía", D-45); la carpeta y el repo siguen como `recetas-nevera-pwa`
+y los identificadores internos con "vigia" no cambian. Recreación de la app
+Expo "Recetas Nevera".
 Proyecto de portfolio de un estudiante de DAW.
 
 ## Cómo trabajar conmigo (modo mentor)
@@ -52,6 +54,23 @@ Proyecto de portfolio de un estudiante de DAW.
 (2026-11-16), 8 (2026-11-17), 9 (2026-11-18), 10 (2026-11-18), 11
 (2026-11-23) y 12 (2026-11-25). El detalle de cada paso
 está en los commits (`git log`).
+
+**Rebranding a Stockpot (D-59): hecho en la rama `rebrand/stockpot`**
+(2026-11-25, lo escribió Claude a petición del autor; fases 0 a 7 con su
+"ok"). Solo lo visual: paleta arena/marino/azul polvo/vino en `tokens.css`
+(nuevos `--color-tinte`, `--color-sobre-tinte`, `--color-borde-ok/pronto/
+caducado` y `--alto-barra`), Fraunces 700 con `opsz` en `web/fuentes/`
+(Bricolage borrada), avisos de caducidad con borde, chips elegidos con el
+tinte, barra de pestañas flotante (pastilla que crece con
+`grid-template-columns` 0fr→1fr: excepción a D-56; el Ayudante, botón
+redondo aparte; desde 48em sigue la lateral de D-27), textos, correos
+(colores incluidos), `INSTRUCCIONES` del chat (excepción a D-51), manifest,
+`theme-color` e iconos de la olla; `sw.js` en `app-v56`. 268 pruebas; axe 0
+en 27 pantallas, claro y oscuro, a 375 px. **Pendiente:** que el autor
+cambie `CORREO_REMITENTE` en `.env` y en Render ANTES del push; probar en el
+iPhone (reinstalar la app para el icono nuevo, la barra con la zona segura,
+el gesto de atrás y VoiceOver); unir la rama a `main`. Opcional: el borde
+`#d9c7a3` de la barra y el aro del Ayudante en oscuro del lienzo.
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
 ayudante con acciones (tarjetas que se confirman), el cuadrante va por

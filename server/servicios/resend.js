@@ -24,7 +24,7 @@ export const esDireccionDePrueba = (email) => /\.test$/i.test(email.trim());
 /**
  * El cuerpo JSON que pide Resend.
  * @param {import('./mensajesCorreo.js').Correo} correo
- * @param {string} remitente "Vigía <no-responder@…>"
+ * @param {string} remitente "Stockpot <no-responder@…>"
  */
 export function cuerpoResend({ para, asunto, texto, html }, remitente) {
   return { from: remitente, to: [para], subject: asunto, text: texto, html };

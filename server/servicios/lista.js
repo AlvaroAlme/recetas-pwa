@@ -22,7 +22,7 @@ import { ErrorApi } from '../errores.js';
  * @property {string} nombre
  * @property {number | null} cantidad
  * @property {import('../../compartido/constantes.js').Unidad | null} unidad
- * @property {'manual' | 'auto'} origen 'auto' = la añadió Vigía (P-30: "Añadida sola").
+ * @property {'manual' | 'auto'} origen 'auto' = la añadió Stockpot (P-30: "Añadida sola").
  * @property {Date} creadaEn
  * @property {Date | null} compradaEn null = sin tachar.
  */

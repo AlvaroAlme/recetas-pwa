@@ -144,7 +144,7 @@ if (resendApiKey !== null && !resendApiKey.startsWith('re_')) {
 }
 
 /**
- * Quién envía los correos: "Vigía <no-responder@correo.midominio>", con el
+ * Quién envía los correos: "Stockpot <no-responder@correo.midominio>", con el
  * dominio verificado en Resend. Solo hace falta si hay key.
  * @type {string | null}
  */

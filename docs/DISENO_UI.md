@@ -1,11 +1,11 @@
-# Diseño de la interfaz — Vigía (antes Recetas Nevera PWA)
+# Diseño de la interfaz — Stockpot (antes Vigía y Recetas Nevera PWA)
 
 | | |
 |---|---|
 | **Estado** | Fase B **aprobada** el 19 de octubre de 2026 |
 | **Fecha** | 19 de octubre de 2026 |
 | **Basado en** | `docs/COMPONENTES.md`, `constants/tema.ts` y `app/**/*.tsx` de la app Expo; `docs/ARQUITECTURA.md` (decisiones D-01 a D-32) |
-| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad crema y salvia (30-10-2026, sustituida) · D-45 identidad Vigía (07-11-2026) · D-50 cuadrante por fechas · D-51 chat ayudante (registro en `ARQUITECTURA.md` §11) |
+| **Decisiones de diseño** | D-27 navegación · D-28 páginas y `<dialog>` · D-29 tipografía · D-30 iconos · D-31 sugerencias en el servidor · D-32 fecha nativa · D-41 identidad crema y salvia (30-10-2026, sustituida) · D-45 identidad Vigía (07-11-2026, sustituida) · D-59 identidad Stockpot (25-11-2026) · D-50 cuadrante por fechas · D-51 chat ayudante (registro en `ARQUITECTURA.md` §11) |
 
 **[sin verificar]** marca lo que se comprueba en el iPhone en la fase indicada antes de darlo por bueno.
 
@@ -32,120 +32,46 @@
 
 Archivo: `web/css/tokens.css`. Es la **única** fuente de colores, espacios, radios y tamaños. Ningún otro CSS escribe un color a mano (como en `tema.ts`).
 
-### 2.1 Colores: Vigía, papel y verde pino (D-45)
+### 2.1 Colores: Stockpot, arena, marino y azul polvo (D-59)
 
-Identidad de **Vigía** (D-45, sustituye a la base crema y salvia de D-41). Se eligió así:
-- **Base:** un blanco roto neutro, **papel** (`#f6f5f0`), y encima las listas, los campos y los diálogos en **blanco** (`superficie`). En oscuro, un verde casi negro (`#121614`).
-- **Primario:** **verde pino** (`#1d5e47`), más profundo que el salvia: el texto blanco del botón da 7,65:1 y el mismo color sirve como texto.
-- **Acento:** **azafrán**, "la luz del vigía". Solo en gráficos (la pupila del icono); nunca como texto.
-- **Caducidad:** tres estados propios, `ok`, `pronto` y `caducado`, cada uno con su color y su fondo. `peligro`, `aviso` y `exito` son ahora alias de ellos.
-- **Estilo:** plano y sobrio, de herramienta (recomendación de ui-ux-pro-max para apps de inventario y lista de la compra): sin degradados, sombras mínimas.
+Identidad de **Stockpot** (D-59, sustituye a Vigía, D-45; detalle en `docs/marca.md`). Se eligió así:
+- **Base:** **arena** (`#f6ead2`, el caldo) y encima las listas, los campos y los diálogos en `superficie` (`#fffbf3`). En oscuro, un marino casi negro (`#0b1822`) con la letra arena.
+- **Primario:** **marino** (`#0f2f45`): el texto blanco del botón da 13,9:1 y el mismo color sirve como texto. En oscuro, el botón es azul polvo (`#8fb3c9`) con el texto marino.
+- **Tinte** (nuevo): **azul polvo**, solo como **relleno** con `--color-sobre-tinte` encima (el chip elegido y el botón del Ayudante). Como texto sobre la arena da 1,9:1: nunca así.
+- **Acento:** **vino** (`#8c1c13`; coral `#e8877b` en oscuro), solo para la marca y los gráficos, nunca en botones ni texto pequeño.
+- **Caducidad:** los tres estados `ok`, `pronto` y `caducado` con su color, su fondo y, desde D-59, su **borde** (`--color-borde-ok/pronto/caducado`): sobre la arena el fondo solo no basta. `peligro`, `aviso` y `exito` son sus alias. El principal no puede ser verde, ámbar ni rojo, para no confundirse con ellos.
+- **Estilo:** plano y sobrio, de herramienta: sin degradados, sombras mínimas (con el tono marino).
 
-```css
-:root {
-  /* Avisa al navegador de que hay modo claro y oscuro: así los controles
-     nativos (selector de fecha, casillas, barras de scroll) también cambian. */
-  color-scheme: light dark;
-
-  /* ---- Modo claro ---- */
-  --color-fondo: #f6f5f0;             /* papel: blanco roto neutro */
-  --color-superficie: #ffffff;        /* filas y tarjetas encima del papel */
-  --color-superficie-2: #ecebe4;      /* zonas hundidas y fila pulsada */
-  --color-texto: #1c211e;
-  --color-texto-secundario: #424a45;
-  --color-texto-tenue: #59625d;
-  --color-borde: #d9d8d0;             /* separadores: decorativo */
-  --color-borde-control: #7b827d;     /* borde de campos y chips: ≥ 3:1 */
-  --color-placeholder: #646c67;
-  --color-primario: #1d5e47;          /* verde pino: fondo de botones */
-  --color-primario-texto: #1d5e47;    /* el mismo: como texto ya da 7:1 */
-  --color-sobre-primario: #ffffff;    /* texto encima de primario */
-  --color-acento: #a87108;            /* azafrán, "la luz del vigía": solo gráficos (≥ 3:1), nunca texto */
-
-  /* Caducidad: siempre con texto e icono, nunca solo el color. */
-  --color-ok: #1b6a43;
-  --color-fondo-ok: #e0f1e6;
-  --color-pronto: #8a4a00;
-  --color-fondo-pronto: #fcebc9;
-  --color-caducado: #b42318;
-  --color-fondo-caducado: #fde3df;
-
-  /* Los nombres de siempre, ahora apuntan a los estados. */
-  --color-peligro: var(--color-caducado);
-  --color-fondo-peligro: var(--color-fondo-caducado);
-  --color-sobre-peligro: #ffffff;     /* texto encima de peligro (botón Borrar) */
-  --color-aviso: var(--color-pronto);
-  --color-fondo-aviso: var(--color-fondo-pronto);
-  --color-exito: var(--color-ok);
-  --color-fondo-exito: var(--color-fondo-ok);
-
-  /* SOMBRA: muy suave para las filas sobre el papel; más fuerte para lo que flota.
-     Van aquí, ANTES del modo oscuro: si fueran después, pisarían las del oscuro. */
-  --sombra-1: 0 1px 2px rgb(28 33 30 / 0.06), 0 1px 1px rgb(28 33 30 / 0.04);
-  --sombra-flotante: 0 8px 24px rgb(28 33 30 / 0.14);
-  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
-  --color-velo: rgb(18 22 20 / 0.5);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ---- Modo oscuro ---- */
-    --color-fondo: #121614;
-    --color-superficie: #1b201d;
-    --color-superficie-2: #252b27;
-    --color-texto: #eef1ee;
-    --color-texto-secundario: #c9cfcb;
-    --color-texto-tenue: #a3aba6;
-    --color-borde: #313833;
-    --color-borde-control: #7d8680;
-    --color-placeholder: #939b96;
-    --color-primario: #6fcf9f;
-    --color-primario-texto: #7fd6a9;
-    --color-sobre-primario: #06281a;
-    --color-acento: #f2c14e;
-
-    --color-ok: #7fd6a9;
-    --color-fondo-ok: #163222;
-    --color-pronto: #f5b94a;
-    --color-fondo-pronto: #3a2a0c;
-    --color-caducado: #ff8a7a;
-    --color-fondo-caducado: #3f1813;
-    --color-sobre-peligro: #3f1813;   /* en oscuro el rojo es claro: texto oscuro */
-
-    /* En oscuro la sombra no se ve: lo que se separa del fondo es la superficie. */
-    --sombra-1: none;
-    /* Una sombra clara apenas se ve: la hago más intensa. */
-    --sombra-flotante: 0 8px 24px rgb(0 0 0 / 0.5);
-  }
-}
-```
+Los valores están en `web/css/tokens.css` (claro en `:root`, oscuro en `@media (prefers-color-scheme: dark)`); aquí no se repiten para que no se desfasen.
 
 **Contraste medido** (WCAG; texto ≥ 4,5:1, bordes de controles, botón sobre el fondo y gráficos ≥ 3:1):
 
 | Par | Claro | Oscuro |
 |---|---|---|
-| texto / fondo · superficie | 14,96 · 16,33 | 16,04 · 14,52 |
-| texto-secundario / fondo · superficie | 8,37 · 9,14 | 11,53 · 10,44 |
-| texto-tenue / fondo · superficie | 5,78 · 6,31 | 7,76 · 7,03 |
-| placeholder / fondo · superficie | 4,95 · 5,41 | 6,41 · 5,80 |
-| primario-texto / fondo · superficie | 7,01 · 7,65 | 10,51 · 9,52 |
-| sobre-primario / primario (texto del botón) | 7,65 | 8,37 |
-| primario / fondo (botón y anillo de foco) | 7,01 | 9,65 |
-| borde-control / fondo · superficie | 3,61 · 3,94 | 4,86 · 4,40 |
-| acento / fondo (solo gráficos) | 3,82 | 10,88 |
-| ok / fondo-ok · superficie | 5,61 · 6,58 | 7,99 · 9,52 |
-| pronto / fondo-pronto · superficie | 5,84 · 6,86 | 7,86 · 9,38 |
-| caducado / fondo-caducado · superficie | 5,39 · 6,57 | 6,78 · 7,21 |
-| sobre-peligro / peligro (botón Borrar) | 6,57 | 6,78 |
+| texto / fondo · superficie | 12,89 · 14,89 | 15,08 · 13,44 |
+| texto-secundario / fondo · superficie | 7,84 · 9,05 | 11,63 · 10,37 |
+| texto-tenue / fondo · superficie | 5,48 · 6,32 | 8,53 · 7,60 |
+| placeholder / fondo · superficie | 4,71 · 5,44 | 6,89 · 6,14 |
+| primario-texto / fondo · superficie | 11,65 · 13,45 | 8,10 · 7,22 |
+| sobre-primario / primario (texto del botón) | 13,88 | 6,25 |
+| primario / fondo (botón y anillo de foco) | 11,65 | 8,10 |
+| borde-control / fondo · superficie | 3,68 · 4,25 | 5,28 · 4,70 |
+| acento / fondo (solo marca y gráficos) | 7,69 | 7,01 |
+| sobre-tinte / tinte (chip elegido, Ayudante) | 6,25 | 8,34 |
+| ok / fondo-ok · superficie | 5,61 · 6,38 | 7,99 · 9,23 |
+| pronto / fondo-pronto · superficie | 4,77 · 6,65 | 7,86 · 9,09 |
+| caducado / fondo-caducado · superficie | 5,15 · 7,65 | 6,78 · 6,99 |
+| sobre-peligro / peligro (botón Borrar) | 7,90 | 6,78 |
 
 **Reglas:**
-- `--color-primario` es para **rellenos** (botón, chip elegido, pestaña activa); para texto verde se usa `--color-primario-texto` (en claro es el mismo color; en oscuro, un poco más claro).
-- `--color-acento` nunca va en texto: solo en gráficos, donde basta 3:1.
-- `--color-borde` es solo decorativo (separadores). El borde que **delimita** un campo o un chip es `--color-borde-control`.
+- `--color-primario` es para **rellenos** (botón, pestaña activa); para texto marino se usa `--color-primario-texto` (en los dos modos es el mismo color que el primario).
+- `--color-tinte` solo como relleno y siempre con `--color-sobre-tinte` encima.
+- `--color-acento` nunca va en botones ni en texto pequeño: solo en la marca y en gráficos.
+- `--color-borde` es solo decorativo (separadores). El borde que **delimita** un campo o un chip es `--color-borde-control`. Los `--color-borde-ok/pronto/caducado` también son decorativos: la etiqueta ya lleva texto e icono.
 - La caducidad se muestra como **etiqueta** con texto e icono distinto (aspa = caducado o caduca hoy, reloj = de 1 a 3 días, punto = aún le queda), nunca solo con el color.
 - Solo se combinan los pares de la tabla. Si hace falta uno nuevo, se mide antes de usarlo.
 
-En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `media="(prefers-color-scheme: …)"`) con `#f6f5f0` y `#121614`, para el color de la barra del navegador **[sin verificar]** en la PWA de iOS (fase 3).
+En `index.html` también van dos `<meta name="theme-color">` (uno por modo con `media="(prefers-color-scheme: …)"`) con `#f6ead2` y `#0b1822`, para el color de la barra del navegador **[sin verificar]** en la PWA de iOS.
 
 ### 2.2 Espacio, radios, tamaños
 
@@ -184,15 +110,15 @@ Las sombras y el velo del `<dialog>` están en el bloque de colores de §2.1, **
 - **En los demás navegadores**, `html { font-size: 106.25% }` (16 × 1,0625 = 17 px) respeta el tamaño de letra que el usuario haya configurado en su navegador.
 - Con el tamaño por defecto, los tamaños son **exactamente los de `tema.ts`**. Si en el iPhone no fuera 17 px, solo hay que cambiar ese número.
 
-**Dos letras (D-29 ampliada por D-45):**
+**Dos letras (D-29 ampliada por D-59, antes D-45):**
 - **Texto:** la del sistema (`--fuente-texto`), para conservar el tamaño de letra de iOS y no descargar nada.
-- **Títulos y marca** (`h1`–`h3`, el nombre "Vigía", el código de invitación): **Bricolage Grotesque** (`--fuente-titulos`), licencia OFL, un solo archivo variable de 41 KB en `web/fuentes/` (la CSP solo permite `'self'`), con `font-display: swap` y `preload` en `index.html`. Está en `ARCHIVOS` de `sw.js`, así que también funciona sin red.
+- **Títulos y marca** (`h1`–`h3`, el nombre "Stockpot", el código de invitación): **Fraunces** 700 (`--fuente-titulos`), licencia OFL, un solo archivo de 32 KB con el eje de tamaño óptico (`opsz`, solo los caracteres latinos, de Google Fonts) en `web/fuentes/` (la CSP solo permite `'self'`), con `font-display: swap` y `preload` en `index.html`. Está en `ARCHIVOS` de `sw.js`, así que también funciona sin red. Sustituye a Bricolage Grotesque (D-45).
 
 ```css
 @font-face {
-  font-family: "Bricolage Grotesque";
-  src: url("/fuentes/bricolage-grotesque.woff2") format("woff2");
-  font-weight: 200 800;
+  font-family: "Fraunces";
+  src: url("/fuentes/fraunces.woff2") format("woff2");
+  font-weight: 700;
   font-display: swap;
 }
 html {
@@ -212,7 +138,7 @@ html {
 }
 
 :root {
-  --fuente-titulos: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fuente-titulos: "Fraunces", Georgia, "Times New Roman", serif;
   --fuente-texto: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Tamaño (px / 17 rem) · altura de línea. Título y subtítulo, algo mayores
@@ -338,7 +264,7 @@ Reglas:
 - **Pie:** `position: sticky; bottom: 0`, con el borde superior y el `padding-bottom` de la zona segura (§6.4). Dentro: botones en fila con `gap: var(--espacio-s)`, cada uno con `flex: 1`.
 - **Accesibilidad:**
   - `<main>` recibe el foco (`tabindex="-1"`) **al cambiar de pantalla**, para que el lector de pantallas empiece por el contenido nuevo;
-  - el título de la pestaña del navegador (`document.title`) cambia con cada pantalla ("Inventario · Vigía");
+  - el título de la pestaña del navegador (`document.title`) cambia con cada pantalla ("Inventario · Stockpot");
   - un enlace "Saltar al contenido" es el primer elemento enfocable.
 
 #### Texto
@@ -568,7 +494,7 @@ Leyenda: `[ Botón ]` primario · `[ Botón ]°` secundario · `‹texto›` fan
 #### P-01 · Entrar — `/entrar` · Escritorio E-3
 ```
 ┌──────────────────────────────┐
-│        [icono] Vigía          │
+│        [icono] Stockpot       │
 │  Controla lo que tienes,      │
 │  no desperdicies.             │
 │                               │
@@ -784,7 +710,7 @@ La primera vez, antes de "Elegir", se abre la **ventana del aviso de privacidad*
 ```
 - Lista con `crearFila`, **las más recientes primero** (el orden de `GET /api/recetas`). Subtítulo "Para N personas" solo si la receta tiene raciones.
 - "Qué me falta" **no** se calcula en la lista (habría que cruzar cada receta con todo el inventario): está en el detalle (P-11).
-- Vacía: `EstadoVacio` "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte." + `[+ Receta]`.
+- Vacía: `EstadoVacio` "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Stockpot te dirá qué te falta antes de ponerte." + `[+ Receta]`.
 - `[+ Receta]` en el pie → `/receta/nueva` (P-20).
 
 #### P-10 · Sugerencia — sustituida por las tarjetas del Ayudante (D-48, D-51)
@@ -1125,7 +1051,7 @@ Sin barra de pestañas (es una pantalla secundaria). El avatar grande es el **vi
 Lo que era la sección "Tu casa" de Ajustes: nombre de la casa con `‹Cambiar nombre›`, las personas (**cada una con su avatar de 24 px**, "(tú)" y su rol), `[Invitar a alguien]`, `‹Tengo un código›` y `‹Salir de esta casa›`.
 
 #### P-25 · Avisos — `/perfil/avisos` · E-2 (D-52)
-Lo que eran las secciones "Avisos en este dispositivo" y "Aviso del plan" de Ajustes, con sus estados (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Vigía" **[sin verificar]** la ruta exacta, `‹Enviar prueba›`, `‹Desactivar›` y la hora del aviso del plan.
+Lo que eran las secciones "Avisos en este dispositivo" y "Aviso del plan" de Ajustes, con sus estados (§7.6): "Instala la app para recibir avisos", "Activar avisos", "Has bloqueado los avisos: actívalos en Ajustes del iPhone › Notificaciones › Stockpot" **[sin verificar]** la ruta exacta, `‹Enviar prueba›`, `‹Desactivar›` y la hora del aviso del plan.
 
 #### P-26 · Inteligencia artificial — `/perfil/ia` · E-2 (D-52)
 Lo que era la sección de IA de Ajustes: "Tickets: te quedan 9 de 10 hoy." · "Ayudante: te quedan 28 de 30 mensajes hoy." · "Las fotos de los tickets y los mensajes del Ayudante se envían a Anthropic para leerlos." y `‹Privacidad›`.
@@ -1161,10 +1087,10 @@ Pública. Si en Entrar ya habías escrito tu email, sale puesto (se pasa en memo
 └──────────────────────────────┘
 ```
 Pública; la abre el enlace del correo. El token se lee de `location.hash` y se borra de la barra de direcciones (`history.replaceState`) al llegar. `autocomplete="new-password"`. Al guardar: se cierran todas las sesiones y va a **Entrar**, con el email puesto y "✓ Contraseña cambiada. Entra con tu contraseña nueva. Hemos cerrado la sesión en todos tus dispositivos." (decisión del autor en D-53: no se entra directamente). Enlace que no sirve (usado, caducado o mal copiado): "Este enlace ya no sirve: puede que ya lo hayas usado o que hayan pasado más de 30 minutos." + `[Pedir otro enlace]` (→ `/recuperar`). El token se guarda en memoria por si la pantalla se vuelve a pintar (al volver la conexión).
-- **En el iPhone, el enlace del correo se abre en Safari, no en la app instalada** (iOS no deja abrir una app web desde un enlace), y son sesiones distintas. Por eso, en Safari de iOS y fuera de la app, sale en tono tenue: "Si usas Vigía instalada en la pantalla de inicio, entra también en ella con tu contraseña nueva."
+- **En el iPhone, el enlace del correo se abre en Safari, no en la app instalada** (iOS no deja abrir una app web desde un enlace), y son sesiones distintas. Por eso, en Safari de iOS y fuera de la app, sale en tono tenue: "Si usas Stockpot instalada en la pantalla de inicio, entra también en ella con tu contraseña nueva."
 
 #### P-29 · Confirmar email — `/confirmar-email#t=…` · E-3 (D-53)
-Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-email` con el token (y lo borra de la barra de direcciones). "Confirmando…" → "✓ Tu email ahora es nuevo@….", con `[Ir a Vigía]`; o "Este enlace ya no sirve. Vuelve a pedir el cambio desde Perfil › Datos personales." / "Ese email ya lo usa otra cuenta."
+Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-email` con el token (y lo borra de la barra de direcciones). "Confirmando…" → "✓ Tu email ahora es nuevo@….", con `[Ir a Stockpot]`; o "Este enlace ya no sirve. Vuelve a pedir el cambio desde Perfil › Datos personales." / "Ese email ya lo usa otra cuenta."
 
 #### P-30 · Lista de la compra — `/lista` · E-1 (D-54)
 ```
@@ -1193,7 +1119,7 @@ Pública; la abre el enlace del correo. Al cargar, `POST /api/auth/confirmar-ema
 - **Orden:** sin tachar, las más nuevas arriba; **Comprados (N)** debajo, con `text-decoration: line-through` y tono tenue, los últimos tachados arriba. Al tachar, la fila sale (`salir`) y entra en Comprados (`entrar`), D-56. Las que se tacharon solas porque el producto entró en el inventario se ven igual.
 - `[Borrar comprados]` (secundario, ajustado) solo si hay alguna; sin confirmar (son cosas ya compradas). Las de más de 7 días desaparecen solas (D-54).
 - **Compartida:** la lista es del hogar. Se recarga al entrar en la pestaña y al volver a la app (`visibilitychange`); no hay tiempo real.
-- **Vacía:** `EstadoVacio` "La lista está vacía" / "Apunta lo que te falta. Cuando algo se esté acabando en casa, Vigía lo añadirá solo." (el formulario de arriba sigue visible).
+- **Vacía:** `EstadoVacio` "La lista está vacía" / "Apunta lo que te falta. Cuando algo se esté acabando en casa, Stockpot lo añadirá solo." (el formulario de arriba sigue visible).
 - **Sin red:** se ve la última copia (SW, §8.1) con la franja de "datos de las…"; añadir y tachar dan el error de siempre.
 
 #### P-17 · Invitar / unirse — `/hogar/invitar` · `/hogar/unirse` · E-2
@@ -1225,7 +1151,7 @@ Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los ti
 ## 5. Navegación y rutas
 
 ### 5.1 Pestañas
-**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 12, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27).
+**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 12, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27). **Desde D-59:** en el móvil, una barra flotante con Inventario, Lista, Recetas y Semana (la activa, una pastilla marino que crece y muestra su nombre; las demás, solo el icono) y el Ayudante aparte, como botón redondo de 60 px a la derecha.
 
 ### 5.2 Rutas (History API: URLs normales, sin `#`)
 
@@ -1377,7 +1303,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 2. **Paso 1, este eres tú (D-56):** tu avatar nace (una ruleta de avatares que se para en el tuyo) · `‹Otro avatar›`.
 3. **Paso 2, tu casa:** nombre editable · `‹Tengo un código›` → `/hogar/unirse` · `‹Invitar más tarde›`.
 4. **Paso 3, instalar** (solo si **no** está en modo `standalone`):
-   - **iPhone/iPad (Safari):** "Para recibir avisos en el iPhone tienes que añadir la app a la pantalla de inicio: 1. Pulsa Compartir [icono]. 2. Elige «Añadir a pantalla de inicio». 3. Abre Vigía desde el icono nuevo." **[sin verificar]** los nombres exactos de los menús en el iOS actual (fase 3). Safari no tiene un botón de instalar que se pueda programar.
+   - **iPhone/iPad (Safari):** "Para recibir avisos en el iPhone tienes que añadir la app a la pantalla de inicio: 1. Pulsa Compartir [icono]. 2. Elige «Añadir a pantalla de inicio». 3. Abre Stockpot desde el icono nuevo." **[sin verificar]** los nombres exactos de los menús en el iOS actual (fase 3). Safari no tiene un botón de instalar que se pueda programar.
    - **Chrome/Edge (PC, Android):** botón `[Instalar la app]` si llega el evento `beforeinstallprompt` (**[sin verificar]**, fase 3). Si no, se explica que se puede instalar desde el menú del navegador.
    - **Ya instalada:** se salta el paso.
 5. **Paso 4, avisos** (solo dentro de la PWA instalada o en navegadores con `PushManager`):
@@ -1414,7 +1340,7 @@ Comunes a todas:
 | Nuevo tupper | — | — | "Escribe qué hay en el tupper (ej. Cocido)." · "Debe ser un número entero entre 1 y 365." | "Guardando…" → "No se ha podido guardar el tupper. Inténtalo de nuevo." | Formulario + vista previa |
 | Tupper | "Cargando…" | "Este tupper ya no existe" + `[Volver]°` | "No se ha podido cargar el tupper." + `[Reintentar]` | "Guardando…" → "No se ha podido marcar como consumido. Inténtalo de nuevo." | Ficha |
 | Ticket | Aviso de privacidad / "Leyendo el ticket…" | Todas eliminadas: "No queda ningún producto" + `[Escanear otro ticket]°` | Mensajes de `ticket.ts` y `claude.ts` + `[Reintentar con el mismo ticket]` si es reintentable · "Sin permiso para usar la cámara…" **[sin verificar]** cómo se detecta en la web (fase 5) | "Guardando…" → "No se ha guardado nada…" + `[Reintentar]` | Lista de revisión |
-| Recetas | "Cargando…" | "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte." + `[+ Receta]` | "No se han podido cargar las recetas." + `[Reintentar]` | — | Lista de recetas |
+| Recetas | "Cargando…" | "Aún no tienes recetas" / "Escribe las que cocinas a menudo y Stockpot te dirá qué te falta antes de ponerte." + `[+ Receta]` | "No se han podido cargar las recetas." + `[Reintentar]` | — | Lista de recetas |
 | Receta | "Cargando…" | "Esta receta ya no existe" + `[Volver]°` | "No se ha podido abrir la receta." + `[Reintentar]` | Borrar: confirmación → "No se ha podido borrar la receta." | `VistaReceta` |
 | Nueva / editar receta | Al editar: "Cargando…" | — | Por campo (`validarReceta()`) · "No se ha guardado. Ha fallado el guardado de la receta. Inténtalo de nuevo." | "Guardando…" | `FormularioReceta` |
 | La he cocinado | "Preparando el descuento…" | "Esta receta ya no está disponible" + `[Volver]°` | Errores por fila · 409 "Alguien de tu casa ha cambiado el inventario…" | "Actualizando…" → "No se ha descontado nada…" + `[Reintentar]` | Filas |

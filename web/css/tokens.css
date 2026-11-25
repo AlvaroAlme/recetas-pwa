@@ -1,71 +1,92 @@
 /*
  * Tokens: los colores, espacios y tamaños de toda la app. Identidad de
- * Vigía (D-45, sustituye a D-41): fondo papel, verde pino y azafrán. Ningún
- * otro CSS escribe un color o un tamaño a mano: usa estas variables.
+ * Stockpot (D-59, sustituye a D-45): arena, marino, azul polvo y vino
+ * (docs/marca.md). Ningún otro CSS escribe un color o un tamaño a mano:
+ * usa estas variables.
  */
 
-/* ============ Colores (D-45; contraste medido en los dos modos) ============ */
+/* ============ Colores (D-59; contraste medido en los dos modos) ============ */
 :root {
   /* Avisa al navegador de que hay modo claro y oscuro: así los controles
      nativos (selector de fecha, casillas, barras de scroll) también cambian. */
   color-scheme: light dark;
 
   /* ---- Modo claro ---- */
-  --color-fondo: #f6f5f0;             /* papel: blanco roto neutro */
-  --color-superficie: #ffffff;        /* filas y tarjetas encima del papel */
-  --color-superficie-2: #ecebe4;      /* zonas hundidas y fila pulsada */
-  --color-texto: #1c211e;
-  --color-texto-secundario: #424a45;
-  --color-texto-tenue: #59625d;
-  --color-borde: #d9d8d0;             /* separadores: decorativo */
-  --color-borde-control: #7b827d;     /* borde de campos y chips: ≥ 3:1 */
-  --color-placeholder: #646c67;
-  --color-primario: #1d5e47;          /* verde pino: fondo de botones */
-  --color-primario-texto: #1d5e47;    /* el mismo: como texto ya da 7:1 */
-  --color-sobre-primario: #ffffff;    /* texto encima de primario */
-  --color-acento: #a87108;            /* azafrán, "la luz del vigía": solo gráficos (≥ 3:1), nunca texto */
+  --color-fondo: #f6ead2;             /* arena: el caldo */
+  --color-superficie: #fffbf3;        /* filas y tarjetas encima de la arena */
+  --color-superficie-2: #ede0c4;      /* zonas hundidas y fila pulsada */
+  --color-texto: #1b2630;             /* 12,9:1 sobre la arena */
+  --color-texto-secundario: #3d4852;
+  --color-texto-tenue: #545f69;       /* 5,5:1 */
+  --color-borde: #e3d3b2;             /* separadores: decorativo */
+  --color-borde-control: #6f7a83;     /* borde de campos y chips: 3,7:1 (≥ 3:1) */
+  --color-placeholder: #5e6972;
+  --color-primario: #0f2f45;          /* marino: fondo de botones */
+  --color-primario-texto: #0f2f45;    /* el mismo: como texto ya da 11,6:1 */
+  --color-sobre-primario: #ffffff;    /* texto encima de primario: 13,9:1 */
+  --color-acento: #8c1c13;            /* vino: solo marca y gráficos, nunca botones ni texto pequeño */
+  /* TINTE: el azul polvo, solo como relleno (chips y pestañas activas) y
+     siempre con el texto de sobre-tinte encima (6,3:1). Como texto sobre la
+     arena da 1,9:1: no se usa nunca así. */
+  --color-tinte: #8fb3c9;
+  --color-sobre-tinte: #0f2f45;
 
-  /* Caducidad: siempre con texto e icono, nunca solo el color. */
+  /* Caducidad: siempre con texto e icono, nunca solo el color. Sobre la
+     arena el fondo solo no basta: sus avisos llevan borde de su color. */
   --color-ok: #1b6a43;
   --color-fondo-ok: #e0f1e6;
   --color-pronto: #8a4a00;
-  --color-fondo-pronto: #fcebc9;
-  --color-caducado: #b42318;
-  --color-fondo-caducado: #fde3df;
+  --color-fondo-pronto: #f5d38f;      /* el de antes (#fcebc9) daba 1:1 con la arena */
+  --color-caducado: #a3121b;
+  --color-fondo-caducado: #f5c6bd;
+  /* Borde de cada estado: un tono entre el texto y el fondo (los del lienzo).
+     Es decorativo (la etiqueta ya lleva texto e icono), así que no necesita
+     3:1; solo separa la etiqueta de la arena. */
+  --color-borde-ok: #8cc4a2;
+  --color-borde-pronto: #c9952e;
+  --color-borde-caducado: #d9796c;
 
   /* Los nombres de siempre, ahora apuntan a los estados. */
   --color-peligro: var(--color-caducado);
   --color-fondo-peligro: var(--color-fondo-caducado);
+  --color-borde-peligro: var(--color-borde-caducado);
   --color-sobre-peligro: #ffffff;     /* texto encima de peligro (botón Borrar) */
   --color-aviso: var(--color-pronto);
   --color-fondo-aviso: var(--color-fondo-pronto);
+  --color-borde-aviso: var(--color-borde-pronto);
   --color-exito: var(--color-ok);
   --color-fondo-exito: var(--color-fondo-ok);
+  --color-borde-exito: var(--color-borde-ok);
 
-  /* SOMBRA: muy suave para las filas sobre el papel; más fuerte para lo que flota.
+  /* SOMBRA: muy suave para las filas sobre la arena; más fuerte para lo que flota.
+     Llevan el tono del texto (marino), no un gris, para no ensuciar la arena.
      Van aquí, ANTES del modo oscuro: si fueran después, pisarían las del oscuro. */
-  --sombra-1: 0 1px 2px rgb(28 33 30 / 0.06), 0 1px 1px rgb(28 33 30 / 0.04);
-  --sombra-flotante: 0 8px 24px rgb(28 33 30 / 0.14);
-  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop). */
-  --color-velo: rgb(18 22 20 / 0.5);
+  --sombra-1: 0 1px 2px rgb(27 38 48 / 0.06), 0 1px 1px rgb(27 38 48 / 0.04);
+  --sombra-flotante: 0 8px 24px rgb(27 38 48 / 0.14);
+  /* VELO: lo que oscurece la página detrás de un <dialog> (::backdrop),
+     con el tono del fondo oscuro. */
+  --color-velo: rgb(11 24 34 / 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     /* ---- Modo oscuro ---- */
-    --color-fondo: #121614;
-    --color-superficie: #1b201d;
-    --color-superficie-2: #252b27;
-    --color-texto: #eef1ee;
-    --color-texto-secundario: #c9cfcb;
-    --color-texto-tenue: #a3aba6;
-    --color-borde: #313833;
-    --color-borde-control: #7d8680;
-    --color-placeholder: #939b96;
-    --color-primario: #6fcf9f;
-    --color-primario-texto: #7fd6a9;
-    --color-sobre-primario: #06281a;
-    --color-acento: #f2c14e;
+    --color-fondo: #0b1822;
+    --color-superficie: #132330;
+    --color-superficie-2: #1c2f3e;
+    --color-texto: #f6ead2;             /* 15,1:1: la arena como letra */
+    --color-texto-secundario: #d8cfbe;
+    --color-texto-tenue: #aab4bc;       /* 8,5:1 */
+    --color-borde: #263a49;
+    --color-borde-control: #7f8d98;     /* 5,3:1 */
+    --color-placeholder: #96a2ab;
+    --color-primario: #8fb3c9;          /* en oscuro el botón es azul polvo... */
+    --color-primario-texto: #8fb3c9;
+    --color-sobre-primario: #0f2f45;    /* ...con el texto marino: 6,3:1 */
+    --color-acento: #e8877b;            /* coral, el pomo del icono */
+    /* En oscuro el tinte es un azul hondo con la letra arena. */
+    --color-tinte: #24465e;
+    --color-sobre-tinte: #f6ead2;
 
     --color-ok: #7fd6a9;
     --color-fondo-ok: #163222;
@@ -73,6 +94,9 @@
     --color-fondo-pronto: #3a2a0c;
     --color-caducado: #ff8a7a;
     --color-fondo-caducado: #3f1813;
+    --color-borde-ok: #2f6b49;
+    --color-borde-pronto: #7a5a1c;
+    --color-borde-caducado: #7a2e25;
     --color-sobre-peligro: #3f1813;   /* en oscuro el rojo es claro: texto oscuro */
 
     /* En oscuro la sombra no se ve: lo que se separa del fondo es la superficie. */
@@ -102,14 +126,17 @@
   --tactil: 44px;          /* mínimo de cualquier zona pulsable */
   --ancho-maximo: 640px;   /* el contenido no se estira */
   --ancho-barra-lateral: 88px;
-  --alto-navegacion: 64px;  /* barra inferior del móvil, sin la zona segura */
+  --alto-barra: 60px;       /* la barra flotante de pestañas y el botón del Ayudante (D-59) */
+  /* Lo que ocupa la navegación del móvil: la barra y su margen de arriba
+     (el de abajo lo suma .app, con la zona segura del iPhone). */
+  --alto-navegacion: calc(var(--alto-barra) + var(--espacio-s));
 }
 
 /* ============ Letra: px / 17 en rem ============ */
 :root {
-  /* Títulos y marca con Bricolage Grotesque (en /fuentes, por la CSP);
-     el texto sigue con la del sistema (D-29). */
-  --fuente-titulos: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Títulos y marca con Fraunces (D-59, en /fuentes, por la CSP); el texto
+     sigue con la del sistema (D-29). Si no carga, otra serif, no una de palo. */
+  --fuente-titulos: "Fraunces", Georgia, "Times New Roman", serif;
   --fuente-texto: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* 20 y 18 px (antes 26 y 19, D-55): con 26 px, "Ayudante" y su botón no

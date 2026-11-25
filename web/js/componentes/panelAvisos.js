@@ -44,19 +44,19 @@ export function crearPanelAvisos() {
       panel.replaceChildren(el('p', {}, 'Este navegador no puede recibir avisos.'));
     } else if (estado === 'instalar') {
       panel.replaceChildren(
-        el('p', {}, 'Para recibir avisos en el iPhone, añade Vigía a la pantalla de inicio:'),
+        el('p', {}, 'Para recibir avisos en el iPhone, añade Stockpot a la pantalla de inicio:'),
         el(
           'ol',
           { class: 'pasos' },
           el('li', {}, 'Pulsa el botón Compartir de Safari.'),
           el('li', {}, 'Elige «Añadir a pantalla de inicio».'),
-          el('li', {}, 'Abre Vigía desde el icono nuevo y vuelve aquí.')
+          el('li', {}, 'Abre Stockpot desde el icono nuevo y vuelve aquí.')
         )
       );
     } else if (estado === 'bloqueados') {
       panel.replaceChildren(
-        el('p', {}, 'Has bloqueado los avisos de Vigía en este dispositivo.'),
-        el('p', { class: 'tono--tenue' }, 'En el iPhone, actívalos en Ajustes › Notificaciones › Vigía. En el ordenador, en los permisos del sitio de tu navegador.')
+        el('p', {}, 'Has bloqueado los avisos de Stockpot en este dispositivo.'),
+        el('p', { class: 'tono--tenue' }, 'En el iPhone, actívalos en Ajustes › Notificaciones › Stockpot. En el ordenador, en los permisos del sitio de tu navegador.')
       );
     } else if (estado === 'desactivados') {
       panel.replaceChildren(

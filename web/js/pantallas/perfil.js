@@ -76,13 +76,13 @@ export function pantallaPerfil() {
 function crearVersion() {
   const texto = el('p', { class: 'tono--tenue perfil__version' });
   const movimiento = sinMovimiento() ? 'Reducir movimiento: activado' : 'Animaciones: activadas';
-  texto.textContent = `Vigía · ${movimiento}`;
+  texto.textContent = `Stockpot · ${movimiento}`;
   if ('caches' in window) {
     caches
       .keys()
       .then((nombres) => {
         const version = nombres.find((nombre) => /^app-v\d+$/.test(nombre));
-        if (version) texto.textContent = `Vigía ${version} · ${movimiento}`;
+        if (version) texto.textContent = `Stockpot ${version} · ${movimiento}`;
       })
       .catch(() => {});
   }

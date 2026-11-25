@@ -4,7 +4,7 @@
  * autocompletado de D-42 y, si quiero, cuánto); debajo, lo que falta por
  * comprar y, al final, lo comprado (tachado) con "Borrar comprados".
  *
- * Vigía también apunta y tacha solo (paso 4 de la fase 12): por eso la
+ * Stockpot también apunta y tacha solo (paso 4 de la fase 12): por eso la
  * lista se recarga al volver a la app, que alguien de casa puede haber
  * gastado o comprado algo mientras tanto. No hay tiempo real.
  */
@@ -186,7 +186,7 @@ export function pantallaLista() {
       zona.replaceChildren(
         crearVacio({
           titulo: 'La lista está vacía',
-          descripcion: 'Apunta lo que te falta. Cuando algo se esté acabando en casa, Vigía lo añadirá solo.',
+          descripcion: 'Apunta lo que te falta. Cuando algo se esté acabando en casa, Stockpot lo añadirá solo.',
         })
       );
       return;

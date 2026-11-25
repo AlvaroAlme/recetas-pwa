@@ -28,7 +28,7 @@ export function pantallaPrivacidad() {
     contenido: el(
       'article',
       { class: 'privacidad' },
-      el('p', {}, 'Vigía es un proyecto personal. Aquí te cuento qué datos guarda, dónde y para qué.'),
+      el('p', {}, 'Stockpot es un proyecto personal. Aquí te cuento qué datos guarda, dónde y para qué.'),
       el('p', { class: 'tono--tenue' }, 'Última actualización: 18 de noviembre de 2026.'),
 
       apartado(

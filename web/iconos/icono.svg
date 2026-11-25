@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Vigía: fondo verde pino a sangre (iOS y Android redondean las esquinas). -->
-  <rect width="512" height="512" fill="#1d5e47"/>
-  <!-- Ojo y hoja a la vez: la almendra crema, con su rabito. Todo dentro del
-       80 % central, la zona segura de los iconos "maskable". -->
-  <path d="M96 256 Q256 76 416 256 Q256 436 96 256 Z" fill="#f6f5f0"/>
-  <path d="M408 250 L440 222" stroke="#f6f5f0" stroke-width="22" stroke-linecap="round"/>
-  <!-- La pupila: la luz del vigía, en azafrán. -->
-  <circle cx="256" cy="256" r="58" fill="#f2c14e"/>
-  <circle cx="256" cy="256" r="24" fill="#1d5e47"/>
+  <!-- Stockpot: fondo marino tinta a sangre (iOS y Android redondean las esquinas). -->
+  <rect width="512" height="512" fill="#0f2f45"/>
+  <!-- El vapor: tres hilos arena. Todo dentro del 80 % central (zona segura "maskable"). -->
+  <path d="M196 150c-16-22 16-38 0-60M256 150c-16-22 16-38 0-60M316 150c-16-22 16-38 0-60" stroke="#f6ead2" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <!-- La tapa, con su pomo coral. -->
+  <circle cx="256" cy="198" r="16" fill="#e8877b"/>
+  <path d="M128 222h256" stroke="#f6ead2" stroke-width="22" stroke-linecap="round"/>
+  <!-- La olla, sus asas y la franja azul polvo. -->
+  <path d="M146 246h220v90a64 64 0 0 1-64 64h-92a64 64 0 0 1-64-64z" fill="#f6ead2"/>
+  <path d="M146 272h-32M366 272h32" stroke="#f6ead2" stroke-width="22" stroke-linecap="round"/>
+  <rect x="146" y="290" width="220" height="22" fill="#8fb3c9"/>
 </svg>

@@ -283,7 +283,7 @@ async function pintar({ esPrimera = false, volviendo = false, sentido = null } =
  */
 function ponerVista(ruta, vista, { esPrimera, volviendo }) {
   $('titulo').textContent = vista.titulo;
-  document.title = `${vista.titulo} · Vigía`;
+  document.title = `${vista.titulo} · Stockpot`;
   $('pantalla').replaceChildren(vista.contenido);
   $('accion-cabecera').replaceChildren(
     ...(vista.accion ? [vista.accion] : []),
@@ -380,7 +380,7 @@ export function repintar() {
  */
 export function ponerTitulo(titulo) {
   $('titulo').textContent = titulo;
-  document.title = `${titulo} · Vigía`;
+  document.title = `${titulo} · Stockpot`;
 }
 
 /**

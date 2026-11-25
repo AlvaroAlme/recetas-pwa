@@ -45,7 +45,7 @@ export function pantallaRecetas() {
   function crearEstadoVacio() {
     return crearVacio({
       titulo: 'Aún no tienes recetas',
-      descripcion: 'Escribe las que cocinas a menudo y Vigía te dirá qué te falta antes de ponerte.',
+      descripcion: 'Escribe las que cocinas a menudo y Stockpot te dirá qué te falta antes de ponerte.',
       accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: '/receta/nueva' }, conMarca('+ Receta')),
     });
   }

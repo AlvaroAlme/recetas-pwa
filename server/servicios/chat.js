@@ -41,7 +41,7 @@ const TIEMPO_MAXIMO_MS = 60_000;
  * y el razonamiento guardado (D-51). Si las edito, las conversaciones que
  * ya existen siguen funcionando, pero su primera respuesta sale sin caché.
  */
-export const INSTRUCCIONES = `Eres el ayudante de cocina de Vigía, una app para saber qué hay en la nevera, la despensa y el congelador de una casa, no tirar comida y planificar las comidas y cenas de la semana.
+export const INSTRUCCIONES = `Eres el ayudante de cocina de Stockpot, una app para saber qué hay en la nevera, la despensa y el congelador de una casa, no tirar comida y planificar las comidas y cenas de la semana.
 
 Qué haces:
 - Respondes dudas de cocina: cómo se hace algo, cuánto dura en la nevera, cómo sustituir un ingrediente, cómo conservar algo.

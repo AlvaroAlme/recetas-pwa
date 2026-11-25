@@ -7,13 +7,14 @@
   box-sizing: border-box;
 }
 
-/* La letra de los títulos, servida desde la propia app (la CSP solo deja 'self').
-   Un solo archivo variable: vale para cualquier peso entre 200 y 800.
-   swap: mientras carga se ve la del sistema, nunca un hueco en blanco. */
+/* La letra de los títulos, Fraunces (D-59), servida desde la propia app (la
+   CSP solo deja 'self'). Un solo archivo con el peso 700 y el eje de tamaño
+   óptico: el navegador elige solo los trazos para cada tamaño de letra.
+   swap: mientras carga se ve la de respaldo, nunca un hueco en blanco. */
 @font-face {
-  font-family: "Bricolage Grotesque";
-  src: url("/fuentes/bricolage-grotesque.woff2") format("woff2");
-  font-weight: 200 800;
+  font-family: "Fraunces";
+  src: url("/fuentes/fraunces.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }

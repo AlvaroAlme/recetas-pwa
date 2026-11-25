@@ -54,7 +54,7 @@ export function pantallaConfirmarEmail() {
       recordarEmail(email);
       zona.replaceChildren(
         crearAviso({ tipo: 'exito', mensaje: `✓ Tu email ahora es ${email}. Desde ahora entras con él.` }),
-        el('a', { class: 'boton boton--primario', href: '/' }, 'Ir a Vigía')
+        el('a', { class: 'boton boton--primario', href: '/' }, 'Ir a Stockpot')
       );
     } catch (error) {
       estado.resultado = null;

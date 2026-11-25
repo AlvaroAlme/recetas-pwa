@@ -7,7 +7,7 @@
  * el navegador ve que este archivo es distinto, instala el nuevo y borra la
  * caché vieja.
  */
-const VERSION = 'app-v55';
+const VERSION = 'app-v56';
 
 /** La copia de las respuestas de la API. Mismo nombre que en api.js. */
 const CACHE_API = 'api-v1';
@@ -100,7 +100,7 @@ const ARCHIVOS = [
   '/iconos/icono-192.png',
   '/iconos/icono-512.png',
   '/iconos/apple-touch-icon.png',
-  '/fuentes/bricolage-grotesque.woff2',
+  '/fuentes/fraunces.woff2',
   // blobatar (D-52): app.js los sirve desde node_modules.
   '/vendor/blobatar/index.js',
   '/vendor/blobatar/internal.js',
@@ -151,7 +151,7 @@ self.addEventListener('push', (evento) => {
     // No es JSON: enseño un aviso genérico (userVisibleOnly obliga a enseñar algo).
   }
   evento.waitUntil(
-    self.registration.showNotification(aviso.title || 'Vigía', {
+    self.registration.showNotification(aviso.title || 'Stockpot', {
       body: aviso.body,
       tag: aviso.tag,
       lang: aviso.lang,

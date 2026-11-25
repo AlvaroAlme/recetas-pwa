@@ -134,7 +134,7 @@ export async function enviarAlHogar(hogarId, mensaje) {
 export async function enviarPrueba(usuarioId) {
   const mensaje = crearMensaje({
     titulo: 'Aviso de prueba',
-    cuerpo: 'Si ves esto, los avisos de Vigía funcionan en este dispositivo.',
+    cuerpo: 'Si ves esto, los avisos de Stockpot funcionan en este dispositivo.',
     ruta: '/perfil/avisos',
     etiqueta: 'prueba',
   });

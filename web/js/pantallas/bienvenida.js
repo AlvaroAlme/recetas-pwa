@@ -236,7 +236,7 @@ function pasoCasa() {
         'section',
         { class: 'tarjeta', 'aria-labelledby': 'titulo-convives' },
         el('h3', { class: 'texto--fuerte', id: 'titulo-convives' }, '¿Vives con alguien?'),
-        el('p', {}, 'Si ya usa Vigía, pídele un código para unirte a su casa. Si no, puedes invitarle más tarde desde Perfil › Hogar.'),
+        el('p', {}, 'Si ya usa Stockpot, pídele un código para unirte a su casa. Si no, puedes invitarle más tarde desde Perfil › Hogar.'),
         el('a', { class: 'boton boton--secundario boton--ajustado', href: '/hogar/unirse' }, 'Tengo un código')
       )
     );
@@ -264,7 +264,7 @@ function pasoInstalar() {
       { class: 'pasos' },
       el('li', {}, 'Pulsa el botón Compartir de Safari.'),
       el('li', {}, 'Elige «Añadir a pantalla de inicio».'),
-      el('li', {}, 'Abre Vigía desde el icono nuevo.')
+      el('li', {}, 'Abre Stockpot desde el icono nuevo.')
     );
   } else if (puedeInstalar()) {
     const boton = el('button', { class: 'boton boton--secundario boton--ajustado', type: 'button' }, 'Instalar la app');
@@ -274,13 +274,13 @@ function pasoInstalar() {
       boton.remove();
       resultado.replaceChildren(
         aceptada
-          ? crearAviso({ tipo: 'exito', mensaje: '✓ Vigía instalada. Ábrela desde su icono la próxima vez.' })
+          ? crearAviso({ tipo: 'exito', mensaje: '✓ Stockpot ya está instalada. Ábrela desde su icono la próxima vez.' })
           : crearAviso({ tipo: 'aviso', mensaje: 'No pasa nada: puedes instalarla más tarde desde el menú del navegador.' })
       );
     });
     comoInstalar = boton;
   } else {
-    comoInstalar = el('p', {}, 'Puedes instalarla desde el menú del navegador: busca «Instalar Vigía» o «Añadir a pantalla de inicio».');
+    comoInstalar = el('p', {}, 'Puedes instalarla desde el menú del navegador: busca «Instalar Stockpot» o «Añadir a pantalla de inicio».');
   }
 
   return {
@@ -290,7 +290,7 @@ function pasoInstalar() {
       'div',
       { class: 'bienvenida' },
       crearEncabezado(3, 'Instala la app'),
-      el('p', {}, 'Así Vigía se abre como una app, sin la barra del navegador. En el iPhone, además, es la única forma de recibir avisos.'),
+      el('p', {}, 'Así Stockpot se abre como una app, sin la barra del navegador. En el iPhone, además, es la única forma de recibir avisos.'),
       comoInstalar,
       resultado
     ),

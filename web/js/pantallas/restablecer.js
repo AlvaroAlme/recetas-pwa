@@ -99,7 +99,7 @@ export function pantallaRestablecer() {
       // instalada (iOS no deja abrir una app web desde un enlace): son dos
       // sesiones distintas, así que en la app hay que volver a entrar.
       ...(esIos() && !estaInstalada()
-        ? [el('p', { class: 'tono--tenue' }, 'Si usas Vigía instalada en la pantalla de inicio, entra también en ella con tu contraseña nueva.')]
+        ? [el('p', { class: 'tono--tenue' }, 'Si usas Stockpot instalada en la pantalla de inicio, entra también en ella con tu contraseña nueva.')]
         : []),
       el('form', { class: 'formulario', novalidate: true, onsubmit: alEnviar }, aviso, contrasena, boton)
     );
