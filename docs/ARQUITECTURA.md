@@ -46,8 +46,7 @@ Se mantienen las mismas reglas, constantes y prompts que en la app Expo.
 - Analíticas, temas personalizados y cualquier cosa que no esté en la app Expo.
   Excepciones que decidió el autor el 2026-11-18: el perfil con avatar (D-52),
   las animaciones (D-56) y la lista de la compra (D-54).
-- Las ideas de la versión 2 (consejos de cocina, productos de temporada):
-  apuntadas en §10, "Versión 2".
+- La versión 2: su plan de fases (14 a 20) está en §10, "Versión 2" (D-60).
 
 ### 1.3 Diferencias de comportamiento respecto a la app Expo
 
@@ -1256,16 +1255,234 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - el README permite levantar el proyecto desde cero (Node, `.env`, Neon, migraciones, `npm.cmd run dev` y las pruebas);
 - los pendientes de fases anteriores están probados o tienen fecha.
 
-### Versión 2 — Ideas apuntadas (después del despliegue)
-Ideas del autor (2026-11-06) para una actualización **cuando la versión 1
-esté terminada y desplegada**. Todavía no son decisiones: cada una se
-diseña y se decide (D-xx) cuando le toque.
+### Versión 2 — Plan de fases (D-60)
+El autor eligió el 2026-11-25 qué entra y en qué orden: entran **todas** las
+ideas (las de esta sección y las de la fila "Ideas v2" del lienzo de
+prototipos), con **lo que no usa IA primero**, como en D-48.
 
-| # | Idea | Qué es | Preguntas que habrá que decidir |
+| # | Idea | Qué es | Fase |
 |---|---|---|---|
-| V2-01 | ~~Consejos y trucos de cocina~~ | **Pasa a la versión 1** (D-48): las dudas de cocina las resuelve el chat ayudante de la fase 8 | — |
-| V2-02 | **Productos de temporada** | Al cambiar de estación o al acercarse una fiesta, recomendar productos de temporada: fruta y verdura (fresas y melocotón en verano), pescado (también va por temporadas) y dulces de fiesta (turrón y panettone en Navidad) | ¿Lista fija revisada en `compartido/` (gratis y sin red) o la da la IA? ¿De dónde salen los datos de temporada (fuente fiable, España)? Fiestas con fecha que cambia cada año (Semana Santa). ¿Dónde se ven (aviso en el inventario, pestaña propia, en la lista de la compra)? ¿Se tienen en cuenta en el prompt de las recetas? |
-| V2-03 | **Importar el calendario** | Que las citas y eventos (comida de empresa, cumpleaños) aparezcan solos en el cuadrante, p. ej. con la dirección privada iCal de Google Calendar | La dirección iCal es un secreto que habría que guardar en el servidor. Los eventos que se repiten (RRULE) son difíciles de leer bien sin una librería (dependencia nueva). ¿Qué eventos cuentan como "comida" o "cena" (por la hora)? ¿Se crean como "fuera de casa" o como texto? |
+| V2-01 | ~~Consejos y trucos de cocina~~ | **Pasó a la versión 1** (D-48): las dudas de cocina las resuelve el chat ayudante de la fase 8 | — |
+| V2-02 | **Productos de temporada** | Al cambiar de estación o al acercarse una fiesta, recomendar productos de temporada: fruta y verdura (fresas y melocotón en verano), pescado (también va por temporadas) y dulces de fiesta (turrón y panettone en Navidad) | 18 |
+| V2-03 | **Importar el calendario** | Que las citas y eventos (comida de empresa, cumpleaños) aparezcan solos en el cuadrante, con la dirección privada iCal de Google Calendar | 19 |
+| V2-04 | **Usar pronto** (lienzo) | En Inventario, lo que caduca antes, de todas las ubicaciones y ordenado por fecha, y la tarjeta "Hay N cosas que caducan pronto · Cocina con lo que tengo →" que abre el Ayudante | 14 |
+| V2-05 | **Categorías de producto y dibujos** (lienzo) | Cada producto con su categoría (Verduras, Fruta, Carne, Pescado, Lácteos, Huevos, Otros), chips para filtrar el inventario y un dibujo por categoría | 17 |
+| V2-06 | **Ayudante con contexto** (lienzo) | Arriba, "Cocinando con lo que tienes · N ingredientes" y lo que caduca; preguntas rápidas ("¿Qué hago en 20 minutos?"); tarjeta de receta con tiempo, dificultad, "Tienes los N ingredientes" y "Cocinar esta →" | 16 |
+| V2-07 | **Recetario con datos y filtros** (lienzo) | Filtros "Todas / Guardadas / Puedo hacerla ya / Del Ayudante"; en cada receta, tiempo, raciones y "✓ Tienes todo" o "Falta: cebolla" | 15 |
+| V2-08 | **Raciones y modo cocina** (lienzo) | En Receta, "− 2 raciones +" que escala las cantidades, la caducidad junto a cada ingrediente, los básicos de despensa (aceite, sal…) que no "faltan" y "Empezar a cocinar": los pasos de uno en uno | 14 |
+
+Reglas para todas las fases de la Versión 2 (D-60):
+- El **paso 1** de cada fase es la documentación: se contestan sus
+  "Preguntas para el paso 1" con el autor y se apuntan como una decisión
+  D-xx propia (como D-54 en la fase 12). Hasta entonces, lo que dice cada
+  fase es una propuesta.
+- Las migraciones siguen la numeración (la siguiente es la `012`). Solo se
+  corrige una migración que aún no esté en producción.
+- Paquetes nuevos, solo preguntando antes y con versión fija.
+- Las herramientas y las instrucciones del chat cambian **una sola vez**, en
+  la fase 16 (excepción a D-51). Las demás fases no las tocan.
+- Nada nuevo despierta Neon en la tarea de cada 5 minutos (D-14).
+- Al cerrar cada fase: `sw.js` con su `VERSION` nueva, desplegar y probar
+  en el iPhone; axe sin problemas en las pantallas nuevas, en claro y en
+  oscuro, a 375 px.
+
+### Fase 14 — Usar pronto y modo cocina (V2-04 y V2-08, sin IA; D-61)
+- **Inventario en dos filas** (P-04): arriba, la ubicación con una opción
+  nueva, **Todo** (las tres juntas; es la que se abre); debajo, los chips
+  **"Todo · N"** y **"Usar pronto · N"**, que se combinan con la ubicación
+  (en la fase 17 se les suman las categorías).
+- **Usar pronto**: los productos y los tuppers de esa ubicación que están
+  caducados o caducan en 3 días o menos (el corte de `avisoCaducidad()`),
+  mezclados por fecha, con su ubicación y la etiqueta "Tupper". En "Todo · N"
+  los tuppers siguen en su sección, arriba.
+- **Tarjeta "Cocina con lo que tengo"** debajo de la lista si hay algo que
+  usar pronto: abre el Ayudante con la pregunta escrita, **sin enviarla**.
+- **Receta** (P-11): "− N raciones +" si la receta tiene raciones, que
+  escala las cantidades y lo que descuenta "La he cocinado"; la caducidad
+  junto a los ingredientes que caducan pronto; los **básicos de despensa**
+  (lista fija) que no tienes no cuentan como "te falta".
+- **Modo cocina** (P-31, `/receta/:id/cocinando`): un paso cada vez, la
+  pantalla encendida con Screen Wake Lock (en la app instalada del iPhone
+  desde iOS 18.4) y el último paso lleva a "La he cocinado".
+- Sin cambios en la API ni migraciones.
+- Pasos: 1 documentación (D-61, P-04, P-11, P-12 y P-31; hecho el
+  2026-11-25); 2 `compartido/`: `usarPronto()`, `escalarIngredientes()` y
+  `BASICOS_DESPENSA` con `esBasico()`, con pruebas; 3 Inventario: las dos
+  filas, "Usar pronto", la tarjeta y la pregunta escrita en el Ayudante; 4
+  Receta: raciones, caducidad, básicos y el pie nuevo, y "La he cocinado"
+  con las raciones; 5 Modo cocina con Wake Lock; 6 `sw.js` (con el archivo
+  nuevo en `ARCHIVOS`), desplegar e iPhone.
+
+**Hecho cuando:**
+- Inventario se abre en "Todo"; "Usar pronto · N" cuenta y enseña lo
+  caducado y lo que caduca en 3 días o menos (productos y tuppers) de la
+  ubicación elegida, primero lo que antes caduca;
+- "Atrás" desde un producto vuelve a la misma ubicación y al mismo filtro;
+- la tarjeta sale solo si hay algo que usar pronto y abre el Ayudante con
+  la pregunta escrita, sin enviarla ni gastar cuota;
+- al pasar una receta de 2 a 4 raciones, las cantidades se doblan en
+  Receta y en "La he cocinado", y se descuenta eso;
+- el aceite y la sal que no tienes no salen como "te falta" (tampoco en el
+  Plan del día ni en las tarjetas del Ayudante);
+- el modo cocina pasa los pasos de uno en uno, el último lleva a "La he
+  cocinado", "Atrás" vuelve a la receta y en el iPhone la pantalla no se
+  apaga mientras está abierto;
+- con "Reducir movimiento" no se desliza nada; axe sin problemas en P-04,
+  P-11 y P-31, en claro y en oscuro, a 375 px.
+
+### Fase 15 — Recetario con datos y filtros (V2-07, sin IA)
+- `012_recetas_datos.sql`: en `recetas`, `minutos` (opcional),
+  `dificultad` (opcional, lista cerrada: fácil, media, difícil) y `origen`
+  (`manual` o `ayudante`; las que ya existen, `manual`, salvo que se pueda
+  saber por `tarjetas_chat`), y lo que se decida para "Guardadas".
+- Formulario de receta (P-20) con el tiempo y la dificultad;
+  `validarReceta()` los valida en los dos lados (D-40).
+- Recetas (P-09): chips "Todas · N", "Guardadas · N", "Puedo hacerla ya" y
+  "Del Ayudante"; cada receta con su tiempo, raciones y "✓ Tienes todo" o
+  "Falta: cebolla", calculados en el navegador con `estadoIngrediente()` y
+  sin contar los básicos (fase 14).
+- Lo que se guarda desde una tarjeta del Ayudante lleva `origen =
+  'ayudante'`: lo pone el servidor al guardarla, sin cambiar las
+  herramientas.
+- **Preguntas para el paso 1:** ¿qué es "Guardadas" (favoritas marcadas a
+  mano, con una columna más)? ¿Etiquetas como "Vegetariana" (escritas o
+  calculadas de los ingredientes) o se quedan fuera? ¿Margen de los
+  minutos? ¿Ordenar por tiempo?
+- Pasos: 1 documentación; 2 `012_recetas_datos.sql` y `compartido/` con
+  pruebas; 3 API (`/api/recetas` y guardar tarjeta); 4 formulario, lista y
+  detalle; 5 `sw.js`, desplegar e iPhone.
+
+**Hecho cuando:**
+- se crea a mano una receta de 20 minutos y "Fácil", y se ve en la lista y
+  en su detalle;
+- "Puedo hacerla ya" solo enseña las recetas en las que tienes todo, y
+  cambia al gastar un ingrediente;
+- "Del Ayudante" enseña las guardadas desde una tarjeta del chat;
+- las recetas de antes siguen funcionando sin tiempo ni dificultad;
+- la migración está aplicada en producción sin perder recetas.
+
+### Fase 16 — Ayudante con contexto (V2-06, con IA)
+- Arriba en el Ayudante (P-21), sin IA: "Cocinando con lo que tienes · N
+  ingredientes" y chips con lo que caduca antes (el filtro de la fase 14).
+- **Preguntas rápidas**: botones fijos que escriben una pregunta ("¿Qué
+  hago en 20 minutos?", "Cocina con lo que tengo"…); se envían como un
+  mensaje normal.
+- `proponer_receta` añade `minutos` y `dificultad` (los de la fase 15). La
+  tarjeta enseña el tiempo, la dificultad, las raciones, "Tienes los N
+  ingredientes" (calculado en el navegador) y "Cocinar esta →".
+- **Excepción a D-51, una sola vez:** cambian las herramientas (y, si hace
+  falta, las instrucciones), así que las conversaciones abiertas pierden la
+  caché una vez, como con D-59.
+- Probar en desarrollo gasta cuota y céntimos: preguntando antes; al
+  acabar, `aviso_chat_aceptado_en = NULL` y borrar `uso_ia`.
+- **Preguntas para el paso 1:** ¿qué preguntas rápidas? ¿"Cocinar esta"
+  guarda la receta y abre el modo cocina, o abre "La he cocinado"? ¿Las
+  conversaciones abiertas siguen (pierden la caché) o se borran al
+  desplegar?
+- Pasos: 1 documentación; 2 la herramienta y su validación con pruebas; 3
+  cabecera, preguntas rápidas y tarjeta; 4 probar el "Hecho cuando" en
+  desarrollo (gasta IA); 5 `sw.js`, desplegar e iPhone.
+
+**Hecho cuando:**
+- la cabecera dice cuántos ingredientes hay y qué caduca, sin gastar IA;
+- una pregunta rápida envía un mensaje y gasta uno de la cuota;
+- la tarjeta de receta enseña el tiempo y la dificultad, y al guardarla la
+  receta los lleva, con `origen = 'ayudante'`;
+- una conversación empezada antes del cambio sigue respondiendo, sin error;
+- en la pestaña Red no aparecen la key ni el razonamiento.
+
+### Fase 17 — Categorías de producto y dibujos (V2-05)
+- `013_categorias.sql`: `productos.categoria` (lista cerrada
+  `CATEGORIAS_PRODUCTO` en `compartido/constantes.js`); los productos que
+  ya existen se rellenan por su nombre y, si no se sabe, "Otros".
+- Nuevo / editar producto (P-05): chips de categoría, propuesta sola al
+  escribir el nombre (la lista fija de D-42, `ALIMENTOS_COMUNES`, pasa a
+  llevar su categoría, y el historial del hogar la recuerda).
+- Inventario: chips para filtrar por categoría y un **dibujo** de su
+  categoría en cada fila (SVG propios, D-30, con `aria-hidden`).
+- **Preguntas para el paso 1:** ¿las categorías se unen con los 8 grupos
+  del cuadrante (`GRUPOS_ALIMENTOS`, D-50) o son dos listas? En el ticket,
+  ¿la categoría sale de la lista fija al revisar (el prompt no cambia) o se
+  la pide a Claude (cambia el prompt del ticket, R-17 y D-47)? ¿La Lista de
+  la compra se agrupa por categoría? ¿Quién dibuja los iconos y con qué
+  estilo?
+- Pasos: 1 documentación (y los dibujos en el lienzo); 2
+  `013_categorias.sql` y `compartido/` con pruebas; 3 API (productos, lote
+  y nombres); 4 formulario, Inventario y dibujos; 5 `sw.js`, desplegar e
+  iPhone.
+
+**Hecho cuando:**
+- al escribir "Espinacas" se propone Verduras, y un nombre que el hogar ya
+  usó recuerda su categoría;
+- el filtro "Carne" solo enseña carne, y se combina con la ubicación y con
+  "Usar pronto";
+- tras la migración, todos los productos que había tienen categoría;
+- un ticket guarda sus productos con categoría;
+- los dibujos tienen contraste en claro y en oscuro, y el lector no los
+  lee.
+
+### Fase 18 — Productos de temporada (V2-02, sin IA)
+- `compartido/temporada.js`: una **lista fija** por mes de fruta, verdura y
+  pescado de temporada, sacada de una fuente española verificada (se elige
+  en el paso 1), y las fiestas con sus dulces (Navidad, Reyes, Semana Santa,
+  Todos los Santos…). Semana Santa cambia cada año: se calcula la fecha de
+  Pascua con su algoritmo, sin librerías y con pruebas. Sin IA ni red.
+- **Preguntas para el paso 1:** ¿qué fuente? ¿Dónde se ve (tarjeta en
+  Inventario, en la Lista con "Añadir a la lista", pantalla propia)? ¿El
+  Ayudante lo sabe? Sin romper D-51, se podría añadir "De temporada: …"
+  junto a la fecha que ya va en cada mensaje (`bloqueFecha()`), no en las
+  instrucciones. ¿Cuántos días antes de una fiesta se avisa?
+- Pasos: 1 documentación; 2 `temporada.js` con pruebas (meses y Pascua); 3
+  dónde se ve; 4 `sw.js`, desplegar e iPhone.
+
+**Hecho cuando:**
+- en noviembre salen los productos de noviembre de la fuente, y en
+  diciembre los dulces de Navidad;
+- Semana Santa de 2027 y 2028 cae en su fecha (pruebas);
+- funciona sin red;
+- si se elige "Añadir a la lista", apunta el producto sin repetirlo
+  (D-54).
+
+### Fase 19 — Importar el calendario (V2-03)
+- La **dirección iCal privada** de Google Calendar se pega en Perfil y se
+  guarda en el servidor (`014_calendario.sql`); nunca vuelve entera al
+  navegador ni sale en los logs (SEC-09).
+- El servidor solo pide `https://calendar.google.com/…` (SSRF, §9.8), con
+  tiempo y tamaño máximos.
+- Se sincroniza **al abrir Semana** (como mucho una vez cada cierto
+  tiempo), nunca en la tarea de cada 5 minutos (D-14).
+- Los eventos de la hora de la comida o de la cena llenan ese hueco (por
+  ejemplo, como "fuera de casa" con el título como nota), **sin pisar** lo
+  que ya hay, y quedan marcados como importados.
+- `/privacidad` (P-18) dice qué se guarda y para qué.
+- **Preguntas para el paso 1:** ¿por persona o por hogar? ¿Se cifra la
+  dirección en la base de datos (con una variable de entorno)? Los eventos
+  que se repiten (RRULE): ¿una librería (paquete nuevo, preguntando antes)
+  o solo los eventos sueltos? ¿Qué horas son comida y cena? ¿"Fuera de
+  casa" o texto? ¿Qué pasa si el evento cambia o se borra en Google?
+- Pasos: 1 documentación; 2 `014_calendario.sql` y la lectura del iCal con
+  pruebas; 3 API (guardar, quitar y sincronizar); 4 Perfil y Semana; 5
+  `/privacidad`, `sw.js`, desplegar e iPhone.
+
+**Hecho cuando:**
+- al pegar la dirección y abrir Semana, la "Comida de empresa" del jueves
+  sale en su hueco, y un hueco que ya tenía algo no cambia;
+- un evento que se repite cada semana sale todas las semanas (si se elige
+  leer RRULE);
+- con una dirección que no es de Google Calendar → 400, sin pedirla;
+- la dirección no aparece en ninguna respuesta de la API ni en los logs;
+- "Quitar el calendario" la borra.
+
+### Fase 20 — Cierre de la Versión 2
+- axe sin problemas en todas las pantallas, en claro y en oscuro, a 375 px;
+  `npm audit`; revisión de seguridad de lo nuevo (sobre todo el
+  calendario); README y `CLAUDE.md` al día; probar todo en el iPhone.
+
+**Hecho cuando:**
+- axe da 0 problemas y `npm audit` no da vulnerabilidades altas;
+- la revisión de seguridad no deja nada alto sin arreglar o sin una
+  decisión D-xx;
+- todo el "Hecho cuando" de las fases 14 a 19 se ha probado en el iPhone.
 
 ---
 
@@ -1332,6 +1549,8 @@ diseña y se decide (D-xx) cuando le toque.
 | D-54 | 2026-11-24 | Lista de la compra (fase 12; fija el detalle que quedó pendiente) | **Tabla `lista_compra`** (migración `010_lista`): `hogar_id` (se borra con el hogar), `nombre` (1 a 80), `nombre_normalizado` (con `claveNombre()` de `compartido/texto.js`, hecho en el servidor: `normalizar()` y sin palabras vacías; ver el cambio del 2026-11-25), `cantidad` y `unidad` **opcionales** (las dos o ninguna; las mismas unidades que los productos), `origen` (`manual` o `auto`), `creada_por` (usuario, `SET NULL`), `creada_en` y `comprada_en` (NULL = sin tachar). Índice único parcial `(hogar_id, nombre_normalizado) WHERE comprada_en IS NULL`: lo que está sin tachar no se repite (`INSERT … ON CONFLICT DO NOTHING`); 200 líneas sin tachar como mucho por hogar. **Cantidad de referencia:** columna nueva `productos.cantidad_inicial`, la cantidad al darlo de alta (a mano o con el ticket); si al editarlo pones más, sube, y si cambias la unidad empieza de nuevo (500 g no se comparan con 1 kg); los productos que ya existen la toman de su cantidad actual. **Se añade sola** cuando un producto **cruza** el umbral, de más del 10 % de `cantidad_inicial` a 10 % o menos (al gastarlo, editarlo o con "La he cocinado", en la misma transacción), con su nombre, `origen = 'auto'` y la cantidad y unidad de `cantidad_inicial` (lo que compraste la última vez). Solo al cruzarlo: si lo tachas o lo borras y el producto sigue bajo, no vuelve. **Se tacha sola** cuando entra un producto (alta a mano o lote del ticket) con la **misma clave de nombre** ("Leche entera" tacha "leche entera", y "Turrón de chocolate" tacha "turrón chocolate", pero no "Leche"), en la misma transacción; también a mano. Las tachadas se quedan al final hasta "Borrar comprados", y la tarea de avisos borra las de más de 7 días. **API:** `GET /api/lista`, `POST /api/lista`, `PATCH /api/lista/:id` (`comprada` sí o no), `DELETE /api/lista/:id` y `DELETE /api/lista/comprados`. **Pantalla** P-30 Lista (`/lista`), quinta pestaña detrás de Inventario, añadir con el autocompletado de D-42. El Ayudante no ve la lista | El autor quiere apuntar lo que falta sin pensarlo y que la lista se mantenga sola. La cantidad de cuando entró no pide nada a la persona (un mínimo puesto a mano casi nunca se rellenaría y entonces no avisaría nunca). Comparar el nombre normalizado entero no da falsos positivos ("Pan" no se tacha con "Pan rallado"); las líneas automáticas ya llevan el nombre exacto del producto. La cantidad es opcional porque al escribir a mano casi nunca hace falta, pero en el súper ayuda saber cuánto (elección del autor, 2026-11-24). Añadir solo al cruzar el umbral evita que vuelva una línea que ya has decidido quitar. Guardar el nombre normalizado deja que la base de datos impida los repetidos, también con dos personas a la vez. Las tachadas se quedan un tiempo por si te equivocaste. **Cambios del autor (2026-11-25), tras probarla en el iPhone:** (1) **clave de nombre** = `normalizar()` sin las palabras vacías `de, del, la, el, los, las, con, y, en, al, a` (si solo quedan esas, el nombre normalizado entero), porque "turrón de chocolate" no tachaba "turrón chocolate"; la migración `011_lista_clave` recalcula las líneas que ya había; (2) **en `unidades`** el umbral no es el 10 % (con 4 yogures habría que llegar a 0,4): si entraron más de 1, se apunta al quedar 1 o menos; si entró 1, al llegar a 0 (`cruzaUmbral(antes, despues, referencia, unidad)`); en g, kg, ml y l sigue el 10 % |
 | D-56 | 2026-11-18 | Animaciones (fase 11; la lista de la compra pasa a la 12 y el cierre a la 13; Bienvenida pasa de 3 a 4 pasos, cambia D-46) | **Reglas:** solo `transform` y `opacity` (y las variables `--mo-*` de blobatar); tokens `--duracion-rapida` 150 ms, `--duracion-media` 250 ms y `--duracion-lenta` 400 ms, y las curvas `--curva-salida` y `--curva-suave`; con `prefers-reduced-motion: reduce`, nada se desplaza ni rebota (las expresiones se ponen sin transición: lo hace `motion.css`). **Nacimiento** en el paso nuevo "Este eres tú" de Bienvenida (P-03, el primero): 7 avatares al azar (semillas hechas en el navegador con `crypto.getRandomValues`, que no se guardan) cada vez más despacio (de 90 a 260 ms), cada uno con un "pop" de escala, y el último es el tuyo, con `happy` 1,2 s; "Otro avatar" hace `POST /api/yo/avatar` y una ruleta más corta (4). El botón Siguiente funciona desde el primer momento: la animación no hace esperar. **Expresiones:** servir `expression.js` de blobatar 2.7.0 (no importa nada más) junto a los otros tres archivos; `ponerExpresion(avatar, pose)` en `componentes/avatar.js` pone las variables de la pose con `style.setProperty` (la CSP lo permite) y la clase `mo-expr`; `thinking` en el avatar de la cabecera mientras el Ayudante responde, y en la pantalla Ticket, un avatar grande que piensa en vez del círculo que gira mientras Claude lo lee; `happy` 1,2 s cuando una escritura sale bien y `sad` 1,5 s cuando falla (no con un error de validación de un campo: ese ya se ve en el campo). `api.js` avisa de cada escritura con un evento; si en ese momento no hay avatar en la cabecera (pantalla secundaria), reacciona el de la pantalla a la que se vuelve (hasta 1 s después). **Transiciones:** `document.startViewTransition` en `router.js` solo para lo que navego yo (un enlace de la app, `navegar()` o la flecha Atrás), nunca con el gesto de iOS ni con el Atrás del navegador (`popstate` sin aviso mío), que ya animan solos; hacia delante entra desde la derecha (24 px y fundido, 250 ms), hacia atrás desde la izquierda, y entre pestañas solo fundido (150 ms); la cabecera y la barra llevan su `view-transition-name` y no se mueven. **Listas y botones:** filas nuevas (`opacity` y 8 px hacia arriba, 200 ms), filas que se borran (fundido y 16 px a un lado, y después se quitan), `.boton:active` con `scale(0.97)` y el "✓" de los avisos de éxito con un "pop". | Pedido por el autor el 2026-11-18, al ver que el avatar de blobatar podía moverse. Solo `transform` y `opacity` porque son las propiedades que el navegador anima sin recalcular la página (van fluidas en el iPhone). blobatar no puede transformar un avatar en otro (la forma es un trazo distinto y no la interpola, para no calcular geometría en cada fotograma): por eso el nacimiento es una ruleta de avatares y no una transformación. Las View Transitions están en Safari desde la 18; sin ellas no pasa nada. El gesto de "atrás" de iOS ya desliza la pantalla: animarlo otra vez se vería doble. |
 | D-59 | 2026-11-25 | Nombre comercial e identidad visual (fase 13; sustituye a D-45, cambia el aspecto de la barra del móvil de D-27) | **"Stockpot"**, con el icono de la olla con vapor: olla arena `#f6ead2` sobre marino `#0f2f45` a sangre, franja azul polvo `#8fb3c9` y pomo coral `#e8877b`, todo dentro del 80 % central (maskable). Paleta "versión 4" (`docs/marca.md`): fondo arena `#f6ead2` / `#0b1822`, superficie `#fffbf3` / `#132330`, primario **marino** `#0f2f45` / `#8fb3c9` y acento **vino** `#8c1c13` / `#e8877b` (solo marca y gráficos). Dos tokens nuevos: `--color-tinte` y `--color-sobre-tinte` (azul polvo solo como relleno, con texto marino encima). Los colores de caducidad no cambian, pero sus avisos llevan un borde del color de su estado. Títulos y marca con **Fraunces** 700 (OFL, confirmada por el autor el 2026-11-25): un `.woff2` de 32 KB con el eje de tamaño óptico, solo caracteres latinos, en `web/fuentes/` por la CSP; sustituye a Bricolage Grotesque, que se borra. **Barra de pestañas flotante en el móvil** (superficie, píldora de 60 px, `--alto-barra`) con Inventario, Lista, Recetas y Semana: la activa (`a[aria-current="page"]`, que ya pone `router.js`) es una pastilla marino con su nombre; las demás solo el icono, con el nombre recortado a 0 de ancho pero en la página (el lector lo lee). El Ayudante sale de la barra (un `<a class="navegacion__ayudante">` dentro del mismo `<nav>`, así el router lo sigue marcando): botón redondo de 60 px, tinte con el icono marino y un aro de 3 px cuando es la página actual. Por debajo de 22em (352 px) el nombre de la activa tampoco se ve. Desde 48em sigue la barra lateral de D-27, con el estilo nuevo. **Excepción a D-56:** la pastilla crece animando `grid-template-columns` de `auto 0fr` a `auto 1fr` (250 ms, `--curva-salida`) y el nombre entra con `opacity` y `translateX(-4px)`; entre pestañas, la barra no hace el fundido de la View Transition (se vería doble). Con "Reducir movimiento", al momento (la regla de `base.css`). **No cambian** los identificadores internos (`'vigia:escritura'`, `CACHE_API`, la cookie `sesion`, `start_url` y `scope`) ni el nombre de la carpeta y del repositorio. **Excepción a D-51:** en `INSTRUCCIONES` del chat solo cambia "Vigía" por "Stockpot" (si no, el Ayudante nombraría la app con el nombre viejo); las conversaciones abiertas pierden la caché una vez. Los correos cambian el nombre y sus colores escritos a mano (botón marino, fondo arena); `CORREO_REMITENTE` lo cambia el autor en `.env` y en Render. | Pedido por el autor: "stock" es el inventario y también el caldo, y un *stockpot* es la olla de caldo. Con 8 caracteres cabe bajo el icono. El principal deja de ser verde para no confundirse con los colores de caducidad (verde, ámbar y rojo). La excepción a D-56 la eligió el autor entre tres formas (`grid-template-columns`, `max-width` o solo `transform` y `opacity`): el ancho de la pastilla tiene que cambiar, y con `grid` las otras pestañas se apartan suavemente y la pastilla llega justo al ancho de su nombre; recalcula solo el layout de una barra de 4 elementos. Contraste medido en los dos modos: texto 12,9:1 / 15,1:1, tenue 5,5:1 / 8,5:1, botón 13,9:1 / 6,3:1, bordes de campos 3,7:1 / 5,3:1 y estados entre 5,6:1 y 8:1. |
+| D-60 | 2026-11-25 | Plan de la Versión 2 (añade las fases 14 a 20; cierra las ideas de §10) | **Entran todas las ideas**: las de §10 (V2-02 productos de temporada y V2-03 importar el calendario) y las de la fila "Ideas v2" del lienzo (V2-04 usar pronto, V2-05 categorías y dibujos, V2-06 Ayudante con contexto, V2-07 recetario con datos y filtros y V2-08 raciones y modo cocina). **Orden, sin IA primero:** 14 usar pronto y modo cocina, 15 recetario, 16 Ayudante, 17 categorías, 18 temporada, 19 calendario y 20 cierre. **Reglas:** cada fase fija su detalle en su paso 1 con una decisión propia; las herramientas y las instrucciones del chat cambian una sola vez, en la fase 16 (excepción a D-51); nada nuevo despierta Neon en la tarea de cada 5 minutos (D-14); paquetes nuevos solo preguntando y con versión fija | Elección del autor (2026-11-25). Como en D-48, lo que se calcula sin IA va antes: funciona sin red y no gasta cuota. El recetario (15) va antes que el Ayudante (16) para que `proponer_receta` gane el tiempo y la dificultad de una vez, y así las conversaciones abiertas pierden la caché una sola vez. El calendario va al final porque es lo que más riesgo añade: guarda un secreto, pide una URL externa (SSRF) y puede necesitar una librería. |
+| D-61 | 2026-11-25 | Usar pronto y modo cocina (fase 14; contesta sus preguntas del paso 1) | **Inventario en dos filas** (como el lienzo): arriba, la ubicación, con **Todo** (las tres juntas) como opción nueva y la que se abre (`/` = Todo; `/?ubicacion=nevera`…); debajo, los chips **"Todo · N"** y **"Usar pronto · N"** (`?filtro=pronto`), que se combinan con la ubicación: las cuentas son de la ubicación elegida. Con Todo, "+ Producto" y "+ Tupper" llegan sin ubicación y el formulario la pregunta. **Usar pronto** = productos **y tuppers** con el tono `peligro` o `aviso` de `avisoCaducidad()` (caducados, hoy o en 1 a 3 días), en una sola lista por fecha (lo que antes caduca, primero), con la ubicación de cada uno y "Tupper" en los tuppers (`usarPronto()` en `compartido/`). En "Todo · N" se queda como ahora: **Tuppers arriba y Productos debajo**. Sin cambios en la API: con Todo se piden las tres ubicaciones como `cargarInventarioCompleto()`. **Tarjeta** "Hay N cosas que caducan pronto · Cocina con lo que tengo →" debajo de la lista siempre que N > 0: `navegar('/ayudante', { pregunta })` con "Tengo que gastar pronto: espinacas, tomates cherry y pechuga de pollo. ¿Qué puedo cocinar?" (hasta 5 nombres, por fecha); el Ayudante la escribe en el área de texto y **no la envía** (antes, si hace falta, la ventana del aviso, D-57). **Raciones** en Receta (P-11), solo si la receta las tiene: "− N raciones +" (1 a 20); `escalarIngredientes()` multiplica por elegidas / raciones (redondeado a 2 decimales); los estados, el resumen y "La he cocinado" usan las cantidades escaladas (`/cocinar?receta=:id&raciones=N`); no se guardan. **Caducidad de cada ingrediente** junto a su estado, solo si el producto que se usaría (el primero de `buscarProductos()`) o el tupper caduca pronto. **Básicos de despensa**: lista fija `BASICOS_DESPENSA` (agua, sal, pimienta, pimienta negra, aceite, aceite de oliva, aceite de oliva virgen extra, aceite de girasol, vinagre y azúcar), comparada con `normalizar()`: un básico que **no está** en el inventario no cuenta en "Te faltan" y sale aparte, en tenue y sin ✗ ("Despensa: aceite de oliva, sal y pimienta"); si está, se ve como siempre. Vale también en el Plan del día y en las tarjetas del Ayudante (las tres usan `crearVistaReceta()`). **Modo cocina** P-31 (`/receta/:id/cocinando?raciones=N`): el pie de Receta pasa a "Empezar a cocinar" (principal) y "La he cocinado" (secundario); un paso cada vez ("Paso 2 de 5"), en letra grande, con "Ingredientes" plegable y Anterior / Siguiente; en el último, "La he cocinado". El paso no va en la URL: Atrás vuelve a la receta. **Screen Wake Lock** (`navigator.wakeLock.request('screen')`) al mostrarla, otra vez al volver a verse (`visibilitychange`: iOS la suelta al salir) y suelta al salir de la pantalla; sin la API, no pasa nada | Elección del autor (2026-11-25). Abrir en Todo enseña la casa entera, que es lo que el lienzo propone, y la segunda fila es donde irán las categorías (fase 17). Los tuppers son lo que más se tira, así que entran en "Usar pronto". Una lista fija de básicos no necesita migración y funciona sin red; nadie apunta la sal en el inventario, y que salga "✗ Te falta" en casi todas las recetas hacía que el resumen no sirviera. Descontar lo escalado hace que lo que ves sea lo que se gasta. La pregunta se escribe y no se envía para que gastar cuota sea siempre decisión de la persona, y no cambia nada de D-51 (es un mensaje normal). Wake Lock funciona en las web apps de la pantalla de inicio desde iOS 18.4 ([WebKit 254545](https://bugs.webkit.org/show_bug.cgi?id=254545), [firt.dev](https://firt.dev/notes/pwa-ios/), consultado el 2026-11-25) |
 
 ### 11.2 Propuestas (aceptadas el 2026-10-19 como D-16 a D-26; P-12 pasa a la fase B)
 

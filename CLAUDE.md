@@ -55,6 +55,32 @@ Proyecto de portfolio de un estudiante de DAW.
 (2026-11-23), 12 (2026-11-25) y 13 (2026-11-25). El detalle de cada paso
 está en los commits (`git log`).
 
+**Versión 2 (D-60, 2026-11-25): plan escrito** en la rama `v2/plan` (lo
+escribió Claude a petición del autor, que eligió que entraran todas las
+ideas, con lo que no usa IA primero). Fases (ARQUITECTURA §10): 14 Usar
+pronto y modo cocina, 15 Recetario con datos y filtros, 16 Ayudante con
+contexto (las herramientas del chat cambian una sola vez: excepción a
+D-51), 17 Categorías y dibujos, 18 Temporada, 19 Calendario y 20 Cierre.
+Cada fase contesta sus "Preguntas para el paso 1" con el autor y las
+apunta como su propia D-xx. Ideas sacadas de §10 y de la fila "Ideas v2"
+del lienzo.
+**Fase 14: paso 1 aprobado** (2026-11-25; D-61; P-04, P-11, P-31 y las
+rutas en DISENO_UI). Lo decidido:
+- Inventario en dos filas: "Todo / Nevera / Despensa / Congelador" (se
+  abre en Todo) y "Todo · N / Usar pronto · N" (`?filtro=pronto`).
+- "Usar pronto" junta productos y tuppers caducados o que caducan en 3
+  días o menos, por fecha; en "Todo · N" los tuppers siguen arriba.
+- La tarjeta "Cocina con lo que tengo" escribe la pregunta en el
+  Ayudante, sin enviarla.
+- Los básicos de despensa salen de una lista fija (`BASICOS_DESPENSA`).
+- Las raciones (1 a 20) también escalan lo que descuenta "La he
+  cocinado" (`?raciones=`).
+- Modo cocina P-31 (`/receta/:id/cocinando`) con Wake Lock (iOS 18.4).
+- Sin cambios en la API ni migraciones.
+**Siguiente:** paso 2, `compartido/` (`usarPronto()`,
+`escalarIngredientes()`, `BASICOS_DESPENSA` y `esBasico()`, con pruebas):
+preguntar antes quién lo escribe.
+
 **Rebranding a Stockpot (D-59): hecho, desplegado y probado en el
 iPhone** (2026-11-25, lo escribió Claude a petición del autor; fases 0 a 7
 con su "ok"; unido a `main` en b71c803, `app-v56` en Render;

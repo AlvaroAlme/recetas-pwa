@@ -573,25 +573,35 @@ Paso 3, "Instala la app" (instrucciones de iOS o un botón en Chrome); paso 4, "
 ```
 ┌──────────────────────────────┐
 │  Inventario         (avatar)  │
-│ (●Nevera) ( Despensa ) (Cong.)│
+│ [●Todo|Nevera|Despensa|Cong.] │  ← ubicación (Todo, nueva)
+│ (●Todo · 12) ( Usar pronto · 3)│  ← filtro (fase 17: + categorías)
 │──────────────────────────────│
 │  TUPPERS                      │
 │  Cocido                Tupper │
-│  Caduca mañana  (naranja)     │
+│  Nevera · Caduca mañana       │
 │──────────────────────────────│
 │  PRODUCTOS                    │
 │  Yogur                 2 ud.  │
-│  Caduca hoy  (rojo)           │
-│  Pechuga de pollo      500 g  │
-│  Caduca en 2 días             │
-│  Leche                   1 l  │
+│  Nevera · Caduca hoy  (rojo)  │
+│  Arroz                  1 kg  │
+│  Despensa                     │
+│──────────────────────────────│
+│ ┌──────────────────────────┐ │
+│ │ Hay 3 cosas que caducan  │ │  ← solo si N > 0
+│ │ pronto                   │ │
+│ │ Te propongo algo para    │ │
+│ │ cocinar con lo que tienes│ │
+│ │ Cocina con lo que tengo →│ │
+│ └──────────────────────────┘ │
 │──────────────────────────────│
 │ [ + Tupper ]° [ + Producto ]  │  ← pie
-├──────────────────────────────┤
-│[▢]Inv [⑂]Rec [▦]Sem [◌]Ayu [⚙]Aj│  ← navegación
 └──────────────────────────────┘
 ```
-El selector de ubicación se recuerda en la URL (`/?ubicacion=despensa`), así que "Atrás" vuelve a la misma.
+- **Dos filas** (D-61): la ubicación (`?ubicacion=`; sin él, **Todo**) y el filtro (`?filtro=pronto`; sin él, "Todo · N"). Las dos se recuerdan en la URL, así que "Atrás" vuelve a la misma vista. Cambiar cualquiera de las dos recarga solo la lista y el foco se queda en el chip.
+- Con **Todo**, cada fila dice su ubicación delante de la caducidad ("Nevera · Caduca hoy"), y "+ Producto" / "+ Tupper" llegan sin ubicación (el formulario la pregunta).
+- **"Usar pronto · N"**: productos y tuppers caducados o que caducan en 3 días o menos, en una sola lista por fecha, sin secciones; los tuppers con su detalle "Tupper". Vacío: "Nada caduca pronto" / "Lo que caduque en 3 días o menos saldrá aquí."
+- **"Todo · N"**: como siempre, Tuppers arriba y Productos debajo (sin tuppers, sin títulos de sección).
+- **Tarjeta "Cocina con lo que tengo"** (`Tarjeta`, debajo de la lista, si N > 0 en la ubicación elegida): el título es un `h2`; el enlace abre el Ayudante con la pregunta escrita ("Tengo que gastar pronto: …. ¿Qué puedo cocinar?") en el área de texto, sin enviarla.
 
 #### P-05 · Nuevo / editar producto — `/producto/nuevo?ubicacion=` · `/producto/:id` · E-2
 ```
@@ -756,6 +766,11 @@ Las recetas que propone la IA son tarjetas de P-21 (`TarjetaReceta`). Esta panta
 - El lápiz de la cabecera (`aria-label` "Editar receta") → `/receta/:id/editar` (P-20).
 - `‹Borrar receta›` (botón fantasma, al final) con `confirmar()`: "Borrar receta" / "Se borrará «Tortilla de patatas». No se puede deshacer." / `[Borrar]` peligroso → vuelve a Recetas con "✓ «Tortilla de patatas» borrada."
 - El pie **solo** tiene `[La he cocinado]` → `/cocinar?receta=:id` (P-12).
+- **Fase 14 (D-61):**
+  - **Raciones**, solo si la receta las tiene: bajo el resumen, "− 2 raciones +" (botones de icono de 44 × 44 con `aria-label` "Menos raciones" / "Más raciones", de 1 a 20; el número en un `<output aria-live="polite">`). Escala las cantidades, los estados y el resumen; no se guarda.
+  - **Caducidad** junto al estado de un ingrediente si lo que se usaría caduca pronto: "✓ Tienes 200 g · Caduca hoy" (con el tono de la caducidad).
+  - **Básicos de despensa** que no tienes: fuera de la lista y del resumen, en una línea tenue al final de los ingredientes: "Despensa: aceite de oliva, sal y pimienta".
+  - **Pie con dos botones**: `[La he cocinado]°` (secundario) → `/cocinar?receta=:id&raciones=N` y `[Empezar a cocinar]` (principal) → `/receta/:id/cocinando?raciones=N` (P-31). `raciones` solo va si se han cambiado.
 
 #### P-20 · Nueva / editar receta — `/receta/nueva` · `/receta/:id/editar` · E-2 (D-49)
 ```
@@ -823,6 +838,29 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 │ [  Revisa 1 ingrediente   ]   │  (deshabilitado con motivo)
 └──────────────────────────────┘
 ```
+
+#### P-31 · Modo cocina — `/receta/:id/cocinando` · E-2 (D-61)
+```
+┌──────────────────────────────┐
+│  ‹              Paso 2 de 5   │
+│  Tortilla de patatas          │  (h1, pequeño)
+│ ▸ Ingredientes                │  (<details>)
+│                               │
+│  Bate los huevos con una      │  (texto grande,
+│  pizca de sal y mézclalos     │   --texto-subtitulo)
+│  con las patatas.             │
+│                               │
+│  La pantalla no se apagará    │  (tenue, solo si hay
+│  mientras cocinas.            │   Wake Lock)
+│──────────────────────────────│
+│ [ ‹ Anterior ]° [ Siguiente › ]│
+└──────────────────────────────┘
+```
+- Los pasos son las líneas de `instrucciones` (como en P-11). En el primero, "Anterior" no sale; en el último, "Siguiente" pasa a ser `[La he cocinado]` → `/cocinar?receta=:id&raciones=N`.
+- "Ingredientes" (`<details>`, cerrado) con las cantidades ya escaladas por `?raciones`.
+- Al cambiar de paso, el texto nuevo entra con un fundido (D-56, `opacity`; nada con "Reducir movimiento") y el foco va al párrafo del paso (`tabindex="-1"`), así VoiceOver lo lee. "Paso 2 de 5" va en la cabecera.
+- El paso no se guarda en la URL: Atrás (flecha o gesto) vuelve a la receta.
+- **Wake Lock**: se pide al mostrar la pantalla y otra vez en `visibilitychange` si vuelve a verse; se suelta al salir. Sin la API (iOS anterior a 18.4) o si falla, no pasa nada y la línea tenue no sale.
 
 #### P-13 · Semana — `/semana` · `/semana/:lunes` · E-1 (D-50)
 ```
@@ -1161,7 +1199,7 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 |---|---|---|---|---|
 | `/entrar`, `/registro` | P-01, P-02 | — | `?volver=` solo si empieza por `/` y no por `//` (contra redirecciones abiertas) | — |
 | `/bienvenida` | P-03 | — | — | — |
-| `/` | P-04 | Inventario | `?ubicacion` ∈ `UBICACIONES`, si no `nevera` | — |
+| `/` | P-04 | Inventario | `?ubicacion` ∈ `UBICACIONES` o `todo`, si no `todo`; `?filtro` = `pronto` o nada (D-61) | — |
 | `/producto/nuevo` | P-05 | Inventario | `?ubicacion` ∈ `UBICACIONES` o nada | `/` |
 | `/producto/:id` | P-05 | Inventario | `id` entero > 0 | `/` |
 | `/tupper/nuevo` | P-06 | Inventario | igual que producto | `/` |
@@ -1172,7 +1210,8 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 | `/receta/nueva` | P-20 | Recetas | — (va antes que `/receta/:id`) | `/recetas` |
 | `/receta/:id` | P-11 | Recetas | `id` entero > 0 | `/recetas` |
 | `/receta/:id/editar` | P-20 | Recetas | `id` entero > 0 | `/receta/:id` |
-| `/cocinar` | P-12 | Recetas | `?receta` entero > 0 | `/receta/:id` |
+| `/receta/:id/cocinando` | P-31 | Recetas | `id` entero > 0; `?raciones` entero de 1 a 20 o nada (D-61) | `/receta/:id` |
+| `/cocinar` | P-12 | Recetas | `?receta` entero > 0; `?raciones` entero de 1 a 20 o nada (D-61) | `/receta/:id` |
 | `/semana` | P-13 | Semana | — (la semana de hoy) | — |
 | `/semana/:lunes` | P-13 | Semana | `lunes`: fecha ISO, lunes, dentro del margen de un año (D-50) | — |
 | `/plan/:fecha` | P-15 | Semana | `fecha`: fecha ISO dentro del margen | `/semana/:lunes` de esa fecha |
