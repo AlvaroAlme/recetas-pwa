@@ -55,9 +55,10 @@ Proyecto de portfolio de un estudiante de DAW.
 (2026-11-23) y 12 (2026-11-25). El detalle de cada paso
 está en los commits (`git log`).
 
-**Rebranding a Stockpot (D-59): hecho en la rama `rebrand/stockpot`**
-(2026-11-25, lo escribió Claude a petición del autor; fases 0 a 7 con su
-"ok"). Solo lo visual: paleta arena/marino/azul polvo/vino en `tokens.css`
+**Rebranding a Stockpot (D-59): hecho, desplegado y probado en el
+iPhone** (2026-11-25, lo escribió Claude a petición del autor; fases 0 a 7
+con su "ok"; unido a `main` en b71c803, `app-v56` en Render;
+`CORREO_REMITENTE` cambiado en `.env` y en Render). Solo lo visual: paleta arena/marino/azul polvo/vino en `tokens.css`
 (nuevos `--color-tinte`, `--color-sobre-tinte`, `--color-borde-ok/pronto/
 caducado` y `--alto-barra`), Fraunces 700 con `opsz` en `web/fuentes/`
 (Bricolage borrada), avisos de caducidad con borde, chips elegidos con el
@@ -66,11 +67,9 @@ tinte, barra de pestañas flotante (pastilla que crece con
 redondo aparte; desde 48em sigue la lateral de D-27), textos, correos
 (colores incluidos), `INSTRUCCIONES` del chat (excepción a D-51), manifest,
 `theme-color` e iconos de la olla; `sw.js` en `app-v56`. 268 pruebas; axe 0
-en 27 pantallas, claro y oscuro, a 375 px. **Pendiente:** que el autor
-cambie `CORREO_REMITENTE` en `.env` y en Render ANTES del push; probar en el
-iPhone (reinstalar la app para el icono nuevo, la barra con la zona segura,
-el gesto de atrás y VoiceOver); unir la rama a `main`. Opcional: el borde
-`#d9c7a3` de la barra y el aro del Ayudante en oscuro del lienzo.
+en 27 pantallas, claro y oscuro, a 375 px. En el iPhone, para ver
+el icono nuevo hay que reinstalar la app. Opcional: el borde `#d9c7a3` de
+la barra y el aro del Ayudante en oscuro del lienzo.
 
 **Fases 6 a 9 replanteadas (2026-11-13, D-48):** la IA es un chat
 ayudante con acciones (tarjetas que se confirman), el cuadrante va por

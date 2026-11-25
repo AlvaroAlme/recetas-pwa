@@ -1223,11 +1223,19 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - El Ayudante no ve la lista: darle una herramienta nueva cambiaría las herramientas del chat (D-51).
 
 ### Fase 13 — Cierre
-- Revisión de accesibilidad, `npm audit`, README del proyecto y actualización de la auditoría con los hallazgos nuevos.
+- **Auditoría de UI/UX y accesibilidad** (hecha el 2026-11-25, `audit/report.md` y `tests/smoke.spec.ts`): sin P0 ni P1; los dos P2 y la regla `region`, arreglados en `app-v55`. Los P3 (el foco en "Aceptar" de las ventanas de privacidad, la barra antes que el contenido con el teclado y la columna estrecha en escritorio) los decide el autor.
+- **Rebranding a Stockpot** (D-59, hecho y desplegado el 2026-11-25, `app-v56`, probado en el iPhone).
+- **Dependencias:** express a 5.3.0 (decisión del autor) y `npm audit`.
+- **Revisión de seguridad:** repasar §9 (SEC-xx) con lo que se ha añadido desde la fase 5 (chat, correo, lista) y actualizar la auditoría con los hallazgos nuevos.
+- **README** en español.
+- **Pendientes de fases anteriores:** el tick tras un ticket real, con "Reducir movimiento" y en el tupper con aviso (D-58); el avatar que "piensa" con un ticket real; VoiceOver; DMARC a `p=quarantine` desde el 2026-12-09; borrar `muestra-ticks.html`.
 
 **Hecho cuando:**
-- `npm audit` sin vulnerabilidades altas;
-- el README permite levantar el proyecto desde cero.
+- axe da 0 problemas en todas las pantallas, en claro y en oscuro, y los P3 están decididos;
+- `npm audit` sin vulnerabilidades altas y express en 5.3.0;
+- la revisión de seguridad no deja nada alto sin arreglar o sin una decisión D-xx;
+- el README permite levantar el proyecto desde cero (Node, `.env`, Neon, migraciones, `npm.cmd run dev` y las pruebas);
+- los pendientes de fases anteriores están probados o tienen fecha.
 
 ### Versión 2 — Ideas apuntadas (después del despliegue)
 Ideas del autor (2026-11-06) para una actualización **cuando la versión 1
