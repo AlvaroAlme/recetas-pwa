@@ -80,13 +80,19 @@ recetario y "La he cocinado" (sin IA), 7 cuadrante por fechas (sin IA),
 **Fases nuevas (2026-11-18, D-52, D-53 y D-56):** 9 Perfil y avatar, 10
 Recuperar la contraseña y cambiar el email, 11 Animaciones (D-56), 12
 Lista de la compra (D-54, se fija en su paso 1) y 13 cierre.
-**Siguiente: fase 13 (Cierre, ARQUITECTURA §10):** revisión de
-accesibilidad, `npm audit` sin vulnerabilidades altas, README que permita
-levantar el proyecto desde cero y la auditoría actualizada. Pendientes
-que conviene repasar en ella: el tick tras un ticket real, con "Reducir
-movimiento" y el tupper con aviso (D-58); el avatar que "piensa" con un
-ticket real; el icono instalado, `theme-color` y VoiceOver; DMARC a
-`p=quarantine` desde el 2026-12-09; borrar `muestra-ticks.html`.
+**Fase 13 (Cierre): hecha, falta el "ok" del autor** (2026-11-25, lo
+escribió Claude a petición del autor; detalle en ARQUITECTURA §10 y §9.11).
+express 5.3.0 y `npm audit` con 0 vulnerabilidades; revisión de seguridad
+sin hallazgos altos ni medios (§9.11); `README.md`; P3 de la auditoría
+decididos (foco en "Ahora no" en `avisoPrivacidad.js`; la barra sigue
+antes del contenido; `--ancho-maximo` 800 px desde 64em); tick tras un
+ticket real probado en desarrollo y arreglado con "Reducir movimiento"
+(la marca esperaba su `animation-delay`); `muestra-ticks.html` borrado;
+`sw.js` en `app-v57`. Ana quedó como estaba (productos de prueba borrados,
+`aviso_ia_aceptado_en = NULL`, `uso_ia` del día borrado). **Queda para el
+autor:** desplegar `app-v57`; en el iPhone, el tupper con aviso, el avatar
+que "piensa" entrando a Ticket desde Inventario y VoiceOver; DMARC a
+`p=quarantine` en Cloudflare desde el 2026-12-09.
 
 **Fase 12 (Lista de la compra, D-54): aprobada** (2026-11-25, "ok" del
 autor con `app-v54`). Probado en el iPhone con `app-v53`: apuntar,

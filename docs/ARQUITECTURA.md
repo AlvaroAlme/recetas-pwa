@@ -1004,7 +1004,7 @@ Lo que leen las herramientas lo escribe gente: un producto llamado "Ignora lo an
 
 | Paquete | Para qué | Decisión |
 |---|---|---|
-| `express` | Servidor HTTP | D-10 |
+| `express` | Servidor HTTP | D-10. **5.3.0** desde la fase 13 (2026-11-25) |
 | `pg` | PostgreSQL | D-08 |
 | `web-push` | VAPID y cifrado | D-11. Versión fija **3.6.7** (`--save-exact`): la 4.0.0 salió el 2026-11-06, con cambios incompatibles; se revisa cuando tenga unas semanas |
 | `helmet` | Cabeceras de seguridad | D-12 |
@@ -1019,17 +1019,36 @@ El **frontend no tiene dependencias**. Las pruebas usan `node:test` y las variab
 |---|---|
 | `DATABASE_URL` | Cadena de conexión de Neon (con `sslmode=require`) |
 | `ANTHROPIC_API_KEY` | Key del workspace de esta app, con límite de gasto. Obligatoria en producción; en desarrollo puede faltar (leer un ticket da 503) |
-| `VAPID_PUBLICA` / `VAPID_PRIVADA` / `VAPID_SUJETO` | Claves VAPID (`npx web-push generate-vapid-keys`) y `mailto:` de contacto |
+| `VAPID_PUBLICA` / `VAPID_PRIVADA` / `VAPID_SUJETO` | Claves VAPID (`npx web-push generate-vapid-keys`) y el contacto: la URL de la app en Render (vale una URL `https:` o un `mailto:`) |
 | `CRON_SECRETO` | Cadena aleatoria larga, compartida solo con cron-job.org |
 | `APP_ORIGEN` | `http://localhost:3000` en desarrollo y la URL de Render en producción |
 | `RESEND_API_KEY` | Key de Resend (fase 10, D-53): `vigia-desarrollo` en `.env` y `vigia-produccion` en Render. **Obligatoria en producción**; en desarrollo puede faltar: entonces los correos no se envían y el enlace se escribe en la terminal ("buzón de desarrollo", nunca en producción) |
-| `CORREO_REMITENTE` | Quién envía los correos, con el dominio verificado en Resend: `Vigía <no-responder@dominio>` |
+| `CORREO_REMITENTE` | Quién envía los correos, con el dominio verificado en Resend: `Stockpot <no-responder@dominio>` (D-59) |
 | `NODE_ENV`, `PORT` | Entorno y puerto |
 
 - En el PC van en `.env`, que está ignorado por git. En Render, en el panel *Environment*.
 - **Copia de los secretos de desarrollo en Bitwarden** (D-34): una nota segura `recetas-pwa · .env desarrollo` con el `.env` completo, que se actualiza cada vez que se añade un secreto. Sirve para montar el proyecto en otro ordenador (`git clone` → `npm install` → pegar la nota en `.env`). Los secretos de producción viven en Render.
 - `config.js` **no arranca** si falta alguna variable (salvo `ANTHROPIC_API_KEY` y `RESEND_API_KEY` en desarrollo) y nunca imprime sus valores.
 - Si una variable se filtra: se rota (key nueva en la consola, claves VAPID nuevas, que obligan a volver a suscribir los dispositivos, o secreto nuevo en cron-job.org).
+
+
+### 9.11 Revisión de cierre (fase 13, 2026-11-25)
+Repaso de §9 con todo lo añadido desde la fase 5 (chat, correo, perfil, lista de la compra y el rebranding de D-59). **Sin hallazgos altos ni medios.**
+
+| Comprobación | Cómo | Resultado |
+|---|---|---|
+| Dependencias | `express` 5.2.1 → **5.3.0** (decisión del autor) y `npm audit` | 0 vulnerabilidades; 268 pruebas en verde |
+| Inyección SQL (9.6) | Buscar `` query(` `` con `${` y consultas montadas con `+` en `server/` | Ninguna |
+| XSS (9.7) | Buscar `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `eval` y `new Function` en `web/js` y `server/` | Ninguno |
+| Cabeceras (9.7) | `curl -I` a producción | CSP igual que en 9.7, HSTS de un año, `nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options`; sin `X-Powered-By` ni cabeceras CORS |
+| CSRF (9.4) | `POST /api/lista` en producción sin `Origin` y con un `Origin` ajeno; en desarrollo, con `text/plain` | 403, 403 y 415 |
+| Autorización (9.3), lista nueva | Dani (otro hogar) contra una línea de Ana: `PATCH` y `DELETE`; `GET` de su lista; sin sesión | 404, 404, no la ve; 401 |
+| Rutas con sesión | `server/app.js`: cada `/api/...` de datos lleva `exigirSesion`; `hogar_id` nunca sale de `req.body`, `req.params` ni `req.query` | Correcto |
+| Secretos (9.10) | `git grep` de keys de Anthropic y Resend y de cadenas de conexión con contraseña | Ninguno en el repositorio |
+| Logs (9.9, SEC-09) | `console.*` en `server/` | Solo arranque, migraciones, avisos atrasados y el "buzón de desarrollo" de `correo.js`, que nunca se usa en producción |
+
+**Corregido en la documentación:** `CORREO_REMITENTE` (Stockpot) y `VAPID_SUJETO` (es la URL de Render, no un `mailto:`).
+**Sigue pendiente (no es de código):** subir DMARC a `p=quarantine` en Cloudflare a partir del 2026-12-09 (D-53) y, en el PC del autor, borrar la regla amplia del firewall (SEC-01).
 
 ---
 
@@ -1223,12 +1242,12 @@ Cada fase sigue el `<modo_mentor>`: te explico, escribes tú, reviso el archivo 
 - El Ayudante no ve la lista: darle una herramienta nueva cambiaría las herramientas del chat (D-51).
 
 ### Fase 13 — Cierre
-- **Auditoría de UI/UX y accesibilidad** (hecha el 2026-11-25, `audit/report.md` y `tests/smoke.spec.ts`): sin P0 ni P1; los dos P2 y la regla `region`, arreglados en `app-v55`. Los P3 (el foco en "Aceptar" de las ventanas de privacidad, la barra antes que el contenido con el teclado y la columna estrecha en escritorio) los decide el autor.
+- **Auditoría de UI/UX y accesibilidad** (hecha el 2026-11-25, `audit/report.md` y `tests/smoke.spec.ts`): sin P0 ni P1; los dos P2 y la regla `region`, arreglados en `app-v55`. P3 decididos por el autor el 2026-11-25 (`app-v57`): el foco de las ventanas de privacidad va a "Ahora no"; la barra sigue antes que el contenido con el teclado; en escritorio (desde 64em) el contenido se ensancha a 800 px.
 - **Rebranding a Stockpot** (D-59, hecho y desplegado el 2026-11-25, `app-v56`, probado en el iPhone).
-- **Dependencias:** express a 5.3.0 (decisión del autor) y `npm audit`.
-- **Revisión de seguridad:** repasar §9 (SEC-xx) con lo que se ha añadido desde la fase 5 (chat, correo, lista) y actualizar la auditoría con los hallazgos nuevos.
-- **README** en español.
-- **Pendientes de fases anteriores:** el tick tras un ticket real, con "Reducir movimiento" y en el tupper con aviso (D-58); el avatar que "piensa" con un ticket real; VoiceOver; DMARC a `p=quarantine` desde el 2026-12-09; borrar `muestra-ticks.html`.
+- **Dependencias:** express a 5.3.0 (decisión del autor) y `npm audit`: hecho el 2026-11-25, 0 vulnerabilidades.
+- **Revisión de seguridad:** hecha el 2026-11-25 (§9.11), sin hallazgos altos ni medios.
+- **README** en español: hecho el 2026-11-25 (`README.md`).
+- **Pendientes de fases anteriores:** hecho el 2026-11-25: el tick tras un ticket real (en desarrollo, "4 productos"), el tick con "Reducir movimiento" (ahora sale ya dibujado: la marca esperaba 450 ms) y borrar `muestra-ticks.html`. Quedan para el autor: el tupper con aviso (necesita los avisos activos) y el avatar que "piensa" entrando a Ticket desde Inventario (en la prueba se entró directo a `/ticket` y, sin saber quién eres, sale el círculo, como está previsto), en el iPhone; VoiceOver; DMARC a `p=quarantine` en Cloudflare desde el 2026-12-09.
 
 **Hecho cuando:**
 - axe da 0 problemas en todas las pantallas, en claro y en oscuro, y los P3 están decididos;

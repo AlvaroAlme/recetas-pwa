@@ -2212,4 +2212,9 @@ html[data-sentido='pestana']::view-transition-new(root) {
   .tick-guardado {
     animation: none !important;
   }
+  /* base.css acorta la duración, no la espera: sin esto la marca salía
+     medio segundo después del aro (visto en la fase 13). */
+  .tick-guardado__marca {
+    animation-delay: 0s !important;
+  }
 }

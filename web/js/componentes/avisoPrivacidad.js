@@ -42,8 +42,9 @@ export function pedirAvisoPrivacidad({ titulo, parrafos, aceptar }) {
   let aceptado = false;
   document.body.append(dialogo);
   dialogo.showModal();
-  // El foco en "Aceptar", no en el enlace (es lo primero que se puede pulsar).
-  botonAceptar.focus();
+  // El foco en "Ahora no" (fase 13, P3 de la auditoría): lo que pasa con un
+  // Intro sin querer es no compartir nada, como el "Cancelar" de confirmar().
+  botonAhoraNo.focus();
 
   botonAhoraNo.addEventListener('click', () => dialogo.close());
   // El clic sigue hasta el router (document), que abre /privacidad. Yo solo

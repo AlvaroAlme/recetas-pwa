@@ -27,19 +27,22 @@ No hay ningún P0 ni P1: no se ha encontrado ningún control muerto, ningún err
 - **Por qué importa:** es la pantalla con las acciones más delicadas (cerrar y borrar), y se lee peor justo donde más cuidado hace falta.
 - **Arreglo:** en móvil, uno debajo de otro y a todo el ancho (`flex-direction: column` en ese grupo por debajo de 48em), con "Borrar cuenta" al final y separado, como acción de peligro.
 
-### P3 — El foco empieza en "Aceptar" en las ventanas de privacidad de la IA
+### P3 — El foco empieza en "Aceptar" en las ventanas de privacidad de la IA — ✅ arreglado
 - **Lo que vi:** al abrir el aviso del Ayudante o del ticket, el foco va a "Aceptar" (`avisoPrivacidad.js`, con un comentario que explica que es lo primero que se puede pulsar). La ventana de `confirmar()` pone el foco en "Cancelar" (`autofocus`).
 - **Por qué importa:** con un teclado, o con un toque sin querer en Intro, se acepta enviar datos a Anthropic sin haberlo leído. Para un consentimiento, lo prudente es que lo por defecto sea lo que no comparte nada.
 - **Arreglo (decisión del autor):** el foco en "Ahora no", o en el título de la ventana (`tabindex="-1"`), como en `confirmar()`.
+- **Decidido (2026-11-25, `app-v57`):** el foco va a "Ahora no" (`avisoPrivacidad.js`). Comprobado en Ticket y Ayudante.
 
-### P3 — Con el teclado, la barra de pestañas va antes que el contenido
+### P3 — Con el teclado, la barra de pestañas va antes que el contenido — se queda así
 - **Lo que vi:** tras "Saltar al contenido", el tabulador recorre Inventario, Lista, Recetas, Semana y Ayudante, luego Perfil y luego el contenido. En el móvil la barra está abajo, así que el orden del foco no sigue el orden en que se ve.
 - **Por qué importa:** poco: el enlace "Saltar al contenido" ya evita pasar por la barra, y en escritorio la barra es un carril a la izquierda, donde sí va primero.
 - **Arreglo:** si se quiere, mover `<nav class="navegacion">` detrás de `<main>` en `index.html` (su posición la decide el CSS, no el orden).
+- **Decidido (2026-11-25):** se queda como está. "Saltar al contenido" ya la evita y en escritorio la barra va a la izquierda, donde sí va primero.
 
-### P3 — En escritorio, una columna estrecha en mucho espacio vacío
+### P3 — En escritorio, una columna estrecha en mucho espacio vacío — ✅ arreglado
 - **Lo que vi:** a 1440 px el contenido es una columna de unos 480 px con el carril de pestañas a la izquierda (`05-inventario-1440.png`).
 - **Por qué importa:** es una app pensada para el iPhone y en escritorio funciona bien; solo se ve vacía. No hace falta tocarlo.
+- **Decidido (2026-11-25, `app-v57`):** el autor prefirió ensancharla: desde 64em, `--ancho-maximo` pasa de 640 a 800 px (`tokens.css`). axe sin fallos a 1440 px, en claro y en oscuro.
 
 ### Lo que está bien
 - Todas las zonas que se tocan miden 44 px o más (salvo los enlaces dentro de una frase, como "AESAN 2022", que WCAG 2.5.8 permite); los chips llevan su foco visible en la etiqueta (`input:focus-visible + .chip`).

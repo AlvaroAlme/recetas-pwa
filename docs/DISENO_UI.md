@@ -1233,7 +1233,7 @@ El código CSS es *mobile-first*: los estilos base son los del móvil y `@media 
 | `<dialog>` | Ancho completo menos 16 px por lado, abajo (como una hoja de iOS) | 440 px centrado |
 
 ### 6.3 Ancho máximo
-`.pantalla__contenido`, `.pie__interior` y `.cabecera__interior` tienen `max-width: var(--ancho-maximo); margin-inline: auto`. Nada usa anchos fijos de pantalla: `flex`, `gap` y porcentajes, como en Expo.
+`.pantalla__contenido`, `.pie__interior` y `.cabecera__interior` tienen `max-width: var(--ancho-maximo); margin-inline: auto`. `--ancho-maximo` es 640 px y, desde 64em, 800 px (fase 13: con 640 se veía una columna estrecha en un ordenador). Nada usa anchos fijos de pantalla: `flex`, `gap` y porcentajes, como en Expo.
 
 ### 6.4 Zonas seguras del iPhone
 - `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`. `viewport-fit=cover` hace que la página ocupe también las zonas de la isla y del indicador de inicio, y los `env(safe-area-inset-*)` dejan de ser 0 (**[sin verificar]** en documentación oficial: MDN no lo menciona en la página de `env()`; fase 3).

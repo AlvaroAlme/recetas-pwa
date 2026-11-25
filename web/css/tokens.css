@@ -131,6 +131,13 @@
      (el de abajo lo suma .app, con la zona segura del iPhone). */
   --alto-navegacion: calc(var(--alto-barra) + var(--espacio-s));
 }
+/* En un ordenador (desde 64em) el contenido se ensancha: con 640 px quedaba
+   una columna estrecha en mucho espacio vacío (fase 13, P3 de la auditoría). */
+@media (min-width: 64em) {
+  :root {
+    --ancho-maximo: 800px;
+  }
+}
 
 /* ============ Letra: px / 17 en rem ============ */
 :root {
