@@ -27,6 +27,9 @@ import { olvidarUsuario, usuarioActual, usuarioSabido } from './yo.js';
  *  una anterior de la app ('/'). Sin ella, no hay botón Atrás (pestañas).
  * @property {() => void} [alMostrar] La llamo cuando la pantalla ya se ve:
  *  puesta en la página y acabada su transición (el tick de D-58).
+ * @property {() => void} [alSalir] La llamo cuando otra pantalla ocupa su
+ *  sitio: para soltar lo que solo vale mientras se ve (la pantalla
+ *  encendida del modo cocina, D-61).
  */
 
 /**
@@ -158,6 +161,8 @@ function crearEnlacePerfil() {
 
 /** La ruta que está pintada ahora (para saber si paso de pestaña a pestaña). */
 let rutaPintada = null;
+/** La vista que está puesta ahora: al cambiar, llamo a su alSalir. */
+let vistaPuesta = null;
 /** El camino pintado ahora: si no cambia (/?ubicacion=…), no animo. */
 let caminoPintado = null;
 
@@ -282,6 +287,9 @@ async function pintar({ esPrimera = false, volviendo = false, sentido = null } =
  * @param {{ esPrimera: boolean, volviendo: boolean }} opciones
  */
 function ponerVista(ruta, vista, { esPrimera, volviendo }) {
+  // La pantalla que se va, antes de quitarla.
+  vistaPuesta?.alSalir?.();
+  vistaPuesta = vista;
   $('titulo').textContent = vista.titulo;
   document.title = `${vista.titulo} · Stockpot`;
   $('pantalla').replaceChildren(vista.contenido);

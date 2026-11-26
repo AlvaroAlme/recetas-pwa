@@ -16,6 +16,11 @@ const TRAZOS = {
   nuevaConversacion: ['M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z', 'M12 9v6M9 12h6'],
   // Un lápiz.
   editar: ['M4 20h4L19 9l-4-4L4 16v4z', 'M13.5 6.5l4 4'],
+  // Un embudo: filtrar una lista (el Inventario por ubicación, D-61).
+  filtrar: ['M4 5h16l-6 7.5V18l-4 2v-7.5z'],
+  // Menos y más: cambiar las raciones de una receta (D-61).
+  menos: ['M5 12h14'],
+  mas: ['M12 5v14M5 12h14'],
 };
 
 /**

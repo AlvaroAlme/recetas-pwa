@@ -78,6 +78,24 @@ export const MAX_LONGITUD_PASO = 500;
 export const MIN_RACIONES = 1;
 export const MAX_RACIONES = 20;
 
+/**
+ * Días hasta la caducidad que cuentan como "usar pronto": lo caducado, lo
+ * que caduca hoy y lo que caduca en 1 a 3 días, que es el naranja de
+ * avisoCaducidad() (D-61).
+ */
+export const DIAS_USAR_PRONTO = 3;
+
+/**
+ * Básicos de despensa (D-61): si una receta los lleva y no los tengo en el
+ * inventario, no cuentan como "te falta", porque casi nadie apunta la sal.
+ * Los comparo con normalizar(), así que da igual cómo estén escritos.
+ * @type {readonly string[]}
+ */
+export const BASICOS_DESPENSA = Object.freeze([
+  'Agua', 'Sal', 'Pimienta', 'Pimienta negra', 'Aceite', 'Aceite de oliva',
+  'Aceite de oliva virgen extra', 'Aceite de girasol', 'Vinagre', 'Azúcar',
+]);
+
 /** Longitud de la contraseña: de 10 a 128 caracteres, sin más reglas (D-17). */
 export const MIN_LONGITUD_CONTRASENA = 10;
 export const MAX_LONGITUD_CONTRASENA = 128;

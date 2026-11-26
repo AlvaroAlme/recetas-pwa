@@ -1,19 +1,67 @@
 /**
- * @file Pantalla Inventario (P-04): lo que hay en la nevera, la despensa o el
- * congelador, ordenado por caducidad (index.tsx de la app Expo). Arriba, los
- * tuppers de esa ubicación; debajo, los productos.
+ * @file Pantalla Inventario (P-04): lo que hay en casa (index.tsx de la app
+ * Expo). Desde la fase 14 (D-61, con el cambio del autor del 2026-11-26), dos
+ * vistas:
+ * - "Todo · N": lo último que ha entrado, arriba. Con el icono de filtrar se
+ *   eligen una o varias ubicaciones (Nevera, Despensa, Congelador).
+ * - "Usar pronto · N": lo caducado y lo que caduca pronto de toda la casa,
+ *   lo más urgente primero.
  *
- * La ubicación va en la URL (/?ubicacion=despensa): así, al volver de un
- * producto con "Atrás", sigues en la misma.
+ * La vista y el filtro van en la URL (/?filtro=pronto,
+ * /?ubicacion=nevera&ubicacion=congelador): así, al volver de un producto con
+ * "Atrás", sigues en la misma vista.
  */
+import { usarPronto } from '/compartido/cocina.js';
 import { UBICACIONES } from '/compartido/constantes.js';
 import { avisoCaducidad, formatearCantidad } from '/compartido/formato.js';
 import { ETIQUETAS_UBICACION } from '/compartido/ubicaciones.js';
-import { api, mensajeDeError } from '../api.js';
-import { conMarca, crearAviso, crearCarga, crearFila, crearSelector, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
+import { mensajeDeError } from '../api.js';
+import { crearIcono } from '../componentes/iconos.js';
+import { crearMenuFiltro } from '../componentes/menuFiltro.js';
+import { conMarca, crearAviso, crearCarga, crearFila, crearMarca, crearSelector, crearSinConexion, crearVacio } from '../componentes/ui/index.js';
 import { mostrarTickGuardado } from '../componentes/tickGuardado.js';
 import { el } from '../dom.js';
-import { tomarMensaje } from '../router.js';
+import { navegar, tomarMensaje } from '../router.js';
+import { leerUbicaciones, recordarVistaInventario, urlInventario } from '../vistaInventario.js';
+import { cargarInventarioCompleto } from './receta.js';
+
+/** Nombres que van en la pregunta de "Cocina con lo que tengo" (D-61). */
+const MAX_NOMBRES_PREGUNTA = 5;
+
+/** "espinacas, tomates y pollo": une una lista como se dice en español. */
+const listaEnEspanol = new Intl.ListFormat('es', { style: 'long', type: 'conjunction' });
+
+/**
+ * Lo último que ha entrado, primero (D-61). fechaAlta llega como texto ISO,
+ * que se ordena bien como texto; si dos entraron a la vez (un ticket), el id
+ * más alto es el último.
+ * @param {{ id: number, fechaAlta: string }} x
+ * @param {{ id: number, fechaAlta: string }} y
+ */
+function porAlta(x, y) {
+  return y.fechaAlta.localeCompare(x.fechaAlta) || y.id - x.id;
+}
+
+/**
+ * La pregunta que dejo escrita en el Ayudante: "Tengo que gastar pronto:
+ * espinacas, tomates cherry y pechuga de pollo. ¿Qué puedo cocinar?". Sin
+ * repetir nombres y con los 5 primeros como mucho (ya vienen por urgencia).
+ * @param {import('/compartido/cocina.js').CosaPronto[]} cosas
+ * @returns {string}
+ */
+function preguntaCocinar(cosas) {
+  const nombres = cosas.map((cosa) => (cosa.tipo === 'producto' ? cosa.producto.nombre : cosa.tupper.nombre).toLocaleLowerCase('es'));
+  const sinRepetir = [...new Set(nombres)].slice(0, MAX_NOMBRES_PREGUNTA);
+  return `Tengo que gastar pronto: ${listaEnEspanol.format(sinRepetir)}. ¿Qué puedo cocinar?`;
+}
+
+/**
+ * "Hay 3 cosas que caducan pronto" / "Hay 1 cosa que caduca pronto".
+ * @param {number} cuantas
+ */
+function textoPronto(cuantas) {
+  return cuantas === 1 ? 'Hay 1 cosa que caduca pronto' : `Hay ${cuantas} cosas que caducan pronto`;
+}
 
 /**
  * @param {{ consulta: URLSearchParams }} entrada
@@ -26,7 +74,7 @@ export function pantallaInventario({ consulta }) {
   let tickPendiente = mensaje?.tick ? mensaje : null;
   let enPantalla = false;
   let cargado = false;
-  // Lo guardo en una constante para poder quitarlo al cambiar de ubicación.
+  // Lo guardo en una constante para poder quitarlo al cambiar de vista.
   // Si llega como { texto, tipo: 'aviso' } (tupper guardado sin aviso), va en amarillo y sin ✓.
   const avisoMensaje =
     mensaje &&
@@ -34,43 +82,51 @@ export function pantallaInventario({ consulta }) {
     (typeof mensaje === 'string'
       ? crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` })
       : crearAviso({ tipo: mensaje.tipo, mensaje: mensaje.texto }));
-  // Si la URL trae una ubicación que no existe, uso la nevera (DISENO_UI §5.2).
-  const pedida = consulta.get('ubicacion');
-  let ubicacion = UBICACIONES.includes(pedida) ? pedida : 'nevera';
+  // Lo que viene en la URL lo valido: lo que no existe, no cuenta (DISENO_UI §5.2).
+  /** @type {'todo' | 'pronto'} */
+  let filtro = consulta.get('filtro') === 'pronto' ? 'pronto' : 'todo';
+  let ubicaciones = leerUbicaciones(consulta);
+  recordarVistaInventario(ubicaciones, filtro);
 
+  /** Todo el inventario de la casa, tal como llegó. Al cambiar de vista no lo vuelvo a pedir. */
+  let datos = null;
   const zona = el('div', { class: 'inventario__zona' });
   const botonNuevo = el('a', { class: 'boton boton--primario' }, conMarca('+ Producto'));
   const botonTupper = el('a', { class: 'boton boton--secundario' }, conMarca('+ Tupper'));
-  // Igual que en el router: si cambio de ubicación mientras carga, la
-  // respuesta vieja no pinta encima de la nueva.
+  // Las cuentas de los chips ("· 12"): las relleno al pintar.
+  const cuentaTodo = el('span', { class: 'chip__cuenta' });
+  const cuentaPronto = el('span', { class: 'chip__cuenta' });
+  const menuFiltro = crearMenuFiltro({
+    leyenda: 'Filtrar por ubicación',
+    opciones: UBICACIONES.map((valor) => ({ valor, etiqueta: ETIQUETAS_UBICACION[valor] })),
+    elegidas: ubicaciones,
+    alCambiar: (elegidas) => {
+      ubicaciones = elegidas;
+      cambiarVista();
+    },
+  });
+  // Debajo de los chips, lo que está filtrado ("Nevera ✗"), para quitarlo de un toque.
+  const elegidas = el('div', { class: 'inventario__elegidas' });
+  // Igual que en el router: si recargo mientras carga, la respuesta vieja no
+  // pinta encima de la nueva.
   let turno = 0;
 
-  /** Enlace a "Nuevo producto" con la ubicación ya elegida. */
-  const enlaceNuevo = () => `/producto/nuevo?ubicacion=${ubicacion}`;
+  /**
+   * Enlace a "Nuevo producto" o "Nuevo tupper": con una sola ubicación en el
+   * filtro, ya elegida; si no, el formulario la pregunta.
+   * @param {'producto' | 'tupper'} que
+   */
+  const enlaceNuevo = (que) =>
+    filtro === 'todo' && ubicaciones.length === 1 ? `/${que}/nuevo?ubicacion=${ubicaciones[0]}` : `/${que}/nuevo`;
 
   async function cargar() {
     const miTurno = ++turno;
-    botonNuevo.setAttribute('href', enlaceNuevo());
-    botonTupper.setAttribute('href', `/tupper/nuevo?ubicacion=${ubicacion}`);
     zona.replaceChildren(crearCarga('Cargando inventario…'));
     try {
-      // Las dos peticiones a la vez: no espero a una para lanzar la otra.
-      const [{ productos }, { tuppers }] = await Promise.all([
-        api.get(`/productos?ubicacion=${ubicacion}`),
-        api.get(`/tuppers?ubicacion=${ubicacion}`),
-      ]);
+      const inventario = await cargarInventarioCompleto();
       if (miTurno !== turno) return;
-      if (productos.length === 0 && tuppers.length === 0) {
-        zona.replaceChildren(crearEstadoVacio());
-      } else if (tuppers.length === 0) {
-        // Sin tuppers, la lista de siempre, sin títulos de sección.
-        zona.replaceChildren(crearListaProductos(productos));
-      } else {
-        zona.replaceChildren(
-          crearSeccion('Tuppers', crearListaTuppers(tuppers)),
-          crearSeccion('Productos', productos.length > 0 ? crearListaProductos(productos) : crearSinProductos())
-        );
-      }
+      datos = inventario;
+      pintar();
     } catch (error) {
       if (miTurno !== turno) return;
       zona.replaceChildren(
@@ -90,6 +146,62 @@ export function pantallaInventario({ consulta }) {
     }
   }
 
+  /** Pinto la vista elegida con lo que ya tengo en `datos`. */
+  function pintar() {
+    botonNuevo.setAttribute('href', enlaceNuevo('producto'));
+    botonTupper.setAttribute('href', enlaceNuevo('tupper'));
+    // El filtro de ubicación solo es de "Todo".
+    menuFiltro.elemento.hidden = filtro !== 'todo';
+    pintarElegidas();
+    if (!datos) return;
+
+    const filtrar = (cosa) => ubicaciones.length === 0 || ubicaciones.includes(cosa.ubicacion);
+    const productos = datos.productos.filter(filtrar).sort(porAlta);
+    const tuppers = datos.tuppers.filter(filtrar).sort(porAlta);
+    // "Usar pronto" es siempre de toda la casa.
+    const pronto = usarPronto(datos.productos, datos.tuppers);
+    ponerCuenta(cuentaTodo, productos.length + tuppers.length);
+    ponerCuenta(cuentaPronto, pronto.length);
+    const lista = filtro === 'pronto' ? crearVistaPronto(pronto) : crearVistaTodo(productos, tuppers);
+    // La tarjeta, solo si hay algo que usar pronto (D-61).
+    zona.replaceChildren(lista, ...(pronto.length > 0 ? [crearTarjetaCocinar(pronto)] : []));
+  }
+
+  /** "Nevera ✗ Congelador ✗": un botón por ubicación filtrada, que la quita. */
+  function pintarElegidas() {
+    elegidas.hidden = filtro !== 'todo' || ubicaciones.length === 0;
+    elegidas.replaceChildren(
+      ...ubicaciones.map((ubicacion) =>
+        el(
+          'button',
+          {
+            class: 'chip chip--quitar',
+            type: 'button',
+            'aria-label': `Quitar el filtro ${ETIQUETAS_UBICACION[ubicacion]}`,
+            onclick: () => {
+              ubicaciones = ubicaciones.filter((otra) => otra !== ubicacion);
+              menuFiltro.ponerElegidas(ubicaciones);
+              cambiarVista();
+              // El botón que tenía el foco ya no existe: lo llevo al icono.
+              menuFiltro.elemento.querySelector('button').focus();
+            },
+          },
+          ETIQUETAS_UBICACION[ubicacion],
+          crearMarca('mal')
+        )
+      )
+    );
+  }
+
+  /**
+   * " · 12" en un chip. El punto no lo lee el lector ("Usar pronto 3").
+   * @param {HTMLElement} cuenta
+   * @param {number} numero
+   */
+  function ponerCuenta(cuenta, numero) {
+    cuenta.replaceChildren(' ', el('span', { 'aria-hidden': 'true' }, '·'), ` ${numero}`);
+  }
+
   /**
    * D-58: el tick sale una sola vez y cuando ya ves la lista: con la
    * pantalla puesta (alMostrar, acabada la transición) y la carga terminada.
@@ -100,12 +212,52 @@ export function pantallaInventario({ consulta }) {
     tickPendiente = null;
   }
 
+  /**
+   * "Todo · N": los tuppers arriba y los productos debajo, lo último que ha
+   * entrado primero (sin tuppers, la lista sin títulos de sección).
+   * @param {any[]} productos
+   * @param {any[]} tuppers
+   */
+  function crearVistaTodo(productos, tuppers) {
+    if (productos.length === 0 && tuppers.length === 0) return crearEstadoVacio();
+    if (tuppers.length === 0) return crearListaProductos(productos);
+    return el(
+      'div',
+      {},
+      crearSeccion('Tuppers', crearListaTuppers(tuppers)),
+      crearSeccion('Productos', productos.length > 0 ? crearListaProductos(productos) : crearSinProductos())
+    );
+  }
+
+  /**
+   * "Usar pronto · N": productos y tuppers en una sola lista, lo más urgente
+   * primero (usarPronto() ya los ordena por fecha).
+   * @param {import('/compartido/cocina.js').CosaPronto[]} cosas
+   */
+  function crearVistaPronto(cosas) {
+    if (cosas.length === 0) {
+      return crearVacio({
+        titulo: 'Nada caduca pronto',
+        descripcion: 'Lo que caduque en 3 días o menos saldrá aquí.',
+      });
+    }
+    return el(
+      'ul',
+      { class: 'lista' },
+      cosas.map((cosa) => (cosa.tipo === 'producto' ? crearFilaProducto(cosa.producto) : crearFilaTupper(cosa.tupper)))
+    );
+  }
+
   function crearEstadoVacio() {
+    let titulo = 'Inventario vacío';
+    if (ubicaciones.length > 1) titulo = 'No hay nada en estas ubicaciones';
+    // "Congelador" es masculino: no vale añadir "vacía" a cualquier ubicación.
+    else if (ubicaciones[0] === 'congelador') titulo = 'Congelador vacío';
+    else if (ubicaciones.length === 1) titulo = `${ETIQUETAS_UBICACION[ubicaciones[0]]} vacía`;
     return crearVacio({
-      // "Congelador" es masculino: no vale añadir "vacía" a cualquier ubicación.
-      titulo: ubicacion === 'congelador' ? 'Congelador vacío' : `${ETIQUETAS_UBICACION[ubicacion]} vacía`,
+      titulo,
       descripcion: 'Añade lo que tienes a mano con «+ Producto», o lo que te ha sobrado con «+ Tupper».',
-      accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: enlaceNuevo() }, 'Añadir producto'),
+      accion: el('a', { class: 'boton boton--secundario boton--ajustado', href: enlaceNuevo('producto') }, 'Añadir producto'),
     });
   }
 
@@ -129,50 +281,90 @@ export function pantallaInventario({ consulta }) {
     return el('p', { class: 'tono--tenue' }, 'No hay productos en esta ubicación.');
   }
 
+  /**
+   * "Nevera" bajo el nombre, salvo cuando el filtro deja una sola ubicación
+   * (entonces ya sé dónde está todo).
+   * @param {string} deDonde
+   */
+  function lugar(deDonde) {
+    return filtro === 'todo' && ubicaciones.length === 1 ? undefined : ETIQUETAS_UBICACION[deDonde];
+  }
+
+  function crearFilaTupper(tupper) {
+    const aviso = avisoCaducidad(tupper.fechaLimite);
+    return crearFila({
+      href: `/tupper/${tupper.id}`,
+      titulo: tupper.nombre,
+      lugar: lugar(tupper.ubicacion),
+      subtitulo: aviso.texto,
+      tono: aviso.tono,
+      detalle: 'Tupper',
+    });
+  }
+
+  function crearFilaProducto(producto) {
+    const aviso = producto.fechaCaducidad ? avisoCaducidad(producto.fechaCaducidad) : null;
+    return crearFila({
+      href: `/producto/${producto.id}`,
+      titulo: producto.nombre,
+      lugar: lugar(producto.ubicacion),
+      subtitulo: aviso?.texto,
+      tono: aviso?.tono,
+      detalle: formatearCantidad(producto.cantidad, producto.unidad),
+    });
+  }
+
   function crearListaTuppers(tuppers) {
-    return el(
-      'ul',
-      { class: 'lista' },
-      tuppers.map((tupper) => {
-        const aviso = avisoCaducidad(tupper.fechaLimite);
-        return crearFila({
-          href: `/tupper/${tupper.id}`,
-          titulo: tupper.nombre,
-          subtitulo: aviso.texto,
-          tono: aviso.tono,
-          detalle: 'Tupper',
-        });
-      })
-    );
+    return el('ul', { class: 'lista' }, tuppers.map(crearFilaTupper));
   }
 
   function crearListaProductos(productos) {
+    return el('ul', { class: 'lista' }, productos.map(crearFilaProducto));
+  }
+
+  /**
+   * "Hay 3 cosas que caducan pronto · Cocina con lo que tengo →" (D-61).
+   * Abre el Ayudante con la pregunta escrita, pero NO la envía: gastar un
+   * mensaje de la cuota lo decide la persona.
+   * @param {import('/compartido/cocina.js').CosaPronto[]} pronto
+   */
+  function crearTarjetaCocinar(pronto) {
+    const id = 'titulo-cocinar-pronto';
     return el(
-      'ul',
-      { class: 'lista' },
-      productos.map((producto) => {
-        const aviso = producto.fechaCaducidad ? avisoCaducidad(producto.fechaCaducidad) : null;
-        return crearFila({
-          href: `/producto/${producto.id}`,
-          titulo: producto.nombre,
-          subtitulo: aviso?.texto,
-          tono: aviso?.tono,
-          detalle: formatearCantidad(producto.cantidad, producto.unidad),
-        });
-      })
+      'section',
+      { class: 'tarjeta tarjeta-cocinar', 'aria-labelledby': id },
+      el('h2', { class: 'tarjeta-cocinar__titulo', id }, textoPronto(pronto.length)),
+      el('p', { class: 'tono--tenue' }, 'Te propongo algo para cocinar con lo que ya tienes.'),
+      el(
+        'a',
+        {
+          class: 'tarjeta-cocinar__enlace',
+          href: '/ayudante',
+          // Lo hago yo (y no el router) para pasarle la pregunta. El router
+          // ve defaultPrevented y no hace nada.
+          onclick: (evento) => {
+            evento.preventDefault();
+            navegar('/ayudante', { mensaje: { pregunta: preguntaCocinar(pronto) } });
+          },
+        },
+        'Cocina con lo que tengo',
+        crearIcono('adelante')
+      )
     );
   }
 
-  // Cambiar de ubicación NO repinta la pantalla entera: cambio la URL sin
-  // añadir historial y recargo solo la lista. Así el foco se queda en el chip.
-  function cambiarUbicacion(valor) {
-    // El mensaje ("«Leche» borrado…") era de la ubicación anterior: lo quito.
+  // Cambiar de vista o de filtro NO repinta la pantalla entera ni vuelve a
+  // pedir el inventario: cambio la URL sin añadir historial y pinto otra vez
+  // la lista con lo que ya tengo. Así el foco se queda donde estaba.
+  function cambiarVista() {
+    // El mensaje ("«Leche» borrado…") era de la vista anterior: lo quito.
     if (avisoMensaje) avisoMensaje.remove();
-    ubicacion = valor;
-    history.replaceState(history.state, '', `/?ubicacion=${valor}`);
-    cargar();
+    recordarVistaInventario(ubicaciones, filtro);
+    history.replaceState(history.state, '', urlInventario(ubicaciones, filtro));
+    pintar();
   }
 
+  pintar();
   cargar();
 
   return {
@@ -181,14 +373,26 @@ export function pantallaInventario({ consulta }) {
       'div',
       { class: 'inventario' },
       avisoMensaje,
-      crearSelector({
-        leyenda: 'Ubicación',
-        nombre: 'ubicacion',
-        leyendaVisible: false,
-        opciones: UBICACIONES.map((valor) => ({ valor, etiqueta: ETIQUETAS_UBICACION[valor] })),
-        seleccionado: ubicacion,
-        alCambiar: cambiarUbicacion,
-      }),
+      el(
+        'div',
+        { class: 'inventario__filtros' },
+        crearSelector({
+          leyenda: 'Qué enseñar',
+          nombre: 'vista',
+          leyendaVisible: false,
+          opciones: [
+            { valor: 'todo', etiqueta: el('span', {}, 'Todo', cuentaTodo) },
+            { valor: 'pronto', etiqueta: el('span', {}, 'Usar pronto', cuentaPronto) },
+          ],
+          seleccionado: filtro,
+          alCambiar: (valor) => {
+            filtro = valor;
+            cambiarVista();
+          },
+        }),
+        menuFiltro.elemento
+      ),
+      elegidas,
       zona
     ),
     pie: [botonTupper, botonNuevo],

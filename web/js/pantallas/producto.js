@@ -10,6 +10,7 @@ import { crearFormularioProducto } from '../componentes/formularioProducto.js';
 import { confirmar, crearAviso, crearCarga, crearSinConexion, crearVacio, ponerCargando } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
+import { urlVuelta } from '../vistaInventario.js';
 
 /**
  * Cómo pide el formulario el historial de nombres: él no llama a la API.
@@ -44,7 +45,7 @@ function pantallaNuevo(consulta) {
     alGuardar: async (datos) => {
       await api.post('/productos', datos);
       // Reemplazar: así "Atrás" desde el inventario no vuelve al formulario ya guardado.
-      navegar(`/?ubicacion=${datos.ubicacion}`, {
+      navegar(urlVuelta(datos.ubicacion), {
         reemplazar: true,
         mensaje: { tick: true, texto: `«${datos.nombre}» añadido al inventario.` },
       });
@@ -95,7 +96,7 @@ function pantallaEditar(id) {
       buscarHistorial,
       alGuardar: async (datos) => {
         await api.put(`/productos/${id}`, datos);
-        navegar(`/?ubicacion=${datos.ubicacion}`, { reemplazar: true, mensaje: { tick: true, texto: 'Cambios guardados.' } });
+        navegar(urlVuelta(datos.ubicacion), { reemplazar: true, mensaje: { tick: true, texto: 'Cambios guardados.' } });
       },
     });
     zona.replaceChildren(formulario, ...crearAcciones(producto));
@@ -134,7 +135,7 @@ function pantallaEditar(id) {
       ponerCargando(boton, true, 'Moviendo…');
       try {
         await api.patch(`/productos/${id}`, { ubicacion: destino });
-        navegar(`/?ubicacion=${destino}`, {
+        navegar(urlVuelta(destino), {
           reemplazar: true,
           mensaje: { tick: true, texto: `«${producto.nombre}» movido a ${ETIQUETAS_UBICACION[destino]}.` },
         });
@@ -156,7 +157,7 @@ function pantallaEditar(id) {
       ponerCargando(botonBorrar, true, 'Borrando…');
       try {
         await api.borrar(`/productos/${id}`);
-        navegar(`/?ubicacion=${producto.ubicacion}`, {
+        navegar(urlVuelta(producto.ubicacion), {
           reemplazar: true,
           mensaje: { tick: true, texto: `«${producto.nombre}» borrado del inventario.` },
         });

@@ -58,17 +58,51 @@ export function pantallaReceta({ parametros }) {
       return;
     }
 
+    // Lo pongo también en la vista: si la receta llega antes de que el router
+    // ponga la pantalla, él usaría "Receta" y pisaría el nombre.
+    vista.titulo = receta.nombre;
     ponerTitulo(receta.nombre);
     botonEditar.hidden = false;
+    // El pie (P-11, D-61): "La he cocinado" (secundario) y "Empezar a cocinar" (principal).
+    const botonCocinado = el('a', { class: 'boton boton--secundario', href: urlCocinado(receta, receta.raciones) }, 'La he cocinado');
+    const botonEmpezar = el('a', { class: 'boton boton--primario', href: urlEmpezar(receta, receta.raciones) }, 'Empezar a cocinar');
     // replaceChildren es del navegador: un undefined lo pintaría como texto. Por eso el "...[]".
     zona.replaceChildren(
       ...(mensaje ? [crearAviso({ tipo: 'exito', mensaje: `✓ ${mensaje}` })] : []),
-      crearVistaReceta({ receta, productos: inventario.productos, tuppers: inventario.tuppers }),
+      crearVistaReceta({
+        receta,
+        productos: inventario.productos,
+        tuppers: inventario.tuppers,
+        conRaciones: true,
+        // Si cambio las raciones, "La he cocinado" descuenta las escaladas (D-61).
+        alCambiarRaciones: (raciones) => {
+          botonCocinado.setAttribute('href', urlCocinado(receta, raciones));
+          botonEmpezar.setAttribute('href', urlEmpezar(receta, raciones));
+        },
+      }),
       ...crearBorrar(receta)
     );
-    ranuraBoton.replaceChildren(
-      el('a', { class: 'boton boton--primario', href: `/cocinar?receta=${id}` }, 'La he cocinado')
-    );
+    ranuraBoton.replaceChildren(botonCocinado, botonEmpezar);
+  }
+
+  /**
+   * "La he cocinado" con las raciones elegidas, solo si las he cambiado:
+   * /cocinar?receta=3&raciones=4.
+   * @param {{ raciones: number | null }} receta
+   * @param {number | null} raciones
+   */
+  function urlCocinado(receta, raciones) {
+    return raciones === receta.raciones ? `/cocinar?receta=${id}` : `/cocinar?receta=${id}&raciones=${raciones}`;
+  }
+
+  /**
+   * El modo cocina (P-31), con las raciones si las he cambiado:
+   * /receta/3/cocinando?raciones=4.
+   * @param {{ raciones: number | null }} receta
+   * @param {number | null} raciones
+   */
+  function urlEmpezar(receta, raciones) {
+    return raciones === receta.raciones ? `/receta/${id}/cocinando` : `/receta/${id}/cocinando?raciones=${raciones}`;
   }
 
   /**
@@ -122,6 +156,8 @@ export function pantallaReceta({ parametros }) {
     });
   }
 
+  /** @type {import('../router.js').Vista} */
+  const vista = { titulo: 'Receta', contenido: zona, pie: [ranuraBoton], accion: botonEditar, atras: '/recetas' };
   cargar();
-  return { titulo: 'Receta', contenido: zona, pie: [ranuraBoton], accion: botonEditar, atras: '/recetas' };
+  return vista;
 }

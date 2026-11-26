@@ -5,6 +5,7 @@
 
 /** @typedef {import('./constantes.js').Unidad} Unidad */
     import { diasHasta, isoATexto } from './fechas.js';
+import { DIAS_USAR_PRONTO } from './constantes.js';
 
 /**
  * Cantidad lista para enseñar, en formato español y con su unidad:
@@ -25,7 +26,8 @@ export function formatearCantidad(cantidad, unidad) {
 
 /**
  * Texto y tono del aviso de caducidad, como avisoCaducidad() de la app Expo:
- * rojo si caduca hoy o ya caducó, naranja de 1 a 3 días y tenue el resto.
+ * rojo si caduca hoy o ya caducó, naranja de 1 a 3 días (DIAS_USAR_PRONTO,
+ * el mismo corte que "Usar pronto") y tenue el resto.
  * Siempre con texto, nunca solo el color (DISENO_UI §1, principio 4).
  * @param {string} fechaIso AAAA-MM-DD
  * @returns {{ texto: string, tono: 'peligro' | 'aviso' | 'tenue' }}
@@ -35,6 +37,6 @@ export function avisoCaducidad(fechaIso) {
   if (dias < 0) return { texto: `Caducado (${isoATexto(fechaIso)})`, tono: 'peligro' };
   if (dias === 0) return { texto: 'Caduca hoy', tono: 'peligro' };
   if (dias === 1) return { texto: 'Caduca mañana', tono: 'aviso' };
-  if (dias <= 3) return { texto: `Caduca en ${dias} días`, tono: 'aviso' };
+  if (dias <= DIAS_USAR_PRONTO) return { texto: `Caduca en ${dias} días`, tono: 'aviso' };
   return { texto: `Caduca el ${isoATexto(fechaIso)}`, tono: 'tenue' };
 }

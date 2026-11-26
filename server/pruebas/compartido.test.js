@@ -10,7 +10,17 @@ import assert from 'node:assert/strict';
 import { formatearCantidad } from '../../compartido/formato.js';
 import { normalizar } from '../../compartido/texto.js';
 import { ubicacionesPosibles } from '../../compartido/ubicaciones.js';
-import { cantidadPropuesta, convertir, estadoIngrediente, productosDelPlato } from '../../compartido/cocina.js';
+import {
+  cantidadPropuesta,
+  convertir,
+  esBasico,
+  escalarIngredientes,
+  esPronto,
+  estadoIngrediente,
+  productosDelPlato,
+  usarPronto,
+} from '../../compartido/cocina.js';
+import { hoyIso, sumarDias } from '../../compartido/fechas.js';
 
 describe('normalizar', () => {
   it('pasa a minúsculas y quita los espacios de los extremos', () => {
@@ -120,5 +130,71 @@ describe('cocina: lo que hay para un plato escrito a mano', () => {
 
   it('sin palabras en común, nada', () => {
     assert.deepEqual(productosDelPlato('Lentejas', [pechuga, patatas]), []);
+  });
+});
+
+describe('cocina: usar pronto (D-61)', () => {
+  // Las fechas van respecto a hoy: así la prueba sirve cualquier día.
+  const hoy = hoyIso();
+  const producto = (id, dias) => ({
+    id,
+    nombre: `Producto ${id}`,
+    cantidad: 1,
+    unidad: 'unidades',
+    fechaCaducidad: dias === null ? null : sumarDias(hoy, dias),
+  });
+  const tupper = (id, dias) => ({ id, nombre: `Tupper ${id}`, fechaLimite: sumarDias(hoy, dias) });
+
+  it('entra lo caducado, lo de hoy y lo de 3 días o menos; lo de 4 días no', () => {
+    assert.equal(esPronto(sumarDias(hoy, -2)), true);
+    assert.equal(esPronto(hoy), true);
+    assert.equal(esPronto(sumarDias(hoy, 3)), true);
+    assert.equal(esPronto(sumarDias(hoy, 4)), false);
+  });
+
+  it('los productos sin fecha o que caducan más tarde no entran', () => {
+    assert.deepEqual(usarPronto([producto(1, null), producto(2, 4)], [tupper(3, 10)]), []);
+  });
+
+  it('junta productos y tuppers en una sola lista, primero lo que antes caduca', () => {
+    const lista = usarPronto([producto(1, 3), producto(2, -1)], [tupper(3, 1)]);
+    assert.deepEqual(lista.map((cosa) => cosa.tipo), ['producto', 'tupper', 'producto']);
+    assert.deepEqual(lista.map((cosa) => cosa.fecha), [sumarDias(hoy, -1), sumarDias(hoy, 1), sumarDias(hoy, 3)]);
+    assert.equal(lista[1].tupper.id, 3);
+  });
+});
+
+describe('cocina: escalar las raciones (D-61)', () => {
+  const ingredientes = [
+    { nombre: 'Patatas', cantidad: 0.5, unidad: 'kg' },
+    { nombre: 'Huevos', cantidad: 3, unidad: 'unidades' },
+  ];
+
+  it('de 2 a 4 raciones dobla las cantidades sin tocar la receta', () => {
+    assert.deepEqual(escalarIngredientes(ingredientes, 2, 4).map((ingrediente) => ingrediente.cantidad), [1, 6]);
+    assert.equal(ingredientes[0].cantidad, 0.5);
+  });
+
+  it('redondea a 3 decimales, como la base de datos, y nunca deja un 0', () => {
+    assert.equal(escalarIngredientes([{ nombre: 'Harina', cantidad: 0.125, unidad: 'kg' }], 2, 1)[0].cantidad, 0.063);
+    assert.equal(escalarIngredientes([{ nombre: 'Sal', cantidad: 0.001, unidad: 'kg' }], 20, 1)[0].cantidad, 0.001);
+  });
+
+  it('sin raciones en la receta, o con las mismas, devuelve los mismos ingredientes', () => {
+    assert.equal(escalarIngredientes(ingredientes, null, 4), ingredientes);
+    assert.equal(escalarIngredientes(ingredientes, 2, 2), ingredientes);
+  });
+});
+
+describe('cocina: básicos de despensa (D-61)', () => {
+  it('reconoce los básicos escritos de cualquier forma', () => {
+    assert.equal(esBasico('Sal'), true);
+    assert.equal(esBasico('  aceite DE OLIVA '), true);
+    assert.equal(esBasico('Azucar'), true);
+  });
+
+  it('compara el nombre entero: "Aceitunas" y "Pimiento" no son básicos', () => {
+    assert.equal(esBasico('Aceitunas'), false);
+    assert.equal(esBasico('Pimiento'), false);
   });
 });

@@ -31,6 +31,7 @@ import {
 import { el } from '../dom.js';
 import { entrar } from '../movimiento.js';
 import { pensar } from '../reacciones.js';
+import { tomarMensaje } from '../router.js';
 import { cargarInventarioCompleto } from './receta.js';
 
 /** Los ejemplos del estado vacío: al pulsarlos se ESCRIBEN, no se envían. */
@@ -89,6 +90,10 @@ function textoCuota(quedan) {
 
 /** @returns {import('../router.js').Vista} */
 export function pantallaAyudante() {
+  // "Cocina con lo que tengo" (Inventario, D-61) me deja una pregunta para
+  // escribirla en el área de texto. NO la envío: lo decide la persona.
+  const mensaje = tomarMensaje();
+  const preguntaInicial = typeof mensaje?.pregunta === 'string' ? mensaje.pregunta.slice(0, MAX_CARACTERES_MENSAJE) : '';
   /** @type {{ avisoAceptado: boolean, mensajes: any[], preguntas: number, quedanHoy: number } | null} */
   let datos = null;
   let respondiendo = false;
@@ -141,6 +146,7 @@ export function pantallaAyudante() {
     atributos: { rows: 1, maxlength: MAX_CARACTERES_MENSAJE, oninput: alEscribir },
   });
   const area = campo.querySelector('textarea');
+  area.value = preguntaInicial;
   const botonEnviar = el(
     'button',
     { class: 'boton boton--primario chat__enviar', type: 'submit', 'aria-label': 'Enviar', 'data-escribe': true },
@@ -225,7 +231,12 @@ export function pantallaAyudante() {
       );
       return;
     }
-    if (ranura.firstChild !== pieChat) ranura.replaceChildren(pieChat);
+    if (ranura.firstChild !== pieChat) {
+      ranura.replaceChildren(pieChat);
+      // Si el área ya trae texto (la pregunta de "Cocina con lo que tengo"),
+      // ajusto su altura ahora que está puesta.
+      if (area.value) alEscribir();
+    }
     area.disabled = respondiendo;
     botonEnviar.disabled = respondiendo || datos.quedanHoy === 0;
     botonEnviar.setAttribute('aria-label', respondiendo ? 'Respondiendo…' : 'Enviar');
@@ -281,8 +292,12 @@ export function pantallaAyudante() {
 
   /** El área crece con el texto (hasta 4 líneas, lo limita el CSS) y el contador. */
   function alEscribir() {
-    area.style.height = 'auto';
-    area.style.height = `${area.scrollHeight + 2}px`;
+    // Fuera de la página no se puede medir (scrollHeight da 0): la ajusto
+    // cuando la pongo (actualizar() o alMostrar).
+    if (area.isConnected) {
+      area.style.height = 'auto';
+      area.style.height = `${area.scrollHeight + 2}px`;
+    }
     const largo = area.value.length;
     contador.hidden = largo < AVISAR_DESDE;
     contador.textContent = `${largo} / ${MAX_CARACTERES_MENSAJE}`;
@@ -438,5 +453,15 @@ export function pantallaAyudante() {
   }
 
   cargar();
-  return { titulo: 'Ayudante', contenido: zona, accion: botonNueva, pie: [ranura] };
+  return {
+    titulo: 'Ayudante',
+    contenido: zona,
+    accion: botonNueva,
+    pie: [ranura],
+    // La altura del área depende de su texto, y solo se puede medir con la
+    // pantalla ya puesta: si trae texto, la ajusto aquí.
+    alMostrar: () => {
+      if (area.value) alEscribir();
+    },
+  };
 }

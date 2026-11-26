@@ -4,12 +4,15 @@
  * Lo usan el navegador (detalle de la receta, "La he cocinado") y el
  * servidor (comprobar los descuentos de /api/cocinar).
  */
+import { BASICOS_DESPENSA, DIAS_USAR_PRONTO } from './constantes.js';
+import { diasHasta } from './fechas.js';
 import { normalizar } from './texto.js';
 
 /**
  * @typedef {import('./validacion.js').DatosIngrediente} Ingrediente
  * @typedef {{ id: number, nombre: string, cantidad: number, unidad: string, fechaCaducidad: string | null }} Producto
  * @typedef {{ id: number, nombre: string }} Tupper
+ * @typedef {{ id: number, nombre: string, fechaLimite: string }} TupperConFecha
  */
 
 // --- Conversión de unidades ---
@@ -190,4 +193,81 @@ export function cantidadPropuesta(ingrediente, producto) {
   const necesaria = convertir(ingrediente.cantidad, ingrediente.unidad, producto.unidad);
   if (necesaria === null) return null;
   return Math.min(necesaria, producto.cantidad);
+}
+
+// --- Usar pronto (D-61) ---
+
+/**
+ * @typedef {{ tipo: 'producto', producto: Producto, fecha: string }
+ *   | { tipo: 'tupper', tupper: TupperConFecha, fecha: string }} CosaPronto
+ * `fecha` es la caducidad del producto o la fecha límite del tupper.
+ */
+
+/**
+ * ¿Hay que usarlo pronto? Sí si ya ha caducado, caduca hoy o caduca en
+ * DIAS_USAR_PRONTO días o menos: el rojo y el naranja de avisoCaducidad().
+ * @param {string} fechaIso AAAA-MM-DD
+ * @returns {boolean}
+ */
+export function esPronto(fechaIso) {
+  return diasHasta(fechaIso) <= DIAS_USAR_PRONTO;
+}
+
+/**
+ * Lo que tengo que usar pronto, productos y tuppers juntos en una sola
+ * lista, con lo que antes caduca primero. Los productos sin fecha no entran.
+ * @param {Producto[]} productos
+ * @param {TupperConFecha[]} tuppers
+ * @returns {CosaPronto[]}
+ */
+export function usarPronto(productos, tuppers) {
+  /** @type {CosaPronto[]} */
+  const cosas = [
+    ...productos
+      .filter((producto) => producto.fechaCaducidad && esPronto(producto.fechaCaducidad))
+      .map((producto) => ({ tipo: 'producto', producto, fecha: producto.fechaCaducidad })),
+    ...tuppers
+      .filter((tupper) => esPronto(tupper.fechaLimite))
+      .map((tupper) => ({ tipo: 'tupper', tupper, fecha: tupper.fechaLimite })),
+  ];
+  // Las fechas AAAA-MM-DD se ordenan bien como texto. sort() es estable: con
+  // la misma fecha, los productos se quedan delante de los tuppers.
+  return cosas.sort((x, y) => x.fecha.localeCompare(y.fecha));
+}
+
+// --- Raciones (D-61) ---
+
+/**
+ * Los ingredientes para otro número de raciones: copias con la cantidad
+ * multiplicada por elegidas / raciones (de 2 a 4 raciones, el doble). Redondeo
+ * con redondear(), a los mismos 3 decimales que guarda la base de datos, y
+ * nunca bajo de 0,001, porque un ingrediente no puede tener cantidad 0. Si la
+ * receta no dice para cuántos es, o no cambio nada, devuelvo los mismos.
+ * @param {Ingrediente[]} ingredientes
+ * @param {number | null} raciones Las de la receta (son opcionales, D-49).
+ * @param {number} elegidas Las que elijo en la pantalla.
+ * @returns {Ingrediente[]}
+ */
+export function escalarIngredientes(ingredientes, raciones, elegidas) {
+  if (!raciones || elegidas === raciones) return ingredientes;
+  const factor = elegidas / raciones;
+  return ingredientes.map((ingrediente) => ({
+    ...ingrediente,
+    cantidad: Math.max(redondear(ingrediente.cantidad * factor), 0.001),
+  }));
+}
+
+// --- Básicos de despensa (D-61) ---
+
+/** Los básicos ya normalizados, para no normalizar la lista en cada llamada. */
+const BASICOS = new Set(BASICOS_DESPENSA.map(normalizar));
+
+/**
+ * ¿Es un básico de despensa (sal, aceite…)? Comparo el nombre entero
+ * normalizado: "Aceite de oliva" sí, pero "Aceitunas" no.
+ * @param {string} nombre
+ * @returns {boolean}
+ */
+export function esBasico(nombre) {
+  return BASICOS.has(normalizar(nombre));
 }

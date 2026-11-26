@@ -5,6 +5,8 @@
  * no descuenta nada; recargo el inventario y mantengo lo que ya había decidido.
  * Idempotente (P-06): una clave por visita; si reintento, la MISMA.
  */
+import { escalarIngredientes } from '/compartido/cocina.js';
+import { MAX_RACIONES, MIN_RACIONES } from '/compartido/constantes.js';
 import { api, mensajeDeError } from '../api.js';
 import { crearEstadoFila, crearFilaCocinar, descuentoDeFila, problemaFila } from '../componentes/filaCocinar.js';
 import { crearAviso, crearCarga, crearSinConexion, crearVacio, ponerCargando } from '../componentes/ui/index.js';
@@ -25,6 +27,10 @@ export function pantallaCocinar({ consulta }) {
     return { titulo: 'La he cocinado', contenido: crearNoDisponible(), atras: '/recetas' };
   }
   const id = Number(texto);
+  // ?raciones=4 si las he cambiado en la receta (D-61). Si no vale, como si no viniera.
+  const textoRaciones = consulta.get('raciones') ?? '';
+  const pedidas = ES_ID.test(textoRaciones) ? Number(textoRaciones) : null;
+  const raciones = pedidas !== null && pedidas >= MIN_RACIONES && pedidas <= MAX_RACIONES ? pedidas : null;
   // Una clave por visita: si el primer intento llegó a guardarse, el reintento no descuenta dos veces.
   const clave = crypto.randomUUID();
 
@@ -50,7 +56,10 @@ export function pantallaCocinar({ consulta }) {
       zona.replaceChildren(error.codigo === 'NO_EXISTE' ? crearNoDisponible() : crearError(error));
       return;
     }
-    filas = receta.ingredientes.map((ingrediente, i) => {
+    // Las cantidades, para las raciones elegidas: lo que veo en la receta es lo que descuento.
+    const escalan = raciones !== null && receta.raciones !== null && raciones !== receta.raciones;
+    const ingredientes = escalan ? escalarIngredientes(receta.ingredientes, receta.raciones, raciones) : receta.ingredientes;
+    filas = ingredientes.map((ingrediente, i) => {
       const fila = crearEstadoFila(ingrediente, inventario.productos, inventario.tuppers);
       const antes = anteriores?.[i];
       if (antes) {
@@ -68,6 +77,7 @@ export function pantallaCocinar({ consulta }) {
     zona.replaceChildren(
       avisoGuardado,
       el('p', { class: 'cocinar__receta' }, receta.nombre),
+      ...(escalan ? [el('p', {}, textoEscala(raciones, receta.raciones))] : []),
       el('p', { class: 'tono--tenue' }, 'Revisa lo que se va a descontar de tu inventario.'),
       el(
         'div',
@@ -135,6 +145,17 @@ export function pantallaCocinar({ consulta }) {
 
   cargar();
   return { titulo: 'La he cocinado', contenido: zona, pie: [ranuraBoton], atras: `/receta/${id}` };
+}
+
+/**
+ * "Para 4 raciones (la receta es para 2)." Va bajo el nombre cuando he
+ * cambiado las raciones en la receta.
+ * @param {number} raciones Las elegidas.
+ * @param {number} deLaReceta
+ */
+function textoEscala(raciones, deLaReceta) {
+  const elegidas = raciones === 1 ? '1 ración' : `${raciones} raciones`;
+  return `Para ${elegidas} (la receta es para ${deLaReceta}).`;
 }
 
 /** "Esta receta ya no está disponible": la URL no vale o la receta se ha borrado. */

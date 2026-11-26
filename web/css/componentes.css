@@ -534,6 +534,82 @@ input:focus-visible + .chip {
   }
 }
 
+/* "· 12" en los chips del filtro: el número no salta de ancho al cambiar. */
+.chip__cuenta {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inventario (P-04, D-61): "Todo · N" y "Usar pronto · N" a la izquierda y el
+   icono de filtrar a la derecha; debajo, lo filtrado ("Nevera ✗"). */
+.inventario__filtros {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-s);
+  margin-bottom: var(--espacio-l);
+}
+.inventario__filtros .selector {
+  flex: 1;
+  margin: 0;
+}
+.inventario__elegidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-s);
+  margin: calc(-1 * var(--espacio-s)) 0 var(--espacio-l);
+}
+.inventario__elegidas[hidden] {
+  display: none;
+}
+/* Un filtro elegido que se quita al tocarlo: chip con tinte y un aspa. */
+.chip--quitar {
+  gap: var(--espacio-xs);
+  background: var(--color-tinte);
+  border-color: var(--color-primario);
+  color: var(--color-sobre-tinte);
+  font: inherit;
+  font-weight: var(--peso-fuerte);
+}
+.chip--quitar:focus-visible {
+  outline: var(--foco);
+  outline-offset: var(--foco-separacion);
+}
+
+/* ============ MenuFiltro (P-04, D-61) ============ */
+.menu-filtro {
+  position: relative;
+  flex: none;
+}
+.menu-filtro[hidden] {
+  display: none;
+}
+/* Con algo filtrado, el icono se rellena de tinte, como un chip elegido. */
+.menu-filtro__boton--activo {
+  background: var(--color-tinte);
+  color: var(--color-sobre-tinte);
+}
+.menu-filtro__menu {
+  position: absolute;
+  top: calc(100% + var(--espacio-xs));
+  right: 0;
+  z-index: 10;
+  min-width: 13rem;
+  margin: 0;
+  padding: var(--espacio-s) var(--espacio-l);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-flotante);
+}
+.menu-filtro__menu[hidden] {
+  display: none;
+}
+.menu-filtro__leyenda {
+  padding: var(--espacio-xs) 0;
+  font-size: var(--texto-secundario);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto-secundario);
+}
+
 /* ============ Lista y filas ============ */
 /* Un bloque blanco sobre el papel, con esquinas (como las listas agrupadas
    de iOS). Las filas se separan con una línea, no son tarjetas sueltas. */
@@ -1214,6 +1290,32 @@ input:focus-visible + .chip {
   background: var(--color-superficie);
 }
 
+/* "Hay 3 cosas que caducan pronto · Cocina con lo que tengo" (P-04, D-61),
+   debajo de la lista del Inventario. */
+.tarjeta-cocinar {
+  margin-top: var(--espacio-l);
+}
+.tarjeta-cocinar__titulo {
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--linea-subtitulo);
+  font-weight: var(--peso-titulo);
+  color: var(--color-primario-texto);
+}
+.tarjeta-cocinar__enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-xs);
+  align-self: flex-start;
+  min-height: var(--tactil);
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-fuerte);
+}
+.tarjeta-cocinar__enlace .icono {
+  width: 18px;
+  height: 18px;
+}
+
 /* ============ Ficha del tupper (P-07) ============ */
 .ficha {
   display: flex;
@@ -1564,6 +1666,79 @@ textarea.campo__entrada {
 }
 .receta__ingrediente {
   font-weight: var(--peso-fuerte);
+}
+/* "Despensa: aceite de oliva, sal y pimienta" (D-61): los básicos que no
+   tengo, al final de los ingredientes y sin ✗. */
+.receta__despensa {
+  margin-top: var(--espacio-m);
+}
+.receta__despensa[hidden] {
+  display: none;
+}
+/* ============ Modo cocina (P-31, D-61) ============ */
+.cocinando {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-l);
+}
+.cocinando__ingredientes summary {
+  min-height: var(--tactil);
+  display: flex;
+  align-items: center;
+  font-weight: var(--peso-fuerte);
+  color: var(--color-primario-texto);
+  cursor: pointer;
+}
+.cocinando__ingredientes ul {
+  margin: 0;
+  padding-left: 1.25em;
+}
+/* El paso, en letra grande: se lee con el móvil apoyado en la encimera. */
+.cocinando__paso {
+  padding: var(--espacio-l);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie);
+}
+.cocinando__paso:focus-visible {
+  outline: var(--foco);
+  outline-offset: var(--foco-separacion);
+}
+.cocinando__contador {
+  margin-bottom: var(--espacio-s);
+  font-size: var(--texto-secundario);
+}
+.cocinando__texto {
+  font-size: var(--texto-titulo);
+  line-height: 1.5;
+}
+.cocinando__pantalla[hidden] {
+  display: none;
+}
+
+/* "− 2 raciones +" (P-11, D-61). */
+.raciones {
+  display: inline-flex;
+  /* .receta es una columna flex: sin esto, se estiraría a todo el ancho. */
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--espacio-xs);
+  margin-bottom: var(--espacio-l);
+  border: 1px solid var(--color-borde-control);
+  border-radius: var(--radio-pildora);
+}
+.raciones .boton-icono {
+  border-radius: var(--radio-pildora);
+}
+.raciones .boton-icono[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: default;
+}
+.raciones__numero {
+  min-width: 6.5em;
+  text-align: center;
+  font-weight: var(--peso-fuerte);
+  font-variant-numeric: tabular-nums;
 }
 .receta__pasos {
   display: flex;

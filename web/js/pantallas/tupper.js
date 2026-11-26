@@ -25,6 +25,7 @@ import {
 } from '../componentes/ui/index.js';
 import { el } from '../dom.js';
 import { navegar } from '../router.js';
+import { urlVuelta } from '../vistaInventario.js';
 
 /** Días por defecto, como en Expo (DISENO_UI §7.4). */
 const DIAS_POR_DEFECTO = 3;
@@ -156,7 +157,7 @@ function pantallaNuevo(consulta) {
     ponerCargando(boton, true);
     try {
       const { avisoActivo } = await api.post('/tuppers', resultado.datos);
-      navegar(`/?ubicacion=${resultado.datos.ubicacion}`, {
+      navegar(urlVuelta(resultado.datos.ubicacion), {
         reemplazar: true,
         mensaje: avisoActivo
           ? { tick: true, texto: `Tupper de ${resultado.datos.nombre} guardado.` }
@@ -269,7 +270,7 @@ function pantallaFicha(id) {
       ponerCargando(boton, true);
       try {
         await api.post(`/tuppers/${id}/consumir`);
-        navegar(`/?ubicacion=${tupper.ubicacion}`, {
+        navegar(urlVuelta(tupper.ubicacion), {
           reemplazar: true,
           mensaje: { tick: true, texto: `«${tupper.nombre}» marcado como consumido.` },
         });

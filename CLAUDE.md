@@ -55,31 +55,43 @@ Proyecto de portfolio de un estudiante de DAW.
 (2026-11-23), 12 (2026-11-25) y 13 (2026-11-25). El detalle de cada paso
 está en los commits (`git log`).
 
-**Versión 2 (D-60, 2026-11-25): plan escrito** en la rama `v2/plan` (lo
-escribió Claude a petición del autor, que eligió que entraran todas las
-ideas, con lo que no usa IA primero). Fases (ARQUITECTURA §10): 14 Usar
-pronto y modo cocina, 15 Recetario con datos y filtros, 16 Ayudante con
+**Versión 2 (D-60, 2026-11-25; renumerada por D-62):** fases (ARQUITECTURA
+§10) 14 Usar pronto y modo cocina, 15 Portada "Hoy" y barra de seis
+pestañas (D-62), 16 Recetario con datos y filtros, 17 Ayudante con
 contexto (las herramientas del chat cambian una sola vez: excepción a
-D-51), 17 Categorías y dibujos, 18 Temporada, 19 Calendario y 20 Cierre.
+D-51), 18 Categorías y dibujos, 19 Temporada, 20 Calendario y 21 Cierre.
 Cada fase contesta sus "Preguntas para el paso 1" con el autor y las
-apunta como su propia D-xx. Ideas sacadas de §10 y de la fila "Ideas v2"
-del lienzo.
-**Fase 14: paso 1 aprobado** (2026-11-25; D-61; P-04, P-11, P-31 y las
-rutas en DISENO_UI). Lo decidido:
-- Inventario en dos filas: "Todo / Nevera / Despensa / Congelador" (se
-  abre en Todo) y "Todo · N / Usar pronto · N" (`?filtro=pronto`).
-- "Usar pronto" junta productos y tuppers caducados o que caducan en 3
-  días o menos, por fecha; en "Todo · N" los tuppers siguen arriba.
-- La tarjeta "Cocina con lo que tengo" escribe la pregunta en el
-  Ayudante, sin enviarla.
-- Los básicos de despensa salen de una lista fija (`BASICOS_DESPENSA`).
-- Las raciones (1 a 20) también escalan lo que descuenta "La he
-  cocinado" (`?raciones=`).
-- Modo cocina P-31 (`/receta/:id/cocinando`) con Wake Lock (iOS 18.4).
-- Sin cambios en la API ni migraciones.
-**Siguiente:** paso 2, `compartido/` (`usarPronto()`,
-`escalarIngredientes()`, `BASICOS_DESPENSA` y `esBasico()`, con pruebas):
-preguntar antes quién lo escribe.
+apunta como su propia D-xx. Lo escribe Claude a petición del autor.
+**Fase 14 (D-61): pasos 1 a 6 hechos; falta probarla en el iPhone**
+(`app-v58`, desplegada el 2026-11-26). Lo que conviene recordar:
+- Inventario (cambio del autor del 2026-11-26): chips "Todo · N" (lo
+  último que entró, arriba) y "Usar pronto · N" (`?filtro=pronto`, toda la
+  casa, lo más urgente primero). En "Todo", el icono de filtrar abre
+  `componentes/menuFiltro.js` (casillas: varias ubicaciones a la vez,
+  `?ubicacion=nevera&ubicacion=congelador`) y lo filtrado sale debajo
+  ("Nevera ✗"). `vistaInventario.js` recuerda la vista para volver a ella.
+- "Cocina con lo que tengo" (al final del Inventario hasta la fase 15)
+  escribe la pregunta en el Ayudante sin enviarla (`tomarMensaje()`).
+- `compartido/cocina.js`: `esPronto()`, `usarPronto()`,
+  `escalarIngredientes()` (con `redondear()`, 3 decimales) y `esBasico()`
+  (`BASICOS_DESPENSA`); `DIAS_USAR_PRONTO` también en `avisoCaducidad()`.
+- Receta: "− N raciones +" (escala también "La he cocinado",
+  `?raciones=`), caducidad junto al ingrediente y "Despensa: aceite…";
+  pie con "La he cocinado" y "Empezar a cocinar".
+- Modo cocina P-31 (`/receta/:id/cocinando`, `pantallas/cocinando.js`):
+  un paso cada vez, Wake Lock (sin probar: el panel de Claude da
+  `NotAllowedError`) y `alSalir` nuevo en la Vista del router para
+  soltarlo.
+- Arreglado de paso: la cabecera de Receta decía "Receta" si la receta
+  llegaba antes de que el router pusiera la pantalla (`vista.titulo`).
+- axe con sesión: Playwright con `bypassCSP` en un contexto de prueba y
+  `127.0.0.1` (Playwright resuelve `localhost` a `::1`); el autor dio
+  permiso para `browser_run_code_unsafe`.
+- Al probar con el panel: el SW de la versión anterior sirve el código
+  viejo; borrar registros y cachés antes de recargar.
+**Siguiente:** el autor prueba la fase 14 en el iPhone (sobre todo, que
+la pantalla no se apague en el modo cocina) y da su "ok"; después, la
+fase 15 (portada "Hoy", D-62, ya documentada: P-32).
 
 **Rebranding a Stockpot (D-59): hecho, desplegado y probado en el
 iPhone** (2026-11-25, lo escribió Claude a petición del autor; fases 0 a 7

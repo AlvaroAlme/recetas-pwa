@@ -127,11 +127,12 @@ export function conMarca(texto) {
  * @param {{
  *   leyenda: string,
  *   nombre: string,
- *   opciones: { valor: string, etiqueta: string }[],
+ *   opciones: { valor: string, etiqueta: string | Node }[],
  *   seleccionado?: string | null,
  *   alCambiar?: (valor: string) => void,
  *   leyendaVisible?: boolean
- * }} opciones
+ * }} opciones La etiqueta puede ser un nodo, si una parte cambia después
+ *   ("Usar pronto · 3", D-61).
  * @returns {HTMLFieldSetElement}
  */
 export function crearSelector({ leyenda, nombre, opciones, seleccionado = null, alCambiar, leyendaVisible = true }) {
@@ -200,10 +201,12 @@ export function recomendarEnSelector(selector, valores) {
  * lector la lee entera: "Leche, Caduca mañana, 1 l".
  * El subtítulo sale como etiqueta de estado (con su tono e icono); con
  * tono: null es un texto normal en gris (los resúmenes de Perfil).
- * @param {{ href: string, titulo: string, subtitulo?: string, tono?: string | null, detalle?: string }} opciones
+ * `lugar` ("Nevera") sale en gris bajo el título, cuando la lista mezcla
+ * ubicaciones (Inventario en Todo, D-61).
+ * @param {{ href: string, titulo: string, lugar?: string, subtitulo?: string, tono?: string | null, detalle?: string }} opciones
  * @returns {HTMLLIElement}
  */
-export function crearFila({ href, titulo, subtitulo, tono = 'tenue', detalle }) {
+export function crearFila({ href, titulo, lugar, subtitulo, tono = 'tenue', detalle }) {
   return el(
     'li',
     {},
@@ -214,6 +217,7 @@ export function crearFila({ href, titulo, subtitulo, tono = 'tenue', detalle }) 
         'span',
         { class: 'fila__textos' },
         el('span', { class: 'fila__titulo' }, titulo),
+        lugar && el('span', { class: 'fila__subtitulo fila__subtitulo--texto' }, lugar),
         subtitulo && el('span', { class: tono ? `fila__subtitulo tono--${tono}` : 'fila__subtitulo fila__subtitulo--texto' }, subtitulo)
       ),
       detalle && el('span', { class: 'fila__detalle' }, detalle)

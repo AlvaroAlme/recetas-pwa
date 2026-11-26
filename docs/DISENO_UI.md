@@ -399,6 +399,7 @@ Desplegable de sugerencias bajo un `CampoTexto` (el nombre del producto). Patró
 <!-- Fase 12 (D-54): <li><a href="/lista">…<span>Lista</span></a></li> va detrás de Inventario. -->
 ```
 - **Pestaña activa:** `aria-current="page"` + color `primario` + **texto en negrita y una barrita encima** (abajo) o a la izquierda (lateral). No depende solo del color.
+- **Desde D-62:** seis pestañas (Inicio, Inventario, Lista, Recetas, Semana y Ayudante); ver §5.1. Lo de abajo sobre "como mucho 5" vale para la barra con nombres; con la activa sin nombre por debajo de 390 px, caben seis de 53 px.
 - Cada pestaña mide ≥ 44 × 44 px. Iconos SVG de 24 px con `stroke="currentColor"` (D-30). Como mucho **5 pestañas**: en un iPhone de 375 px caben 75 px por pestaña; con 6 quedarían 62 px y "Ayudante" no cabría (por eso Ajustes pasa a la cabecera como Perfil, D-52). El texto va en `--texto-pequeno` y en una sola línea. Icono de Ayudante: un bocadillo de conversación.
 - **Se muestra en las pantallas de pestaña.** En las páginas secundarias del móvil se oculta (más sitio para el formulario y el pie, como los modales de Expo); en escritorio la barra lateral se ve siempre.
 
@@ -569,39 +570,78 @@ Desde D-56 (fase 11), **4 pasos**; el primero es "Este eres tú":
 ```
 Paso 3, "Instala la app" (instrucciones de iOS o un botón en Chrome); paso 4, "Activa los avisos". Cada paso se puede saltar.
 
-#### P-04 · Inventario — `/` · E-1
+#### P-04 · Inventario — `/` (desde la fase 15, `/inventario`, D-62) · E-1
 ```
 ┌──────────────────────────────┐
 │  Inventario         (avatar)  │
-│ [●Todo|Nevera|Despensa|Cong.] │  ← ubicación (Todo, nueva)
-│ (●Todo · 12) ( Usar pronto · 3)│  ← filtro (fase 17: + categorías)
+│ (●Todo · 7) (Usar pronto · 3) ⏷ │  ← vista e icono de filtrar
+│ (Nevera ✗) (Congelador ✗)     │  ← lo filtrado (solo en Todo)
 │──────────────────────────────│
 │  TUPPERS                      │
 │  Cocido                Tupper │
-│  Nevera · Caduca mañana       │
+│  Nevera                       │
+│  Caduca mañana                │
 │──────────────────────────────│
-│  PRODUCTOS                    │
-│  Yogur                 2 ud.  │
-│  Nevera · Caduca hoy  (rojo)  │
-│  Arroz                  1 kg  │
-│  Despensa                     │
+│  PRODUCTOS                    │  (lo último que entró, arriba)
+│  Pimientos verdes      1 ud.  │
+│  Nevera                       │
+│  Pechuga de pollo      2 ud.  │
+│  Congelador                   │
+│  Caducado (21/10)  (rojo)     │
 │──────────────────────────────│
 │ ┌──────────────────────────┐ │
 │ │ Hay 3 cosas que caducan  │ │  ← solo si N > 0
 │ │ pronto                   │ │
 │ │ Te propongo algo para    │ │
 │ │ cocinar con lo que tienes│ │
-│ │ Cocina con lo que tengo →│ │
+│ │ Cocina con lo que tengo >│ │
 │ └──────────────────────────┘ │
 │──────────────────────────────│
 │ [ + Tupper ]° [ + Producto ]  │  ← pie
 └──────────────────────────────┘
 ```
-- **Dos filas** (D-61): la ubicación (`?ubicacion=`; sin él, **Todo**) y el filtro (`?filtro=pronto`; sin él, "Todo · N"). Las dos se recuerdan en la URL, así que "Atrás" vuelve a la misma vista. Cambiar cualquiera de las dos recarga solo la lista y el foco se queda en el chip.
-- Con **Todo**, cada fila dice su ubicación delante de la caducidad ("Nevera · Caduca hoy"), y "+ Producto" / "+ Tupper" llegan sin ubicación (el formulario la pregunta).
-- **"Usar pronto · N"**: productos y tuppers caducados o que caducan en 3 días o menos, en una sola lista por fecha, sin secciones; los tuppers con su detalle "Tupper". Vacío: "Nada caduca pronto" / "Lo que caduque en 3 días o menos saldrá aquí."
-- **"Todo · N"**: como siempre, Tuppers arriba y Productos debajo (sin tuppers, sin títulos de sección).
-- **Tarjeta "Cocina con lo que tengo"** (`Tarjeta`, debajo de la lista, si N > 0 en la ubicación elegida): el título es un `h2`; el enlace abre el Ayudante con la pregunta escrita ("Tengo que gastar pronto: …. ¿Qué puedo cocinar?") en el área de texto, sin enviarla.
+- **Dos vistas** (D-61, cambiado por el autor el 2026-11-26): chips **"Todo · N"** (`/`) y **"Usar pronto · N"** (`?filtro=pronto`). Se recuerdan en la URL, así que "Atrás" vuelve a la misma. Cambiar de vista o de filtro no vuelve a pedir el inventario: solo repinta la lista, y el foco se queda donde estaba.
+- **"Todo · N"**: lo último que ha entrado, arriba; los tuppers en su sección, arriba, y los productos debajo (sin tuppers, sin títulos de sección). N cuenta lo que se ve con el filtro.
+- **Icono de filtrar** (`MenuFiltro`, solo en "Todo"): un `.boton-icono` con `aria-expanded` que abre, bajo él, un menú con casillas **Nevera, Despensa y Congelador**; se pueden marcar varias y se aplica al momento (`?ubicacion=nevera&ubicacion=congelador`). Se cierra con Escape (el foco vuelve al icono), al tocar fuera o al sacar el foco. Con algo filtrado, el icono se rellena de tinte y el lector oye "Filtrar por ubicación, 2 elegidas".
+- **Lo filtrado**, bajo los chips: un botón por ubicación ("Nevera ✗", tinte con borde marino, `aria-label` "Quitar el filtro Nevera"); al quitarlo, el foco va al icono.
+- Cada fila dice su **ubicación en gris** bajo el nombre (`lugar` en `crearFila()`), salvo cuando el filtro deja una sola; entonces "+ Producto" y "+ Tupper" llegan con ella elegida (si no, el formulario la pregunta).
+- **"Usar pronto · N"**: productos y tuppers de **toda la casa** (el filtro no cuenta) caducados o que caducan en 3 días o menos, lo más urgente primero, en una sola lista; los tuppers con su detalle "Tupper". Vacío: "Nada caduca pronto" / "Lo que caduque en 3 días o menos saldrá aquí."
+- **Al volver** tras guardar, mover o borrar un producto o un tupper (`urlVuelta()` en `web/js/vistaInventario.js`): a la misma vista y filtro; si el filtro ya no deja ver el producto (lo has movido), se le añade su ubicación. Se recuerda en memoria: tras recargar la app, a "Todo".
+- **Tarjeta "Cocina con lo que tengo"** (`Tarjeta`, debajo de la lista, si hay algo que usar pronto en la casa): el título es un `h2`; el enlace abre el Ayudante con la pregunta escrita ("Tengo que gastar pronto: …. ¿Qué puedo cocinar?") en el área de texto, sin enviarla.
+
+#### P-32 · Inicio — `/` · E-1 (fase 15, D-62)
+```
+┌──────────────────────────────┐
+│  Hola, Ana          (avatar)  │  (h1 "Inicio" solo para el lector)
+│  Miércoles 26 de noviembre    │
+│ ┌ HOY COMES ───────────────┐ │
+│ │ Comida · Lentejas   Tienes│ │  → /plan/2026-11-26
+│ │ Cena · sin planificar Elegir│ │  → /plan/2026-11-26/cena
+│ └──────────────────────────┘ │
+│ ┌ USAR PRONTO ─────────────┐ │
+│ │ Pechuga de pollo Caducado│ │  → su ficha
+│ │ Espinacas            Hoy │ │
+│ │ Leche             Mañana │ │
+│ │ Ver las 5             >  │ │  → /inventario?filtro=pronto
+│ └──────────────────────────┘ │
+│ ┌ INVENTARIO ───────── [+] ┐ │  + → /producto/nuevo
+│ │ [12 Nevera][18 Desp.][6 Cong.]│  → /inventario?ubicacion=…
+│ │ Ver todo el inventario > │ │  → /inventario
+│ └──────────────────────────┘ │
+│ ┌ LISTA DE LA COMPRA ──────┐ │
+│ │ 5 cosas por comprar   >  │ │  → /lista
+│ └──────────────────────────┘ │
+│ [ Cocina con lo que caduca · 3 ]│  ← flota sobre la barra, solo si N > 0
+│ (Inicio)(▢)(☰)(⌂)(▦)(◌)        │  ← seis pestañas
+└──────────────────────────────┘
+```
+- Los cuatro bloques son `Tarjeta` con su título (`h2`, estilo `titulo-seccion`) y un enlace o varios; cada fila que lleva a otra pantalla es un enlace entero (≥ 44 px de alto).
+- **Hoy comes**: la comida y la cena de hoy (`GET /api/plan/:fecha`), con `nombrePlato()` y el resumen de "qué me falta" de P-15 ("Tienes todo" / "Te falta: …", sin contar los básicos, D-61); "Fuera de casa" con su nota; un hueco vacío dice "Sin planificar" con el enlace "Elegir" a P-14.
+- **Usar pronto**: las 3 primeras de `usarPronto()` (con su etiqueta de caducidad); "Ver las N" solo si hay más de 3. Sin nada: "Nada caduca pronto" en tenue.
+- **Inventario**: tres cifras (productos y tuppers de cada ubicación) que son enlaces a `/inventario?ubicacion=…` ("Nevera, 12 cosas"), "Ver todo el inventario" y un `.boton-icono` "+" (`aria-label` "Añadir producto") a Nuevo producto.
+- **Lista de la compra**: "N cosas por comprar" (las líneas sin tachar) o "No falta nada" si está vacía.
+- **Botón grande** "Cocina con lo que caduca" con el número (principal, ancho, 56 px de alto, por encima de la barra y sin taparla): hace lo que hacía la tarjeta del Inventario (D-61), abrir el Ayudante con la pregunta escrita sin enviarla. Sin nada que usar pronto, no sale. La lista deja sitio abajo para que el botón no tape el último bloque.
+- Los datos se piden a la vez (inventario, plan de hoy y lista); si uno falla, su bloque dice "No se ha podido cargar" con "Reintentar" y los demás se ven igual.
 
 #### P-05 · Nuevo / editar producto — `/producto/nuevo?ubicacion=` · `/producto/:id` · E-2
 ```
@@ -842,25 +882,27 @@ Reglas de formularios (skill reglas-diseno-web): etiqueta siempre visible (la fl
 #### P-31 · Modo cocina — `/receta/:id/cocinando` · E-2 (D-61)
 ```
 ┌──────────────────────────────┐
-│  ‹              Paso 2 de 5   │
-│  Tortilla de patatas          │  (h1, pequeño)
-│ ▸ Ingredientes                │  (<details>)
-│                               │
-│  Bate los huevos con una      │  (texto grande,
-│  pizca de sal y mézclalos     │   --texto-subtitulo)
-│  con las patatas.             │
-│                               │
+│  ‹  Tortilla de patatas       │  (h1: el nombre de la receta)
+│ ▸ Ingredientes (4 raciones)   │  (<details>, cerrado)
+│ ┌──────────────────────────┐ │
+│ │ Paso 2 de 5              │ │  (tenue)
+│ │ Bate los huevos con una  │ │  (texto grande,
+│ │ pizca de sal y mézclalos │ │   --texto-titulo)
+│ │ con las patatas.         │ │
+│ └──────────────────────────┘ │
 │  La pantalla no se apagará    │  (tenue, solo si hay
 │  mientras cocinas.            │   Wake Lock)
 │──────────────────────────────│
-│ [ ‹ Anterior ]° [ Siguiente › ]│
+│ [ Anterior ]°                 │
+│ [ Siguiente ]                 │
 └──────────────────────────────┘
 ```
 - Los pasos son las líneas de `instrucciones` (como en P-11). En el primero, "Anterior" no sale; en el último, "Siguiente" pasa a ser `[La he cocinado]` → `/cocinar?receta=:id&raciones=N`.
-- "Ingredientes" (`<details>`, cerrado) con las cantidades ya escaladas por `?raciones`.
-- Al cambiar de paso, el texto nuevo entra con un fundido (D-56, `opacity`; nada con "Reducir movimiento") y el foco va al párrafo del paso (`tabindex="-1"`), así VoiceOver lo lee. "Paso 2 de 5" va en la cabecera.
+- La cabecera lleva el nombre de la receta (y "Modo cocina" mientras carga). "Paso 2 de 5" va dentro del recuadro del paso.
+- "Ingredientes" (`<details>`, cerrado) con las cantidades ya escaladas por `?raciones` y las raciones en el resumen.
+- Al cambiar de paso, el texto nuevo entra con `entrar()` (D-56: `opacity` y 8 px; nada con "Reducir movimiento") y el foco va al recuadro del paso (`tabindex="-1"`), así VoiceOver lee "Paso 2 de 5" y el texto.
 - El paso no se guarda en la URL: Atrás (flecha o gesto) vuelve a la receta.
-- **Wake Lock**: se pide al mostrar la pantalla y otra vez en `visibilitychange` si vuelve a verse; se suelta al salir. Sin la API (iOS anterior a 18.4) o si falla, no pasa nada y la línea tenue no sale.
+- **Wake Lock**: se pide al tener la receta y al mostrarse la pantalla, y otra vez en `visibilitychange` si vuelve a verse (iOS la suelta al salir de la app); se suelta en `alSalir`, que el router llama cuando otra pantalla ocupa su sitio (nuevo en la Vista, fase 14). Sin la API (iOS anterior a 18.4) o si el navegador no la deja (el panel del navegador de Claude da `NotAllowedError`), no pasa nada y la línea tenue no sale.
 
 #### P-13 · Semana — `/semana` · `/semana/:lunes` · E-1 (D-50)
 ```
@@ -1189,7 +1231,7 @@ Texto: qué datos se guardan y dónde (Neon y Render), que **las fotos de los ti
 ## 5. Navegación y rutas
 
 ### 5.1 Pestañas
-**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 12, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27). **Desde D-59:** en el móvil, una barra flotante con Inventario, Lista, Recetas y Semana (la activa, una pastilla marino que crece y muestra su nombre; las demás, solo el icono) y el Ayudante aparte, como botón redondo de 60 px a la derecha.
+**Inventario** (`/`), **Recetas** (`/recetas`), **Semana** (`/semana`) y **Ayudante** (`/ayudante`, fase 8, D-51); en la fase 12, **Lista** (`/lista`, D-54) detrás de Inventario. **Ajustes ya no es una pestaña:** pasa a Perfil, que se abre con el avatar de la cabecera (D-52). Barra inferior en el móvil y lateral desde 48em (D-27). **Desde D-59:** en el móvil, una barra flotante con Inventario, Lista, Recetas y Semana (la activa, una pastilla marino que crece y muestra su nombre; las demás, solo el icono) y el Ayudante aparte, como botón redondo de 60 px a la derecha. **Desde D-62 (fase 15):** seis pestañas dentro de la píldora: **Inicio** (`/`, P-32), **Inventario** (`/inventario`), **Lista**, **Recetas**, **Semana** y **Ayudante**, sin botón aparte. La activa enseña su nombre solo desde 390 px (24.375em); por debajo, las seis son iconos iguales (unos 53 px a 375 px) y la activa se distingue por la pastilla, con el nombre en la página para el lector.
 
 ### 5.2 Rutas (History API: URLs normales, sin `#`)
 
@@ -1199,7 +1241,8 @@ Express devuelve `index.html` para cualquier ruta que no sea `/api/*` ni un arch
 |---|---|---|---|---|
 | `/entrar`, `/registro` | P-01, P-02 | — | `?volver=` solo si empieza por `/` y no por `//` (contra redirecciones abiertas) | — |
 | `/bienvenida` | P-03 | — | — | — |
-| `/` | P-04 | Inventario | `?ubicacion` ∈ `UBICACIONES` o `todo`, si no `todo`; `?filtro` = `pronto` o nada (D-61) | — |
+| `/` | P-32 (desde la fase 15, D-62; antes P-04) | Inicio | — | — |
+| `/inventario` | P-04 (fase 15, D-62) | Inventario | `?ubicacion` (repetible) ∈ `UBICACIONES`, las demás no cuentan; `?filtro` = `pronto` o nada (D-61) | — |
 | `/producto/nuevo` | P-05 | Inventario | `?ubicacion` ∈ `UBICACIONES` o nada | `/` |
 | `/producto/:id` | P-05 | Inventario | `id` entero > 0 | `/` |
 | `/tupper/nuevo` | P-06 | Inventario | igual que producto | `/` |

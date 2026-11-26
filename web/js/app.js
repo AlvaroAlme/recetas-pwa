@@ -10,6 +10,7 @@ import { iniciarRouter } from './router.js';
 import { pantallaAyudante } from './pantallas/ayudante.js';
 import { pantallaBienvenida } from './pantallas/bienvenida.js';
 import { pantallaBorrarCuenta } from './pantallas/borrarCuenta.js';
+import { pantallaCocinando } from './pantallas/cocinando.js';
 import { pantallaCocinar } from './pantallas/cocinar.js';
 import { pantallaConfirmarEmail } from './pantallas/confirmarEmail.js';
 import { pantallaEditarReceta } from './pantallas/editarReceta.js';
@@ -88,6 +89,7 @@ iniciarRouter({
     { patron: '/receta/nueva', pantalla: pantallaEditarReceta },
     { patron: '/receta/:id', pantalla: pantallaReceta, validar: ({ id }) => ES_ID.test(id) },
     { patron: '/receta/:id/editar', pantalla: pantallaEditarReceta, validar: ({ id }) => ES_ID.test(id) },
+    { patron: '/receta/:id/cocinando', pantalla: pantallaCocinando, validar: ({ id }) => ES_ID.test(id) },
     // "La he cocinado": ?receta=3 (la pantalla comprueba el id, P-12).
     { patron: '/cocinar', pantalla: pantallaCocinar },
     // Plan del día (P-15, lo abre el aviso) y Planificar hueco (P-14): /plan/2026-11-24
